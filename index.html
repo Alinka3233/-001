@@ -1786,7 +1786,7 @@
             box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--glass-border);
             border: none;
             transform: translateZ(0);
-            transition: all 0.4s var(--spring-easing);
+            transition: transform 0.4s var(--spring-easing), width 0.4s var(--spring-easing), opacity 0.4s var(--spring-easing);
             margin: 0 auto;
         }
 
@@ -6880,18 +6880,21 @@
         /* iOS Safari Performance Fallbacks */
         @supports (-webkit-touch-callout: none) {
             /* 降级 backdrop-filter，减少高频层的模糊 */
-            .widget, .dock, .appstore-header, .clock-tabs, .weather-header, .assistive-touch, .assistive-touch-menu, .assistive-touch-item, .app-header {
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                background-color: rgba(255, 255, 255, 0.85) !important;
+            .widget, .dock, .appstore-header, .clock-tabs, .weather-header, .assistive-touch, .assistive-touch-menu, .app-header, .safari-nav, .wechat-header, .wechat-tab, .notes-header {
+                backdrop-filter: blur(5px) !important; /* 减少模糊半径以提升性能 */
+                -webkit-backdrop-filter: blur(5px) !important;
+                background-color: rgba(255, 255, 255, 0.95) !important;
             }
-            .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, .dark-mode .clock-tabs, .dark-mode .weather-header, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .assistive-touch-item, .dark-mode .app-header {
-                background-color: rgba(30, 30, 30, 0.85) !important;
+            .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, .dark-mode .clock-tabs, .dark-mode .weather-header, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .app-header, .dark-mode .safari-nav, .dark-mode .wechat-header, .dark-mode .wechat-tab, .dark-mode .notes-header {
+                background-color: rgba(30, 30, 30, 0.95) !important;
             }
             
-            /* 禁用高消耗阴影 */
-            * {
-                box-shadow: none !important;
+            /* 简化阴影，减少图层重绘 */
+            .widget, .app-icon .icon, .app-page, .assistive-touch, .assistive-touch-menu, .wechat-modal-content {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            }
+            .dark-mode .widget, .dark-mode .app-icon .icon, .dark-mode .app-page, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .wechat-modal-content {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
             }
 
             /* 简化打开应用时的背景动画 */
@@ -9539,9 +9542,9 @@
             // 长按进入抖动模式
             document.querySelectorAll('.app-icon').forEach(icon => {
                 icon.addEventListener('mousedown', startLongPress);
-                icon.addEventListener('touchstart', startLongPress);
+                icon.addEventListener('touchstart', startLongPress, { passive: true });
                 icon.addEventListener('mouseup', cancelLongPress);
-                icon.addEventListener('touchend', cancelLongPress);
+                icon.addEventListener('touchend', cancelLongPress, { passive: true });
                 icon.addEventListener('mousemove', cancelLongPress);
                 icon.addEventListener('touchmove', cancelLongPress, { passive: true });
             });
@@ -9749,6 +9752,10 @@
                 activeApp = appName;
                 phoneContainer.classList.add('app-open');
                 
+                // 给壁纸添加 will-change 以提升动画性能
+                wallpaper.style.willChange = 'transform, filter';
+                setTimeout(() => { wallpaper.style.willChange = 'auto'; }, 800);
+                
                 // 确保背景颜色重置为默认，避免手电筒等功能残留的背景色影响进入应用时的视觉体验
                 document.body.style.backgroundColor = ''; 
                 
@@ -9774,6 +9781,10 @@
                 const appPages = document.querySelectorAll('.app-page');
                 phoneContainer.classList.remove('app-open');
                 
+                // 给壁纸添加 will-change 以提升动画性能
+                wallpaper.style.willChange = 'transform, filter';
+                setTimeout(() => { wallpaper.style.willChange = 'auto'; }, 800);
+                
                 // 退出应用时，根据手电筒状态恢复背景颜色
                 if (controlStates.flashlight) {
                     document.body.style.backgroundColor = 'rgba(255, 251, 204, 0.8)';
@@ -9795,17 +9806,9 @@
                     stopWorldClock();
                 }
             }
-            interactiveElements.forEach(element => {
-                element.addEventListener('click', (e) => {
-                    const appName = element.dataset.app;
-                    if(appName === 'home') {
-                        closeApps();
-                    } else if(appName) {
-                        e.preventDefault();
-                        openApp(appName);
-                    }
-                });
-            });
+            // 这里我们只需要初始化一次 click 事件监听
+            // 但之前已经在 9732 行和 9801 行重复绑定了 openApp
+            // 我们在此处移除了重复绑定的 interactiveElements.forEach(element => {...})
             wallpaper.addEventListener('click', closeApps);
 
             // 控制中心功能
@@ -9823,7 +9826,7 @@
                     startY = e.touches[0].clientY;
                     isDragging = true;
                 }
-            });
+            }, { passive: true });
 
             document.addEventListener('touchend', (e) => {
                 if (isDragging) {
@@ -9837,7 +9840,7 @@
 
                     isDragging = false;
                 }
-            });
+            }, { passive: true });
 
             // 点击空白处关闭控制中心
             controlCenter.addEventListener('click', (e) => {
@@ -10800,11 +10803,11 @@
                                 longPressTimer = setTimeout(() => {
                                     savePhotoToLocal(photo.data);
                                 }, 800);
-                            });
+                            }, { passive: true });
                             
                             img.addEventListener('touchend', () => {
                                 clearTimeout(longPressTimer);
-                            });
+                            }, { passive: true });
                             
                             photoItem.appendChild(img);
                             grid.appendChild(photoItem);
@@ -13085,10 +13088,11 @@
                 }, { passive: true });
                 document.addEventListener('touchmove', (e) => {
                     if(isDragging) {
+                        e.preventDefault();
                         const touch = e.touches[0];
                         doDrag(touch.clientX, touch.clientY);
                     }
-                }, { passive: true });
+                }, { passive: false });
                 document.addEventListener('touchend', endDrag);
                 
 
@@ -13104,7 +13108,7 @@
                     const centerX = window.innerWidth / 2 - assistiveTouch.offsetWidth / 2;
                     const centerY = window.innerHeight / 2 - assistiveTouch.offsetHeight / 2;
                     
-                    assistiveTouch.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    assistiveTouch.style.transition = 'left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
                     assistiveTouch.style.left = `${centerX}px`;
                     assistiveTouch.style.top = `${centerY}px`;
                     
@@ -13115,7 +13119,7 @@
                 
                 // 辅助函数：缩回原位
                 function moveBack() {
-                    assistiveTouch.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    assistiveTouch.style.transition = 'left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
                     assistiveTouch.style.left = `${originalPos.x}px`;
                     assistiveTouch.style.top = `${originalPos.y}px`;
                     
@@ -13889,7 +13893,7 @@
                         startX = e.touches[0].clientX;
                         startY = e.touches[0].clientY;
                         isDragging = false;
-                    });
+                    }, { passive: true });
 
                     item.addEventListener('touchmove', (e) => {
                         const currentX = e.touches[0].clientX;
@@ -13926,7 +13930,7 @@
                                 actions.style.transform = 'translateX(0)';
                             }
                         }
-                    });
+                    }, { passive: true });
 
                     // 绑定置顶按钮事件
                     const pinBtn = item.querySelector('.wechat-pin-btn');
@@ -18065,8 +18069,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     });
                     
                     // 触摸事件支持
-                    voiceBtn.addEventListener('touchstart', startVoiceRecording);
-                    voiceBtn.addEventListener('touchend', stopVoiceRecording);
+                    voiceBtn.addEventListener('touchstart', startVoiceRecording, { passive: true });
+                    voiceBtn.addEventListener('touchend', stopVoiceRecording, { passive: true });
                     
 
                 }
