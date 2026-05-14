@@ -1212,11 +1212,28 @@
         .weather-header-container {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weather-header-container > div {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        #weather-location {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         #weather-city-select-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             border: none;
             color: #fff;
             width: 40px;
@@ -2038,13 +2055,6 @@
 
         .weather-header {
             margin-bottom: 30px;
-        }
-
-        .weather-header h2 {
-            font-size: 28px;
-            font-weight: 600;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         #weather-datetime {
@@ -12177,8 +12187,19 @@
                         }
                         const today = forecast.casts[0];
                         
-                        // 显示详细位置信息
-                        const locationName = regeoData.regeocode.formatted_address;
+                        // 显示精简位置信息（区或市）
+                        const addressComponent = regeoData.regeocode.addressComponent;
+                        let locationName = '';
+                        if (addressComponent.district && !Array.isArray(addressComponent.district)) {
+                            locationName = addressComponent.district;
+                        } else if (addressComponent.city && !Array.isArray(addressComponent.city)) {
+                            locationName = addressComponent.city;
+                        } else if (addressComponent.province && !Array.isArray(addressComponent.province)) {
+                            locationName = addressComponent.province;
+                        } else {
+                            locationName = regeoData.regeocode.formatted_address;
+                        }
+                        
                         document.getElementById('weather-location').textContent = locationName;
                         
                         // 显示日期和时间
