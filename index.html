@@ -75,11 +75,16 @@
 
         @import url('https://fonts.loli.net/css2?family=Inter:wght@200;400;500;600;700;800&display=swap');
 
+        html {
+            background-color: #000; /* 彻底消除 iOS/安卓全屏下的底部白边或黑边 */
+        }
+
         html, body {
             width: 100%;
             height: 100%;
             height: 100dvh; /* 现代浏览器使用动态视口高度 */
             height: calc(var(--vh, 1vh) * 100); /* iOS 兼容性回退 */
+            min-height: -webkit-fill-available; /* 关键：解决 iOS PWA 高度不占满问题 */
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -87,7 +92,7 @@
             position: fixed; /* 强制固定定位，防止 iOS 滚动露出背景 */
             top: 0;
             left: 0;
-            background-color: var(--bg-color);
+            background-color: #000; /* 修改为黑色背景，防止出现白边 */
             overscroll-behavior: none; /* 禁止橡皮筋效果 */
             -webkit-user-select: none; /* 禁止用户选择文本，更像原生 App */
             user-select: none;
