@@ -12187,18 +12187,8 @@
                         }
                         const today = forecast.casts[0];
                         
-                        // 显示精简位置信息（区或市）
-                        const addressComponent = regeoData.regeocode.addressComponent;
-                        let locationName = '';
-                        if (addressComponent.district && !Array.isArray(addressComponent.district)) {
-                            locationName = addressComponent.district;
-                        } else if (addressComponent.city && !Array.isArray(addressComponent.city)) {
-                            locationName = addressComponent.city;
-                        } else if (addressComponent.province && !Array.isArray(addressComponent.province)) {
-                            locationName = addressComponent.province;
-                        } else {
-                            locationName = regeoData.regeocode.formatted_address;
-                        }
+                        // 显示精简位置信息（直接使用高德天气API返回的城市/区县名，正好是县级市/区级别）
+                        const locationName = forecast.city || regeoData.regeocode.addressComponent.district || regeoData.regeocode.addressComponent.city;
                         
                         document.getElementById('weather-location').textContent = locationName;
                         
