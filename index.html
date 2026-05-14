@@ -46,7 +46,7 @@
             --radius-full: 9999px;
             --glass-bg: rgba(255, 255, 255, 0.4);
             --glass-border: rgba(255, 255, 255, 0.3);
-            --wallpaper-url: url('./20220811114309_06451.jpeg');
+            --wallpaper-url: none;
             --widget-bg-url: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop');
             --spring-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -65,7 +65,7 @@
             --shadow-xl: 0 32px 64px rgba(0, 0, 0, 0.8);
             --glass-bg: rgba(30, 30, 30, 0.4);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --wallpaper-url: url('./20220811114309_06451.jpeg');
+            --wallpaper-url: none;
             --widget-bg-url: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop');
         }
 
@@ -200,6 +200,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            background-color: #000;
             background-image: var(--wallpaper-url);
             background-size: cover;
             background-position: center;
@@ -12409,10 +12410,10 @@
             const wallpapers = [
                 {
                     id: 'default',
-                    name: '默认壁纸',
-                    description: '当前系统默认壁纸',
-                    wallpaper: './20220811114309_06451.jpeg',
-                    darkWallpaper: './20220811114309_06451.jpeg'
+                    name: '默认黑色',
+                    description: '极简纯黑，回归纯粹',
+                    wallpaper: 'none',
+                    darkWallpaper: 'none'
                 }
             ];
 
@@ -12854,7 +12855,11 @@
                 const wallpaperUrl = isDarkMode ? wp.darkWallpaper : wp.wallpaper;
 
                 // 更新壁纸
-                wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                if (wallpaperUrl === 'none') {
+                    wallpaper.style.backgroundImage = 'none';
+                } else {
+                    wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                }
                 
                 // 保存选择
                 localStorage.setItem('selectedWallpaper', wpId);
@@ -12879,7 +12884,11 @@
                 const currentWallpaper = wallpaper.style.backgroundImage;
 
                 // 临时预览壁纸
-                wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                if (wallpaperUrl === 'none') {
+                    wallpaper.style.backgroundImage = 'none';
+                } else {
+                    wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                }
                 
                 // 3秒后恢复原样式
                 setTimeout(() => {
@@ -12898,7 +12907,11 @@
                     const savedWp = wallpapers.find(w => w.id === savedWpId);
                     if (savedWp) {
                         const savedWallpaper = isDarkMode ? savedWp.darkWallpaper : savedWp.wallpaper;
-                        wallpaper.style.backgroundImage = `url('${savedWallpaper}')`;
+                        if (savedWallpaper === 'none') {
+                            wallpaper.style.backgroundImage = 'none';
+                        } else {
+                            wallpaper.style.backgroundImage = `url('${savedWallpaper}')`;
+                        }
                     }
                 }, 3000);
             };
@@ -12921,7 +12934,11 @@
                 const wp = wallpapers.find(w => w.id === savedWpId);
                 if (wp) {
                     const wallpaperUrl = isDarkMode ? wp.darkWallpaper : wp.wallpaper;
-                    wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                    if (wallpaperUrl === 'none') {
+                        wallpaper.style.backgroundImage = 'none';
+                    } else {
+                        wallpaper.style.backgroundImage = `url('${wallpaperUrl}')`;
+                    }
                 }
             }
 
