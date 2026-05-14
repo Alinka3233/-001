@@ -6752,32 +6752,34 @@
             right: 20px;
             width: 60px;
             height: 60px;
-            background: rgba(0, 0, 0, 0.6); /* 更改为纯黑色透明度 */
+            background: rgba(0, 0, 0, 0.4); /* 降低默认亮度 */
             backdrop-filter: blur(15px) saturate(180%);
             -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-radius: 14px;
             box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.2) inset, 0 8px 32px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             z-index: 10000;
-            transition: transform 0.4s var(--spring-easing), opacity 0.4s ease, background-color 0.4s ease;
+            /* 优化：使用 translate3d 提高性能，并优化过渡效果 */
+            transition: transform 0.4s var(--spring-easing), opacity 0.4s ease, border-radius 0.4s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
-            opacity: 0.6;
+            opacity: 0.5; /* 默认更透明，模拟 iOS 闲置状态 */
+            will-change: transform, opacity;
         }
         
         .assistive-touch.active,
         .assistive-touch.dragging,
         .assistive-touch:hover {
             opacity: 1;
-            transform: scale(1.05);
+            transform: scale(1.02);
             border-radius: 18px;
-            background: rgba(0, 0, 0, 0.85); /* 激活状态更黑 */
+            background: rgba(0, 0, 0, 0.7); /* 激活状态更黑 */
         }
         
         .assistive-touch:active {
-            transform: scale(0.92);
+            transform: scale(0.95);
         }
         
         .assistive-touch-dot {
@@ -13277,12 +13279,11 @@
                 
                 let isDragging = false;
                 let hasMoved = false;
-                let startX = 0;
-                let startY = 0;
-                let offsetX = 0;
-                let offsetY = 0;
+                let startX = 0, startY = 0;
+                let startLeft = 0, startTop = 0;
+                let currentX = 0, currentY = 0;
                 let menuVisible = false;
-                let originalPos = { x: 0, y: 0 };
+                let rafId = null;
                 
                 // 从localStorage加载位置
                 const savedPosition = localStorage.getItem('assistiveTouchPosition');
@@ -13290,35 +13291,26 @@
                     try {
                         const { x, y } = JSON.parse(savedPosition);
                         if (!isNaN(x) && !isNaN(y)) {
-                            assistiveTouch.style.left = `${x}px`;
-                            assistiveTouch.style.top = `${y}px`;
+                            currentX = x;
+                            currentY = y;
+                            assistiveTouch.style.left = '0';
+                            assistiveTouch.style.top = '0';
+                            assistiveTouch.style.transform = `translate3d(${x}px, ${y}px, 0)`;
                         }
-                    } catch (e) {
-                        console.error('加载小白点位置失败:', e);
-                    }
+                    } catch (e) { console.error('加载位置失败', e); }
+                } else {
+                    // 默认位置
+                    currentX = window.innerWidth - 80;
+                    currentY = window.innerHeight - 200;
+                    assistiveTouch.style.left = '0';
+                    assistiveTouch.style.top = '0';
+                    assistiveTouch.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
                 }
                 
-                // 确保小白点在屏幕内且可见
-                const checkPosition = () => {
-                    const rect = assistiveTouch.getBoundingClientRect();
-                    if (rect.width === 0 || rect.height === 0 || 
-                        rect.left < -50 || rect.top < -50 || 
-                        rect.left > window.innerWidth || rect.top > window.innerHeight) {
-                        // 如果位置异常，重置到默认位置
-                        assistiveTouch.style.left = '';
-                        assistiveTouch.style.top = '';
-                        assistiveTouch.style.bottom = '200px';
-                        assistiveTouch.style.right = '20px';
-                        assistiveTouch.classList.remove('active');
-                    }
+                const updatePosition = () => {
+                    assistiveTouch.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                    rafId = null;
                 };
-                setTimeout(checkPosition, 500);
-                
-                // 拖动功能优化
-                let startLeft = 0;
-                let startTop = 0;
-                let currentTranslateX = 0;
-                let currentTranslateY = 0;
 
                 const startDrag = (clientX, clientY) => {
                     if (menuVisible) return;
@@ -13326,33 +13318,32 @@
                     hasMoved = false;
                     startX = clientX;
                     startY = clientY;
-                    startLeft = assistiveTouch.offsetLeft;
-                    startTop = assistiveTouch.offsetTop;
-                    currentTranslateX = 0;
-                    currentTranslateY = 0;
+                    startLeft = currentX;
+                    startTop = currentY;
                     assistiveTouch.style.transition = 'none';
                     assistiveTouch.classList.add('dragging');
                 };
 
                 const doDrag = (clientX, clientY) => {
-                    if (!isDragging || menuVisible) return;
+                    if (!isDragging) return;
                     const dx = clientX - startX;
                     const dy = clientY - startY;
-                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-                        hasMoved = true;
-                    }
+                    
+                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
 
-                    // 限制在屏幕范围内
-                    const maxX = window.innerWidth - assistiveTouch.offsetWidth - startLeft;
-                    const maxY = window.innerHeight - assistiveTouch.offsetHeight - startTop;
-                    const minX = -startLeft;
-                    const minY = -startTop;
+                    // 计算目标位置并限制在视口内
+                    let targetX = startLeft + dx;
+                    let targetY = startTop + dy;
                     
-                    currentTranslateX = Math.max(minX, Math.min(dx, maxX));
-                    currentTranslateY = Math.max(minY, Math.min(dy, maxY));
+                    const maxX = window.innerWidth - assistiveTouch.offsetWidth - 10;
+                    const maxY = window.innerHeight - assistiveTouch.offsetHeight - 10;
                     
-                    // 使用 transform: translate3d 来替代 left/top 修改
-                    assistiveTouch.style.transform = `translate3d(${currentTranslateX}px, ${currentTranslateY}px, 0)`;
+                    currentX = Math.max(10, Math.min(targetX, maxX));
+                    currentY = Math.max(10, Math.min(targetY, maxY));
+                    
+                    if (!rafId) {
+                        rafId = requestAnimationFrame(updatePosition);
+                    }
                 };
 
                 const endDrag = () => {
@@ -13361,33 +13352,23 @@
                     assistiveTouch.classList.remove('dragging');
                     
                     if (hasMoved) {
-                        // 将 transform 的偏移量应用到 left/top
-                        let x = startLeft + currentTranslateX;
-                        let y = startTop + currentTranslateY;
-                        
                         // 吸附到边缘
                         const windowWidth = window.innerWidth;
-                        const halfWidth = windowWidth / 2;
                         const margin = 10;
+                        const halfWidth = windowWidth / 2;
                         
-                        let targetX;
-                        if (x + assistiveTouch.offsetWidth / 2 < halfWidth) {
-                            targetX = margin;
+                        if (currentX + assistiveTouch.offsetWidth / 2 < halfWidth) {
+                            currentX = margin;
                         } else {
-                            targetX = windowWidth - assistiveTouch.offsetWidth - margin;
+                            currentX = windowWidth - assistiveTouch.offsetWidth - margin;
                         }
 
-                        // 移除 transform 并设置最终的 left/top
-                        assistiveTouch.style.transform = '';
-                        assistiveTouch.style.left = `${targetX}px`;
-                        assistiveTouch.style.top = `${y}px`;
+                        assistiveTouch.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+                        updatePosition();
                         
-                        assistiveTouch.style.transition = 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-                        
-                        // 保存位置
                         localStorage.setItem('assistiveTouchPosition', JSON.stringify({
-                            x: targetX,
-                            y: y
+                            x: currentX,
+                            y: currentY
                         }));
                     }
                 };
@@ -13421,18 +13402,11 @@
 
                 // 辅助函数：移动到中心
                 function moveToCenter() {
-                    const rect = assistiveTouch.getBoundingClientRect();
-                    originalPos = {
-                        x: rect.left,
-                        y: rect.top
-                    };
-                    
                     const centerX = window.innerWidth / 2 - assistiveTouch.offsetWidth / 2;
                     const centerY = window.innerHeight / 2 - assistiveTouch.offsetHeight / 2;
                     
-                    assistiveTouch.style.transition = 'left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                    assistiveTouch.style.left = `${centerX}px`;
-                    assistiveTouch.style.top = `${centerY}px`;
+                    assistiveTouch.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+                    assistiveTouch.style.transform = `translate3d(${centerX}px, ${centerY}px, 0)`;
                     
                     menuVisible = true;
                     assistiveTouchMenu.classList.add('active');
@@ -13441,14 +13415,25 @@
                 
                 // 辅助函数：缩回原位
                 function moveBack() {
-                    assistiveTouch.style.transition = 'left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                    assistiveTouch.style.left = `${originalPos.x}px`;
-                    assistiveTouch.style.top = `${originalPos.y}px`;
+                    assistiveTouch.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+                    updatePosition();
                     
                     menuVisible = false;
                     assistiveTouchMenu.classList.remove('active');
                     assistiveTouch.classList.remove('active');
                 }
+
+                // 响应式调整
+                window.addEventListener('resize', () => {
+                    const maxX = window.innerWidth - assistiveTouch.offsetWidth - 10;
+                    const maxY = window.innerHeight - assistiveTouch.offsetHeight - 10;
+                    
+                    if (currentX > maxX || currentY > maxY) {
+                        currentX = Math.min(currentX, maxX);
+                        currentY = Math.min(currentY, maxY);
+                        updatePosition();
+                    }
+                }, { passive: true });
                 
                 // 点击显示/隐藏菜单
                 assistiveTouch.addEventListener('click', (e) => {
