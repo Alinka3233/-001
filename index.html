@@ -7289,7 +7289,7 @@
                 <i class="fas fa-image"></i>
                 <span>图库</span>
             </div>
-            <div class="photos-tab-item" onclick="document.getElementById('photo-file-input').click()">
+            <div class="photos-tab-item" onclick="triggerPhotoImport()">
                 <i class="fas fa-layer-group"></i>
                 <span>相簿</span>
             </div>
@@ -10730,36 +10730,72 @@
                 }
             }, 500);
             setTimeout(() => clearInterval(checkDBInterval), 5000); // 最多检查5秒
-            addPhotosBtn.addEventListener('click', () => photoFileInput.click());
+            window.triggerPhotoImport = function() {
+                if (!db) {
+                    alert('相册系统正在初始化，请稍后再试...');
+                    initDB();
+                    return;
+                }
+                photoFileInput.click();
+            };
+            addPhotosBtn.addEventListener('click', triggerPhotoImport);
             photoFileInput.addEventListener('change', (e) => {
                 const files = e.target.files;
-                if (!files.length || !db) return;
-                const transaction = db.transaction('photos', 'readwrite');
-                const store = transaction.objectStore('photos');
+                if (!files.length || !db) {
+                    if (!db) console.error('数据库未就绪');
+                    return;
+                }
+                
                 let addedCount = 0;
+                let loadedData = [];
+                
                 for (const file of files) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const photoData = { id: Date.now() + Math.random(), data: e.target.result };
-                        store.add(photoData);
+                    reader.onload = (event) => {
+                        loadedData.push({
+                            id: Date.now() + Math.random(),
+                            data: event.target.result,
+                            name: file.name,
+                            type: file.type,
+                            date: new Date().getTime()
+                        });
+                        
                         addedCount++;
                         if (addedCount === files.length) {
-                            transaction.oncomplete = () => {
-                                loadPhotosFromDB();
-                                alert(`成功导入 ${addedCount} 张照片到相册`);
-                            };
+                            saveAllPhotos(loadedData);
                         }
                     };
                     reader.onerror = () => {
-                        console.error('读取文件失败');
+                        console.error('读取文件失败:', file.name);
                         addedCount++;
                         if (addedCount === files.length) {
-                            transaction.oncomplete = () => {
-                                loadPhotosFromDB();
-                            };
+                            saveAllPhotos(loadedData);
                         }
                     };
                     reader.readAsDataURL(file);
+                }
+                
+                function saveAllPhotos(dataList) {
+                    if (dataList.length === 0) return;
+                    
+                    const transaction = db.transaction('photos', 'readwrite');
+                    const store = transaction.objectStore('photos');
+                    
+                    dataList.forEach(photo => {
+                        store.add(photo);
+                    });
+                    
+                    transaction.oncomplete = () => {
+                        loadPhotosFromDB();
+                        updateCameraGalleryPreview(); // 同时更新相机的预览
+                        alert(`成功导入 ${dataList.length} 张照片到相册`);
+                        photoFileInput.value = ''; // 清空 input 以便下次导入
+                    };
+                    
+                    transaction.onerror = (err) => {
+                        console.error('事务失败:', err);
+                        alert('导入失败，请重试');
+                    };
                 }
             });
             function loadPhotosFromDB() {
