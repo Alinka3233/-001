@@ -12085,9 +12085,8 @@
                 }
                 
                 // 检查是否为HTTPS环境
-                if (window.location.protocol !== 'https:') {
+                if (window.location.protocol !== 'https:' && window.location.protocol !== 'file:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
                     console.warn('定位功能在HTTP环境下可能受限，建议使用HTTPS访问');
-                    // 继续执行，但添加提示
                 }
                 
                 // 检查浏览器是否支持定位
@@ -12124,6 +12123,7 @@
                         } catch (err) {
                             console.error('Weather API Error:', err);
                             showWeatherError('无法获取天气数据，请检查API Key或网络连接');
+                            loadDefaultWeather(apiKey);
                         }
                     }, (err) => {
                         console.error('Geolocation Error:', err);
@@ -12168,7 +12168,13 @@
                         if (weatherData.status !== '1') throw new Error(weatherData.info || '高德天气查询错误');
                         
                         // 获取天气数据
+                        if (!weatherData.forecasts || weatherData.forecasts.length === 0) {
+                            throw new Error('未获取到天气预报数据');
+                        }
                         const forecast = weatherData.forecasts[0];
+                        if (!forecast.casts || forecast.casts.length === 0) {
+                            throw new Error('天气数据格式不正确');
+                        }
                         const today = forecast.casts[0];
                         
                         // 显示详细位置信息
@@ -12193,6 +12199,7 @@
                         // 更新小组件天气信息
                         const widgetWeather = document.getElementById('widget-weather');
                         if (widgetWeather) {
+                            const iconClass = getWeatherIcon(today.dayweather);
                             widgetWeather.innerHTML = `<i class="fas ${iconClass}"></i> ${today.daytemp}° ${today.dayweather}`;
                         }
                         
@@ -12261,9 +12268,14 @@
 
                         const weatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${cityAdcode}&key=${apiKey}&extensions=all`;
                         fetch(weatherUrl)
-                            .then(response => response.json())
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('网络响应错误');
+                                }
+                                return response.json();
+                            })
                             .then(weatherData => {
-                                if (weatherData.status === '1') {
+                                if (weatherData.status === '1' && weatherData.forecasts && weatherData.forecasts.length > 0) {
                                     // 获取天气数据
                                     const forecast = weatherData.forecasts[0];
                                     const today = forecast.casts[0];
@@ -12336,12 +12348,13 @@
                                         forecastList.appendChild(forecastItem);
                                     });
                                 } else {
-                                    showWeatherError('无法获取默认城市天气，请检查网络连接');
+                                    const errorMsg = weatherData.info || '无法获取默认城市天气数据';
+                                    showWeatherError(errorMsg);
                                 }
                             })
                             .catch(err => {
                                 console.error('默认城市天气获取失败:', err);
-                                showWeatherError('无法获取天气数据，请检查网络连接');
+                                showWeatherError('网络连接失败或API错误');
                             });
                     } catch (err) {
                         console.error('默认天气加载异常:', err);
