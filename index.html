@@ -6643,7 +6643,7 @@
             right: 20px;
             width: 60px;
             height: 60px;
-            background: rgba(30, 30, 30, 0.6); /* 强制使用深色背景，模仿 iOS 真实效果 */
+            background: rgba(0, 0, 0, 0.6); /* 更改为纯黑色透明度 */
             backdrop-filter: blur(15px) saturate(180%);
             -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-radius: 14px;
@@ -6658,43 +6658,13 @@
             opacity: 0.6;
         }
         
-        .dark-mode .assistive-touch {
-            background: rgba(45, 45, 45, 0.6);
-            box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset, 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
-        
-        .assistive-touch.active {
+        .assistive-touch.active,
+        .assistive-touch.dragging,
+        .assistive-touch:hover {
             opacity: 1;
             transform: scale(1.05);
             border-radius: 18px;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .dark-mode .assistive-touch.active {
-            background: rgba(30, 30, 30, 0.9);
-        }
-        
-        .assistive-touch.dragging {
-            opacity: 1;
-            transform: scale(1.05);
-            border-radius: 18px;
-            background: rgba(0, 0, 0, 0.8);
-        }
-        
-        .dark-mode .assistive-touch.dragging {
-            background: rgba(30, 30, 30, 0.9);
-        }
-
-        @media (hover: hover) {
-            .assistive-touch:hover {
-                opacity: 1;
-                transform: scale(1.05);
-                border-radius: 18px;
-                background: rgba(0, 0, 0, 0.8);
-            }
-            .dark-mode .assistive-touch:hover {
-                background: rgba(30, 30, 30, 0.9);
-            }
+            background: rgba(0, 0, 0, 0.85); /* 激活状态更黑 */
         }
         
         .assistive-touch:active {
@@ -6728,9 +6698,9 @@
             position: absolute;
             width: 18px;
             height: 18px;
-            background: #fff; /* 纯白实心点 */
+            background: rgba(255, 255, 255, 0.8); /* 稍微降低亮度，避免在浅色背景下看起来像纯白方块 */
             border-radius: 50%;
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
         }
         
         .assistive-touch.active .assistive-touch-dot {
@@ -6743,7 +6713,7 @@
             position: absolute;
             width: 260px;
             height: 260px;
-            background: rgba(20, 20, 20, 0.9); /* 加深菜单背景 */
+            background: rgba(0, 0, 0, 0.9); /* 更改为纯黑色 */
             backdrop-filter: blur(25px) saturate(200%);
             -webkit-backdrop-filter: blur(25px) saturate(200%);
             border-radius: 42px;
@@ -6890,35 +6860,64 @@
         }
         /* iOS Safari Performance Fallbacks */
         @supports (-webkit-touch-callout: none) {
-            /* 降级 backdrop-filter，减少高频层的模糊 */
-            .widget, .dock, .appstore-header, .clock-tabs, .weather-header, .assistive-touch, .assistive-touch-menu, .app-header, .safari-nav, .wechat-header, .wechat-tab, .notes-header {
-                backdrop-filter: blur(5px) !important; /* 减少模糊半径以提升性能 */
-                -webkit-backdrop-filter: blur(5px) !important;
-                background-color: rgba(255, 255, 255, 0.95) !important;
+            /* 1. 大幅减少 backdrop-filter 的使用，用半透明纯色替代 */
+            .widget, .dock, .appstore-header, .clock-tabs, .weather-header, 
+            .app-header, .safari-nav, 
+            .wechat-header, .wechat-tab, .notes-header, .control-center,
+            .wechat-chat-item, .wechat-modal-content, .wechat-plus-panel,
+            .music-list-drawer, .wechat-nav {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background-color: rgba(255, 255, 255, 0.98) !important;
             }
-            .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, .dark-mode .clock-tabs, .dark-mode .weather-header, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .app-header, .dark-mode .safari-nav, .dark-mode .wechat-header, .dark-mode .wechat-tab, .dark-mode .notes-header {
-                background-color: rgba(30, 30, 30, 0.95) !important;
-            }
-            
-            /* 简化阴影，减少图层重绘 */
-            .widget, .app-icon .icon, .app-page, .assistive-touch, .assistive-touch-menu, .wechat-modal-content {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-            }
-            .dark-mode .widget, .dark-mode .app-icon .icon, .dark-mode .app-page, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .wechat-modal-content {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+            .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, 
+            .dark-mode .clock-tabs, .dark-mode .weather-header, 
+            .dark-mode .app-header, .dark-mode .safari-nav, 
+            .dark-mode .wechat-header, .dark-mode .wechat-tab, .dark-mode .notes-header,
+            .dark-mode .control-center, .dark-mode .wechat-chat-item, 
+            .dark-mode .wechat-modal-content, .dark-mode .wechat-plus-panel,
+            .dark-mode .music-list-drawer, .dark-mode .wechat-nav {
+                background-color: rgba(28, 28, 30, 0.98) !important;
             }
 
-            /* 简化打开应用时的背景动画 */
-            .app-open .wallpaper {
-                filter: none !important;
-                transform: scale(1.05) !important;
-                opacity: 0.5;
+            /* 小白点及其菜单强制保持黑色，不随系统模式变白 */
+            .assistive-touch, .assistive-touch-menu {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background-color: rgba(0, 0, 0, 0.6) !important;
             }
             
-            /* 禁用 home-screen 隐藏时的 blur */
+            /* 2. 简化阴影和模糊，减少 GPU 压力 */
+            .widget, .app-icon .icon, .app-page, .assistive-touch, .assistive-touch-menu, .wechat-modal-content {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+                filter: none !important;
+            }
+            .dark-mode .widget, .dark-mode .app-icon .icon, .dark-mode .app-page, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .wechat-modal-content {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+            }
+
+            /* 3. 优化打开应用时的背景动画，避免 blur/brightness/saturate 同时作用 */
+            .app-open .wallpaper {
+                filter: none !important;
+                transform: scale(1.1) !important;
+                opacity: 0.6;
+                transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.6s ease !important;
+            }
+            
+            /* 4. 禁用重度 blur 滤镜 */
             .home-screen.hidden {
                 filter: none !important;
                 opacity: 0;
+            }
+
+            /* 5. 限制过渡属性，避免 transition: all */
+            * {
+                transition-property: transform, opacity, background-color, color, border-color, visibility !important;
+            }
+            
+            /* 6. 减少动画时长 */
+            .app-page {
+                transition-duration: 0.4s !important;
             }
         }
     </style>
@@ -9773,17 +9772,18 @@
             window.openApp = function(appName) {
                 if (jiggleMode) return;
                 activeApp = appName;
+                
+                // 激活动画前添加 will-change
+                wallpaper.style.willChange = 'transform, opacity';
+                const targetApp = implementedApps.includes(appName) ? document.getElementById(`app-${appName}`) : document.getElementById('app-placeholder');
+                if (targetApp) targetApp.style.willChange = 'transform, opacity';
+
                 phoneContainer.classList.add('app-open');
                 
-                // 给壁纸添加 will-change 以提升动画性能
-                wallpaper.style.willChange = 'transform, filter';
-                setTimeout(() => { wallpaper.style.willChange = 'auto'; }, 800);
-                
-                // 确保背景颜色重置为默认，避免手电筒等功能残留的背景色影响进入应用时的视觉体验
+                // 确保背景颜色重置
                 document.body.style.backgroundColor = ''; 
                 
                 appPages.forEach(page => page.classList.remove('active'));
-                let targetApp = implementedApps.includes(appName) ? document.getElementById(`app-${appName}`) : document.getElementById('app-placeholder');
                 if (targetApp) {
                     targetApp.classList.add('active');
                     if (appName === 'camera') startCamera();
@@ -9798,15 +9798,23 @@
                     // 触发应用打开事件
                     document.dispatchEvent(new CustomEvent('appopen', { detail: { app: appName } }));
                 }
+
+                // 动画结束后移除 will-change
+                setTimeout(() => {
+                    wallpaper.style.willChange = 'auto';
+                    if (targetApp) targetApp.style.willChange = 'auto';
+                }, 600);
             }
             window.closeApps = function() {
                 const phoneContainer = document.getElementById('phone-ui-container');
                 const appPages = document.querySelectorAll('.app-page');
-                phoneContainer.classList.remove('app-open');
                 
-                // 给壁纸添加 will-change 以提升动画性能
-                wallpaper.style.willChange = 'transform, filter';
-                setTimeout(() => { wallpaper.style.willChange = 'auto'; }, 800);
+                // 激活动画前添加 will-change
+                wallpaper.style.willChange = 'transform, opacity';
+                const activePage = Array.from(appPages).find(p => p.classList.contains('active'));
+                if (activePage) activePage.style.willChange = 'transform, opacity';
+
+                phoneContainer.classList.remove('app-open');
                 
                 // 退出应用时，根据手电筒状态恢复背景颜色
                 if (controlStates.flashlight) {
@@ -9815,7 +9823,14 @@
                     document.body.style.backgroundColor = '';
                 }
                 
-                appPages.forEach(page => page.classList.remove('active'));
+                setTimeout(() => {
+                    appPages.forEach(page => {
+                        page.classList.remove('active');
+                        page.style.willChange = 'auto';
+                    });
+                    wallpaper.style.willChange = 'auto';
+                }, 600);
+
                 if (typeof stopCamera === 'function') {
                     stopCamera();
                 }
@@ -13076,34 +13091,36 @@
                     isDragging = false;
                     assistiveTouch.classList.remove('dragging');
                     
-                    // 将 transform 的偏移量应用到 left/top
-                    let x = startLeft + currentTranslateX;
-                    let y = startTop + currentTranslateY;
-                    
-                    // 吸附到边缘
-                    const windowWidth = window.innerWidth;
-                    const halfWidth = windowWidth / 2;
-                    const margin = 8;
-                    
-                    let targetX;
-                    if (x < halfWidth) {
-                        targetX = margin;
-                    } else {
-                        targetX = windowWidth - assistiveTouch.offsetWidth - margin;
-                    }
+                    if (hasMoved) {
+                        // 将 transform 的偏移量应用到 left/top
+                        let x = startLeft + currentTranslateX;
+                        let y = startTop + currentTranslateY;
+                        
+                        // 吸附到边缘
+                        const windowWidth = window.innerWidth;
+                        const halfWidth = windowWidth / 2;
+                        const margin = 10;
+                        
+                        let targetX;
+                        if (x + assistiveTouch.offsetWidth / 2 < halfWidth) {
+                            targetX = margin;
+                        } else {
+                            targetX = windowWidth - assistiveTouch.offsetWidth - margin;
+                        }
 
-                    // 移除 transform 并设置最终的 left/top
-                    assistiveTouch.style.transform = '';
-                    assistiveTouch.style.left = `${targetX}px`;
-                    assistiveTouch.style.top = `${y}px`;
-                    
-                    assistiveTouch.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                    
-                    // 保存位置
-                    localStorage.setItem('assistiveTouchPosition', JSON.stringify({
-                        x: targetX,
-                        y: y
-                    }));
+                        // 移除 transform 并设置最终的 left/top
+                        assistiveTouch.style.transform = '';
+                        assistiveTouch.style.left = `${targetX}px`;
+                        assistiveTouch.style.top = `${y}px`;
+                        
+                        assistiveTouch.style.transition = 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                        
+                        // 保存位置
+                        localStorage.setItem('assistiveTouchPosition', JSON.stringify({
+                            x: targetX,
+                            y: y
+                        }));
+                    }
                 };
 
                 assistiveTouch.addEventListener('mousedown', (e) => {
@@ -13111,7 +13128,9 @@
                     startDrag(e.clientX, e.clientY);
                 });
                 document.addEventListener('mousemove', (e) => {
-                    doDrag(e.clientX, e.clientY);
+                    if (isDragging) {
+                        doDrag(e.clientX, e.clientY);
+                    }
                 });
                 document.addEventListener('mouseup', endDrag);
 
@@ -13122,12 +13141,12 @@
                 }, { passive: true });
                 document.addEventListener('touchmove', (e) => {
                     if(isDragging) {
-                        e.preventDefault();
                         const touch = e.touches[0];
                         doDrag(touch.clientX, touch.clientY);
+                        if (e.cancelable) e.preventDefault();
                     }
                 }, { passive: false });
-                document.addEventListener('touchend', endDrag);
+                document.addEventListener('touchend', endDrag, { passive: true });
                 
 
 
@@ -19406,34 +19425,30 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
         function initIOSAdaptation() {
             // 1. 防止橡皮筋效果露底，但允许特定区域滚动
             document.addEventListener('touchmove', function(e) {
-                if (e.target.closest('.app-content') || 
-                    e.target.closest('.apps-grid-container') || 
-                    e.target.closest('.wechat-chat-list') || 
-                    e.target.closest('.wechat-container') ||
-                    e.target.closest('.wechat-tab') ||
-                    e.target.closest('.wechat-modal-body') ||
-                    e.target.closest('.notes-container') ||
-                    e.target.closest('.notes-editor-content') ||
-                    e.target.closest('#app-appstore') ||
-                    e.target.closest('.assistive-touch')) {
-                    return; // 允许这些区域滚动或拖拽
+                // 优化：使用 closest 检查更具体
+                const scrollable = e.target.closest('.app-content, .apps-grid-container, .wechat-chat-list, .wechat-container, .wechat-tab, .wechat-modal-body, .notes-container, .notes-editor-content, #app-appstore, .assistive-touch');
+                if (scrollable) {
+                    return; 
                 }
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
             }, { passive: false });
 
-            // 2. 动态处理 iOS 视口高度，解决 100vh 包含地址栏的问题
+            // 2. 动态处理 iOS 视口高度
             const setVH = () => {
                 let vh = window.innerHeight * 0.01;
                 document.documentElement.style.setProperty('--vh', `${vh}px`);
             };
-            window.addEventListener('resize', setVH);
-            window.addEventListener('orientationchange', setVH);
+            window.addEventListener('resize', setVH, { passive: true });
+            window.addEventListener('orientationchange', setVH, { passive: true });
             setVH();
 
-            // 3. 处理 iOS Web App 模式下的点击延迟与状态
+            // 3. 处理 iOS Web App 模式
             if (window.navigator.standalone) {
                 document.body.classList.add('ios-standalone');
             }
+            
+            // 4. 优化高频点击：解决 iOS 300ms 延迟（虽然现代 Safari 已基本解决，但针对特定元素仍有用）
+            document.addEventListener('touchstart', function() {}, { passive: true });
         }
 
         // 在 DOM 加载完成后初始化适配
