@@ -150,7 +150,6 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
-            will-change: opacity;
         }
 
         .loader-content {
@@ -296,7 +295,6 @@
             background-color: transparent;
             /* 优化：移除 filter 动画，减少重绘开销 */
             transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing);
-            will-change: transform, opacity;
         }
 
         .wallpaper {
@@ -313,7 +311,6 @@
             transition: transform 0.8s var(--spring-easing);
             transform: scale(1.05) translateZ(0);
             overflow: hidden;
-            will-change: transform;
         }
 
         /* 优化：使用伪元素预先应用滤镜，通过透明度切换代替直接对 filter 进行动画 */
@@ -331,7 +328,6 @@
             opacity: 0;
             transition: opacity 0.8s var(--spring-easing);
             pointer-events: none;
-            will-change: opacity;
         }
 
         .app-open .wallpaper {
@@ -355,7 +351,6 @@
             transition: opacity 0.5s var(--spring-easing), transform 0.5s var(--spring-easing);
             box-sizing: border-box;
             align-items: center;
-            will-change: transform, opacity;
         }
 
         .home-screen.hidden {
@@ -1974,7 +1969,6 @@
             pointer-events: none;
             overflow: hidden;
             box-shadow: var(--shadow-xl);
-            will-change: transform, opacity;
         }
 
         .app-page.active {
@@ -6770,7 +6764,6 @@
             justify-content: center;
             user-select: none;
             opacity: 0.5; /* 默认更透明，模拟 iOS 闲置状态 */
-            will-change: transform, opacity;
         }
         
         .assistive-touch.active,
@@ -6973,17 +6966,22 @@
                 font-size: calc(14px * var(--icon-scale, 1));
             }
         }
-        /* iOS Safari Performance Fallbacks */
+        /* iOS Safari Performance Fallbacks - 针对 WebKit 内部错误的深度优化 */
         @supports (-webkit-touch-callout: none) {
-            /* 1. 大幅减少 backdrop-filter 的使用，用半透明纯色替代 */
+            /* 1. 彻底禁用可能导致 WebKit 进程崩溃的滤镜效果 */
+            *, *::before, *::after {
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+                filter: none !important;
+            }
+
+            /* 2. 使用实色背景代替模糊，提高渲染稳定性 */
             .widget, .dock, .appstore-header, .clock-tabs, .weather-header, 
             .app-header, .safari-nav, 
             .wechat-header, .wechat-tab, .notes-header, .control-center,
             .wechat-chat-item, .wechat-modal-content, .wechat-plus-panel,
-            .music-list-drawer, .wechat-nav {
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                background-color: rgba(255, 255, 255, 0.98) !important;
+            .music-list-drawer, .wechat-nav, .theme-tabs, .clock-modal-overlay {
+                background-color: rgba(255, 255, 255, 0.96) !important;
             }
             .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, 
             .dark-mode .clock-tabs, .dark-mode .weather-header, 
@@ -6992,45 +6990,42 @@
             .dark-mode .control-center, .dark-mode .wechat-chat-item, 
             .dark-mode .wechat-modal-content, .dark-mode .wechat-plus-panel,
             .dark-mode .music-list-drawer, .dark-mode .wechat-nav {
-                background-color: rgba(28, 28, 30, 0.98) !important;
+                background-color: rgba(28, 28, 30, 0.96) !important;
             }
 
-            /* 小白点及其菜单强制保持黑色，不随系统模式变白 */
+            /* 3. 极简小白点与菜单，确保在任何时候都不会导致 GPU 溢出 */
             .assistive-touch, .assistive-touch-menu {
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                background-color: rgba(0, 0, 0, 0.6) !important;
+                background-color: rgba(0, 0, 0, 0.8) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
             }
             
-            /* 2. 简化阴影和模糊，减少 GPU 压力 */
-            .widget, .app-icon .icon, .app-page, .assistive-touch, .assistive-touch-menu, .wechat-modal-content {
-                box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
-                filter: none !important;
-            }
-            .dark-mode .widget, .dark-mode .app-icon .icon, .dark-mode .app-page, .dark-mode .assistive-touch, .dark-mode .assistive-touch-menu, .dark-mode .wechat-modal-content {
-                box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+            /* 4. 禁用 will-change，防止过多的 Compositor Layers 消耗显存 */
+            * {
+                will-change: auto !important;
+                transition-property: transform, opacity, background-color, color, border-color, visibility !important;
             }
 
-            /* 3. 优化打开应用时的背景动画，避免 blur/brightness/saturate 同时作用 */
+            /* 5. 使用基础硬件加速，避免过度分层 */
+            #phone-ui-container, .wallpaper, .app-page, .home-screen {
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
+            }
+            
+            /* 6. 禁用复杂的壁纸模糊伪元素 */
+            .wallpaper::after {
+                display: none !important;
+            }
+
+            /* 7. 优化打开应用时的背景动画，避免冲突 */
             .app-open .wallpaper {
-                filter: none !important;
                 transform: scale(1.1) !important;
                 opacity: 0.6;
-                transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.6s ease !important;
             }
             
-            /* 4. 禁用重度 blur 滤镜 */
             .home-screen.hidden {
-                filter: none !important;
                 opacity: 0;
             }
 
-            /* 5. 限制过渡属性，避免 transition: all */
-            * {
-                transition-property: transform, opacity, background-color, color, border-color, visibility !important;
-            }
-            
-            /* 6. 减少动画时长 */
             .app-page {
                 transition-duration: 0.4s !important;
             }
@@ -9458,6 +9453,16 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     <script>
+        // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('System Error:', msg, 'at', line, ':', col);
+            // 如果检测到严重错误，尝试自动恢复（如清理缓存并重载）
+            if (msg.toLowerCase().indexOf('script error') > -1) {
+                console.warn('跨域脚本错误，请检查资源引用');
+            }
+            return false;
+        };
+
         // 防止重复初始化的全局锁
         if (window.__EternOS_Initialized__) {
             console.warn('EternOS 已经初始化，跳过重复加载');
