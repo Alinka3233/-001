@@ -6898,13 +6898,20 @@
     </style>
 </head>
 <body>
-    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
-        <div style="color: #fff; font-family: sans-serif; text-align: center;">
-            <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-            <div style="font-size: 14px; opacity: 0.8;">正在启动...</div>
+    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease;">
+        <div style="color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif; font-size: 44px; font-weight: 500; letter-spacing: 1.5px; margin-bottom: 50px;">Etern</div>
+        <div style="width: 140px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden;">
+            <div style="width: 0%; height: 100%; background: #fff; border-radius: 2px; animation: bootProgress 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;"></div>
         </div>
     </div>
-    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    <style>
+        @keyframes bootProgress {
+            0% { width: 0%; }
+            30% { width: 45%; }
+            70% { width: 85%; }
+            100% { width: 100%; }
+        }
+    </style>
     <div id="phone-ui-container">
     <div class="wallpaper" id="wallpaper"></div>
     <div class="home-screen" id="home-screen">
@@ -19387,8 +19394,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             if (loadingScreen) {
                 setTimeout(() => {
                     loadingScreen.style.opacity = '0';
-                    setTimeout(() => loadingScreen.style.display = 'none', 500);
-                }, 300);
+                    setTimeout(() => loadingScreen.style.display = 'none', 600);
+                }, 2200); // 延长至2.2秒，让进度条动画跑完
             }
         });
     </script>
