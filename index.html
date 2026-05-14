@@ -9452,14 +9452,20 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     <script>
-        // iOS 100vh 修复逻辑
-        const setVH = () => {
-            let vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        };
-        setVH();
-        window.addEventListener('resize', setVH);
-        window.addEventListener('orientationchange', setVH);
+        // 防止重复初始化的全局锁
+        if (window.__EternOS_Initialized__) {
+            console.warn('EternOS 已经初始化，跳过重复加载');
+        } else {
+            window.__EternOS_Initialized__ = true;
+
+            // iOS 100vh 修复逻辑
+            const setVH = () => {
+                let vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            };
+            setVH();
+            window.addEventListener('resize', setVH);
+            window.addEventListener('orientationchange', setVH);
 
         // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
         (function() {
@@ -9507,6 +9513,12 @@
         })();
 
         document.addEventListener('DOMContentLoaded', () => {
+            if (window.__EternOS_DOM_Initialized__) {
+                console.warn('DOM 逻辑已初始化，跳过重复执行');
+                return;
+            }
+            window.__EternOS_DOM_Initialized__ = true;
+
             // --- 加载进度控制逻辑 (优化 iOS 兼容性) ---
             const loader = document.getElementById('os-loader');
             const loaderBar = document.getElementById('loader-progress-bar');
@@ -9550,6 +9562,11 @@
             // 4. 如果 load 事件已经触发，直接完成
             if (document.readyState === 'complete') {
                 finishLoader();
+            }
+
+            // 5. 初始化 iOS 适配
+            if (typeof initIOSAdaptation === 'function') {
+                initIOSAdaptation();
             }
 
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
@@ -10904,15 +10921,24 @@
                 }
             }, 500);
             setTimeout(() => clearInterval(checkDBInterval), 5000); // 最多检查5秒
+            let isImporting = false;
             window.triggerPhotoImport = function() {
+                if (isImporting) return;
                 if (!db) {
                     alert('相册系统正在初始化，请稍后再试...');
                     initDB();
                     return;
                 }
+                isImporting = true;
                 photoFileInput.click();
+                // 300ms 后重置，防止 iOS 双击穿透或重复触发
+                setTimeout(() => { isImporting = false; }, 300);
             };
-            addPhotosBtn.addEventListener('click', triggerPhotoImport);
+            addPhotosBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                triggerPhotoImport();
+            });
             photoFileInput.addEventListener('change', (e) => {
                 const files = e.target.files;
                 if (!files.length || !db) {
@@ -10923,11 +10949,12 @@
                 let addedCount = 0;
                 let loadedData = [];
                 
-                for (const file of files) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         loadedData.push({
-                            id: Date.now() + Math.random(),
+                            id: `${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
                             data: event.target.result,
                             name: file.name,
                             type: file.type,
@@ -19729,30 +19756,17 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 if (e.cancelable) e.preventDefault();
             }, { passive: false });
 
-            // 2. 动态处理 iOS 视口高度
-            const setVH = () => {
-                let vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
-            };
-            window.addEventListener('resize', setVH, { passive: true });
-            window.addEventListener('orientationchange', setVH, { passive: true });
-            setVH();
-
-            // 3. 处理 iOS Web App 模式
+            // 2. 处理 iOS Web App 模式
             if (window.navigator.standalone) {
                 document.body.classList.add('ios-standalone');
             }
             
-            // 4. 优化高频点击：解决 iOS 300ms 延迟（虽然现代 Safari 已基本解决，但针对特定元素仍有用）
+            // 3. 优化高频点击
             document.addEventListener('touchstart', function() {}, { passive: true });
         }
 
         // 在 DOM 加载完成后初始化适配
-        document.addEventListener('DOMContentLoaded', () => {
-            initIOSAdaptation();
-        });
+        } // 结束全局初始化 else 块
     </script>
-    </div>
-    </div>
 </body>
 </html>
