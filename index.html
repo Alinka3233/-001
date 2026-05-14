@@ -132,7 +132,101 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        /* 针对 Firefox 的滚动条样式适配 (scrollbar-color: thumb track) */
+        /* --- 全局加载动画样式 --- */
+        #os-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            will-change: opacity;
+        }
+
+        .loader-content {
+            width: 80%;
+            max-width: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        /* 极简线条风格 Logo 动画 */
+        .loader-logo {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .loader-logo::before, .loader-logo::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1.5px solid #fff;
+            border-radius: 14px;
+            animation: logo-pulse 2s infinite ease-in-out;
+        }
+
+        .loader-logo::after {
+            animation-delay: 1s;
+            opacity: 0.5;
+            transform: scale(0.8);
+        }
+
+        @keyframes logo-pulse {
+            0% { transform: scale(0.9); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(0.9); opacity: 0.3; }
+        }
+
+        /* 细线条进度条 */
+        .loader-progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #loader-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            transition: width 0.4s cubic-bezier(0.1, 0.5, 0.5, 1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .loader-text {
+            color: #fff;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 200;
+            opacity: 0.6;
+            margin-top: 10px;
+        }
+
+        #os-loader.loaded {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* --- 针对 Firefox 的滚动条样式适配 (scrollbar-color: thumb track) --- */
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
@@ -6938,6 +7032,19 @@
     </style>
 </head>
 <body>
+    <!-- 全局加载动画 -->
+    <div id="os-loader">
+        <div class="loader-content">
+            <div class="loader-logo"></div>
+            <div style="width: 100%;">
+                <div class="loader-progress-container">
+                    <div id="loader-progress-bar"></div>
+                </div>
+                <div class="loader-text">System Initializing</div>
+            </div>
+        </div>
+    </div>
+
     <div id="phone-ui-container">
     <div class="wallpaper" id="wallpaper"></div>
     <div class="home-screen" id="home-screen">
@@ -9400,6 +9507,47 @@
         })();
 
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 加载进度控制逻辑 ---
+            const loader = document.getElementById('os-loader');
+            const loaderBar = document.getElementById('loader-progress-bar');
+            let progress = 0;
+            let loaderInterval;
+
+            const updateProgress = (target, speed = 10) => {
+                clearInterval(loaderInterval);
+                loaderInterval = setInterval(() => {
+                    if (progress >= target) {
+                        clearInterval(loaderInterval);
+                    } else {
+                        progress += (target - progress) * 0.1 + 0.5;
+                        if (progress > target) progress = target;
+                        loaderBar.style.width = `${progress}%`;
+                    }
+                }, speed);
+            };
+
+            // 初始阶段
+            updateProgress(30, 20);
+
+            // 资源加载监控
+            window.addEventListener('load', () => {
+                updateProgress(100, 15);
+                setTimeout(() => {
+                    loader.classList.add('loaded');
+                    // 动画结束后移除 DOM 释放内存
+                    setTimeout(() => loader.remove(), 800);
+                }, 1000);
+            });
+
+            // 如果 load 事件已经触发（极快加载），直接完成
+            if (document.readyState === 'complete') {
+                updateProgress(100, 15);
+                setTimeout(() => {
+                    loader.classList.add('loaded');
+                    setTimeout(() => loader.remove(), 800);
+                }, 1000);
+            }
+
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
             const phoneContainer = document.getElementById('phone-ui-container');
             const homeScreen = document.getElementById('home-screen');
