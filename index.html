@@ -9507,11 +9507,22 @@
         })();
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- 加载进度控制逻辑 ---
+            // --- 加载进度控制逻辑 (优化 iOS 兼容性) ---
             const loader = document.getElementById('os-loader');
             const loaderBar = document.getElementById('loader-progress-bar');
             let progress = 0;
             let loaderInterval;
+            let isLoaderFinished = false;
+
+            const finishLoader = () => {
+                if (isLoaderFinished) return;
+                isLoaderFinished = true;
+                updateProgress(100, 10);
+                setTimeout(() => {
+                    loader.classList.add('loaded');
+                    setTimeout(() => loader.remove(), 800);
+                }, 800);
+            };
 
             const updateProgress = (target, speed = 10) => {
                 clearInterval(loaderInterval);
@@ -9526,26 +9537,19 @@
                 }, speed);
             };
 
-            // 初始阶段
-            updateProgress(30, 20);
+            // 1. 初始阶段
+            updateProgress(40, 20);
 
-            // 资源加载监控
-            window.addEventListener('load', () => {
-                updateProgress(100, 15);
-                setTimeout(() => {
-                    loader.classList.add('loaded');
-                    // 动画结束后移除 DOM 释放内存
-                    setTimeout(() => loader.remove(), 800);
-                }, 1000);
-            });
+            // 2. 资源加载监控 (主路径)
+            window.addEventListener('load', finishLoader);
 
-            // 如果 load 事件已经触发（极快加载），直接完成
+            // 3. 超时强制解锁 (解决 iOS 某些资源加载卡死问题，如字体或 CDN 异常)
+            // 设定 3 秒强行进入系统，确保用户体验
+            setTimeout(finishLoader, 3000);
+
+            // 4. 如果 load 事件已经触发，直接完成
             if (document.readyState === 'complete') {
-                updateProgress(100, 15);
-                setTimeout(() => {
-                    loader.classList.add('loaded');
-                    setTimeout(() => loader.remove(), 800);
-                }, 1000);
+                finishLoader();
             }
 
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
@@ -13710,9 +13714,21 @@
                         return;
                     }
                     
+                    // iOS 兼容性：某些无痕模式或存储受限环境不支持 IndexedDB
+                    if (!window.indexedDB) {
+                        console.warn('浏览器不支持 IndexedDB');
+                        reject(new Error('IndexedDB not supported'));
+                        return;
+                    }
+                    
                     try {
                         const request = indexedDB.open(DB_NAME, DB_VERSION);
                         
+                        // 增加超时控制，防止 iOS 初始化卡死
+                        const dbTimeout = setTimeout(() => {
+                            reject(new Error('IndexedDB initialization timeout'));
+                        }, 5000);
+
                         // 数据库升级或首次创建
                         request.onupgradeneeded = (event) => {
                             const db = event.target.result;
@@ -13734,12 +13750,14 @@
                         };
                         
                         request.onsuccess = (event) => {
+                            clearTimeout(dbTimeout);
                             indexedDBInstance = event.target.result;
                             console.log('数据库打开成功，存储对象:', Array.from(indexedDBInstance.objectStoreNames));
                             resolve(indexedDBInstance);
                         };
                         
                         request.onerror = (event) => {
+                            clearTimeout(dbTimeout);
                             console.error('打开数据库失败:', event.target.error);
                             reject(event.target.error);
                         };
