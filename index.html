@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Etern">
     <meta name="mobile-web-app-capable" content="yes"> <!-- 安卓全屏支持 -->
     <meta name="application-name" content="Etern"> <!-- 安卓应用名称 -->
-    <meta name="theme-color" content="#000000"> <!-- 设置状态栏颜色 -->
+    <meta name="theme-color" content="#000000"> <!-- 安卓状态栏颜色 -->
     <meta name="format-detection" content="telephone=no">
     
     <!-- PWA Manifest -->
@@ -7034,26 +7034,6 @@
             .app-page {
                 transition-duration: 0.4s !important;
             }
-        }
-
-        /* --- PWA / Standalone 模式专项适配 --- */
-        .pwa-mode #phone-ui-container {
-            height: 100vh;
-            height: 100dvh;
-        }
-
-        /* iOS PWA 模式下通常需要额外的顶部留白来适配沉浸式状态栏 */
-        .ios-standalone .home-screen {
-            padding-top: calc(30px + env(safe-area-inset-top, 20px)) !important;
-        }
-
-        .ios-standalone .app-header {
-            padding-top: max(20px, env(safe-area-inset-top, 20px)) !important;
-        }
-
-        /* 安卓 PWA 模式下确保背景色填满 */
-        .pwa-mode body {
-            background-color: #000;
         }
     </style>
 </head>
@@ -19757,18 +19737,17 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
         function initIOSAdaptation() {
             // 1. 防止橡皮筋效果露底，但允许特定区域滚动
             document.addEventListener('touchmove', function(e) {
+                // 优化：使用 closest 检查更具体
                 const scrollable = e.target.closest('.app-content, .apps-grid-container, .wechat-chat-list, .wechat-container, .wechat-tab, .wechat-modal-body, .notes-container, .notes-editor-content, #app-appstore, .assistive-touch');
-                if (scrollable) return; 
+                if (scrollable) {
+                    return; 
+                }
                 if (e.cancelable) e.preventDefault();
             }, { passive: false });
 
-            // 2. 处理 PWA (iOS Standalone & Android Display Standalone) 模式
-            const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-            if (isStandalone) {
-                document.body.classList.add('pwa-mode');
-                if (window.navigator.standalone) {
-                    document.body.classList.add('ios-standalone');
-                }
+            // 2. 处理 iOS Web App 模式
+            if (window.navigator.standalone) {
+                document.body.classList.add('ios-standalone');
             }
             
             // 3. 优化高频点击
