@@ -1,0 +1,22 @@
+{
+  "name": "Etern OS",
+  "short_name": "Etern",
+  "description": "A premium web-based mobile operating system experience.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./软件标志.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "./软件标志.ico",
+      "sizes": "512x512",
+      "type": "image/x-icon"
+    }
+  ]
+}
