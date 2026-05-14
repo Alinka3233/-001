@@ -7090,6 +7090,7 @@
                 <!-- 天气头部信息 -->
                 <div class="weather-header">
                     <div class="weather-header-container">
+                        <button class="ios-back-btn" onclick="closeApps()" style="color: white !important; margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
                         <div>
                             <h2 id="weather-location">加载中...</h2>
                             <p id="weather-datetime"></p>
@@ -7150,7 +7151,9 @@
     </div>
     <div class="app-page" id="app-settings">
         <header class="app-header">
+            <button class="ios-back-btn" onclick="closeApps()"><i class="fas fa-chevron-left"></i> 设置</button>
             <h1>设置</h1>
+            <div style="width: 50px;"></div>
         </header>
         <div class="app-content">
             <div>
@@ -7574,6 +7577,7 @@
     <!-- 时钟应用 -->
     <div class="app-page" id="app-clock">
         <div class="clock-header">
+            <button class="ios-back-btn" onclick="closeApps()" style="color: #ff9500 !important;"><i class="fas fa-chevron-left"></i></button>
             <h1 id="clock-title">世界时钟</h1>
             <div class="add-btn" onclick="openClockAddModal()"><i class="fas fa-plus"></i></div>
         </div>
@@ -7729,6 +7733,7 @@
         </div>
     <div class="app-page" id="app-calendar">
         <div class="calendar-header">
+            <button class="ios-back-btn" onclick="closeApps()" style="color: #ff3b30 !important;"><i class="fas fa-chevron-left"></i></button>
             <div class="calendar-month-year" id="calendar-month-year">2024年5月</div>
             <div style="color: #ff3b30; font-size: 20px;"><i class="fas fa-plus"></i></div>
         </div>
@@ -7753,7 +7758,9 @@
     <!-- 计算器应用 -->
     <div class="app-page" id="app-calculator">
         <header class="app-header">
-            <h1></h1>
+            <button class="ios-back-btn" onclick="closeApps()" style="color: #ff9500 !important;"><i class="fas fa-chevron-left"></i></button>
+            <h1>计算器</h1>
+            <div style="width: 50px;"></div>
         </header>
         <div class="app-content calculator-content">
             <div class="calculator-display-area">
@@ -7826,6 +7833,7 @@
     <!-- 备忘录应用 -->
     <div class="app-page" id="app-notes">
         <div class="notes-list-header">
+            <button class="ios-back-btn" onclick="closeApps()" style="color: #ffcc00 !important; margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
             <h1>备忘录</h1>
         </div>
         <div class="notes-container" id="notes-list">
@@ -7887,6 +7895,7 @@
         <!-- 微信风格头部 -->
         <header class="wechat-header">
             <div class="wechat-header-left">
+                <button class="wechat-header-btn" onclick="closeApps()" style="color: #000;"><i class="fas fa-times"></i></button>
                 <button class="wechat-header-btn" id="wechat-back-btn" style="display: none;"><i class="fas fa-chevron-left"></i></button>
             </div>
             <div class="wechat-header-center">
@@ -9363,6 +9372,23 @@
             const homeScreen = document.getElementById('home-screen');
             const wallpaper = document.getElementById('wallpaper');
             const interactiveElements = document.querySelectorAll('[data-app]');
+            
+            // 绑定应用图标点击事件
+            interactiveElements.forEach(element => {
+                element.addEventListener('click', (e) => {
+                    // 如果正在抖动模式，点击图标不打开应用
+                    if (jiggleMode) return;
+                    
+                    const appName = element.getAttribute('data-app');
+                    if (appName === 'home') {
+                        closeApps();
+                        return;
+                    }
+                    if (appName) {
+                        openApp(appName);
+                    }
+                });
+            });
             const appPages = document.querySelectorAll('.app-page');
             const safariUrlInput = document.getElementById('url-input');
             const safariFrame = document.getElementById('safari-frame');
@@ -9793,9 +9819,6 @@
                     stopWorldClock();
                 }
             }
-            // 这里我们只需要初始化一次 click 事件监听
-            // 但之前已经在 9732 行和 9801 行重复绑定了 openApp
-            // 我们在此处移除了重复绑定的 interactiveElements.forEach(element => {...})
             wallpaper.addEventListener('click', closeApps);
 
             // 控制中心功能
