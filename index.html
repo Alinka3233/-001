@@ -84,6 +84,11 @@
             top: 0;
             left: 0;
             background-color: var(--bg-color);
+            overscroll-behavior: none; /* 禁止橡皮筋效果 */
+            -webkit-user-select: none; /* 禁止用户选择文本，更像原生 App */
+            user-select: none;
+            -webkit-touch-callout: none; /* 禁止 iOS 弹出系统菜单 */
+            touch-action: manipulation; /* 允许滚动和点击，禁止双击缩放 */
         }
         
         /* 隐藏默认滚动条 */
@@ -185,6 +190,8 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            height: 100%;
+            height: calc(var(--vh, 1vh) * 100);
             flex: 1;
             min-height: 0; /* 防止子元素溢出 */
             overflow: hidden;
@@ -243,7 +250,7 @@
             z-index: 2;
             flex-grow: 1;
             min-height: 0; /* 关键：防止内容撑破父容器导致底部 dock 消失 */
-            padding: calc(30px + env(safe-area-inset-top)) clamp(16px, 4vw, 32px) calc(16px + env(safe-area-inset-bottom));
+            padding: calc(20px + env(safe-area-inset-top, 20px)) clamp(16px, 4vw, 32px) 10px;
             display: flex;
             flex-direction: column;
             opacity: 1;
@@ -1802,11 +1809,12 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+            padding: 0 16px max(16px, env(safe-area-inset-bottom, 20px));
             display: flex;
             justify-content: center;
             z-index: 3;
             box-sizing: border-box;
+            flex-shrink: 0; /* 确保不被压缩 */
         }
 
         .dock {
@@ -1857,6 +1865,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: calc(var(--vh, 1vh) * 100);
             background-color: var(--bg-color);
             z-index: 100;
             display: flex;
@@ -1878,7 +1887,7 @@
 
         .app-header {
             padding: 16px 20px;
-            padding-top: calc(16px + env(safe-area-inset-top));
+            padding-top: max(16px, env(safe-area-inset-top, 20px));
             background-color: var(--app-header-bg);
             backdrop-filter: blur(20px) saturate(190%);
             -webkit-backdrop-filter: blur(20px) saturate(190%);
@@ -1904,9 +1913,12 @@
         .app-content {
             flex-grow: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* iOS 顺滑滚动 */
             color: var(--text-color);
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
             box-sizing: border-box;
+            user-select: text; /* 允许应用内容区域选择文本 */
+            -webkit-user-select: text;
         }
 
         .safari-nav {
@@ -3018,7 +3030,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 83px; /* 标准 iOS 底部高度 */
+            height: calc(50px + env(safe-area-inset-bottom, 20px)); /* 动态高度适配安全区 */
+            padding-bottom: env(safe-area-inset-bottom, 20px);
             background: rgba(249, 249, 249, 0.94);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -3517,7 +3530,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 24px;
-            padding-top: calc(24px + env(safe-area-inset-top));
+            padding-top: max(24px, env(safe-area-inset-top, 20px));
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
@@ -5043,7 +5056,7 @@
             position: sticky;
             bottom: 0;
             z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: max(8px, env(safe-area-inset-bottom, 20px));
         }
 
         .wechat-nav-item {
@@ -5344,7 +5357,7 @@
             align-items: center;
             gap: 8px;
             position: relative;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            padding-bottom: max(10px, env(safe-area-inset-bottom, 20px));
             width: 100%;
             box-sizing: border-box;
         }
@@ -9332,6 +9345,15 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     <script>
+        // iOS 100vh 修复逻辑
+        const setVH = () => {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
         // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
         (function() {
             // 1. 捕获全局未处理异常
