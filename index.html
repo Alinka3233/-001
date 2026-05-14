@@ -46,7 +46,7 @@
             --radius-full: 9999px;
             --glass-bg: rgba(255, 255, 255, 0.4);
             --glass-border: rgba(255, 255, 255, 0.3);
-            --wallpaper-url: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1974&auto=format&fit=crop');
+            --wallpaper-url: url('./20220811114309_06451.jpeg');
             --widget-bg-url: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop');
             --spring-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -65,7 +65,7 @@
             --shadow-xl: 0 32px 64px rgba(0, 0, 0, 0.8);
             --glass-bg: rgba(30, 30, 30, 0.4);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --wallpaper-url: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1974&auto=format&fit=crop');
+            --wallpaper-url: url('./20220811114309_06451.jpeg');
             --widget-bg-url: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop');
         }
 
@@ -11030,28 +11030,42 @@
 
             // 保存照片到数据库
             function savePhotoToDB(photoDataUrl) {
-                if (!db) {
-                    console.error('数据库未初始化');
-                    return;
-                }
+                return new Promise((resolve, reject) => {
+                    if (!db) {
+                        const error = new Error('数据库未初始化');
+                        console.error(error.message);
+                        reject(error);
+                        return;
+                    }
 
-                const transaction = db.transaction('photos', 'readwrite');
-                const store = transaction.objectStore('photos');
-                const photoData = {
-                    id: Date.now() + Math.random(),
-                    data: photoDataUrl
-                };
-                store.add(photoData);
+                    try {
+                        const transaction = db.transaction('photos', 'readwrite');
+                        const store = transaction.objectStore('photos');
+                        const photoData = {
+                            id: Date.now() + Math.random(),
+                            data: photoDataUrl
+                        };
+                        store.add(photoData);
 
-                transaction.oncomplete = () => {
-                    console.log('照片保存成功');
-                    // 可以选择刷新照片列表
-                    // loadPhotosFromDB();
-                };
+                        transaction.oncomplete = () => {
+                            console.log('照片保存成功');
+                            updateCameraGalleryPreview();
+                            if (activeApp === 'photos') {
+                                loadPhotosFromDB();
+                            }
+                            resolve(photoData);
+                        };
 
-                transaction.onerror = () => {
-                    console.error('照片保存失败');
-                };
+                        transaction.onerror = () => {
+                            const error = transaction.error || new Error('照片保存失败');
+                            console.error('照片保存失败', error);
+                            reject(error);
+                        };
+                    } catch (error) {
+                        console.error('保存照片到数据库时出错:', error);
+                        reject(error);
+                    }
+                });
             }
 
             // Safari 功能
@@ -12394,10 +12408,10 @@
             const wallpapers = [
                 {
                     id: 'default',
-                    name: '极简流光',
-                    description: 'iOS 26 官方预设，深邃而灵动的流光艺术',
-                    wallpaper: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070',
-                    darkWallpaper: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2070'
+                    name: '默认壁纸',
+                    description: '当前系统默认壁纸',
+                    wallpaper: './20220811114309_06451.jpeg',
+                    darkWallpaper: './20220811114309_06451.jpeg'
                 }
             ];
 
@@ -13201,22 +13215,29 @@
                         switch (action) {
                             case 'home':
                                 closeApps();
+                                moveBack();
                                 break;
                             case 'app-switcher':
                                 alert('应用切换功能');
+                                moveBack();
                                 break;
                             case 'control-center':
                                 const controlCenter = document.getElementById('control-center');
                                 if (controlCenter) {
                                     controlCenter.classList.add('active');
                                 }
+                                moveBack();
                                 break;
                             case 'screenshot':
-                                takeScreenshot();
+                                moveBack();
+                                setTimeout(() => {
+                                    takeScreenshot();
+                                }, 260);
+                                break;
+                            default:
+                                moveBack();
                                 break;
                         }
-                        
-                        moveBack();
                     });
                 });
                 
@@ -13229,38 +13250,71 @@
             }
             
             // 截图功能
-            function takeScreenshot() {
+            let isTakingScreenshot = false;
+            async function takeScreenshot() {
+                if (isTakingScreenshot) return;
+                isTakingScreenshot = true;
+                const assistiveTouch = document.getElementById('assistive-touch');
+                const originalAssistiveTouchVisibility = assistiveTouch ? assistiveTouch.style.visibility : '';
+                const originalAssistiveTouchOpacity = assistiveTouch ? assistiveTouch.style.opacity : '';
+                const originalAssistiveTouchPointerEvents = assistiveTouch ? assistiveTouch.style.pointerEvents : '';
+
                 try {
-                    // 使用html2canvas库（如果可用）
-                    if (typeof html2canvas !== 'undefined') {
-                        const targetElement = document.getElementById('phone-ui-container') || document.body;
-                        html2canvas(targetElement, {
-                            scale: Math.min(window.devicePixelRatio, 2), // 限制缩放比例防止内存溢出导致闪退
-                            useCORS: true,
-                            allowTaint: true,
-                            backgroundColor: null
-                        }).then(canvas => {
-                            // 将截图转换为data URL
-                            const screenshotDataUrl = canvas.toDataURL('image/png');
-                            
-                            // 保存截图到相册
-                            savePhotoToDB(screenshotDataUrl);
-                            
-                            // 同时下载到本地
-                            const link = document.createElement('a');
-                            link.download = `screenshot_${new Date().getTime()}.png`;
-                            link.href = screenshotDataUrl;
-                            link.click();
-                            
-                            alert('截图已保存到相册并下载到本地');
-                        });
-                    } else {
-                        // 简单的截图实现
-                        alert('截图功能需要html2canvas库支持');
+                    if (typeof html2canvas === 'undefined') {
+                        alert('截图功能需要 html2canvas 库支持');
+                        return;
                     }
+
+                    const targetElement = document.getElementById('phone-ui-container') || document.body;
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+                    // 截图前临时隐藏小白点，确保不会被截入画面
+                    if (assistiveTouch) {
+                        assistiveTouch.style.visibility = 'hidden';
+                        assistiveTouch.style.opacity = '0';
+                        assistiveTouch.style.pointerEvents = 'none';
+                    }
+
+                    // 先等待样式和菜单收起动画生效
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                    await new Promise(resolve => setTimeout(resolve, 120));
+
+                    const canvas = await html2canvas(targetElement, {
+                        scale: Math.min(window.devicePixelRatio || 1, isIOS ? 1.5 : 2),
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: getComputedStyle(document.body).backgroundColor || '#000',
+                        logging: false,
+                        imageTimeout: 3000,
+                        removeContainer: true,
+                        ignoreElements: (element) => {
+                            if (!element || !element.tagName) return false;
+                            return element.id === 'assistive-touch'
+                                || element.id === 'assistive-touch-menu'
+                                || element.tagName === 'IFRAME';
+                        }
+                    });
+
+                    let screenshotDataUrl = '';
+                    try {
+                        screenshotDataUrl = canvas.toDataURL('image/png');
+                    } catch (error) {
+                        // 某些 iOS WebKit 场景下 PNG 更容易失败，退回 JPEG
+                        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                    }
+
+                    await savePhotoToDB(screenshotDataUrl);
+                    alert('截图已保存到相册，可在照片应用中按需下载到本地');
                 } catch (error) {
                     console.error('截图失败:', error);
-                    alert('截图失败');
+                    alert('截图保存失败，请稍后重试');
+                } finally {
+                    if (assistiveTouch) {
+                        assistiveTouch.style.visibility = originalAssistiveTouchVisibility;
+                        assistiveTouch.style.opacity = originalAssistiveTouchOpacity;
+                        assistiveTouch.style.pointerEvents = originalAssistiveTouchPointerEvents;
+                    }
+                    isTakingScreenshot = false;
                 }
             }
             
