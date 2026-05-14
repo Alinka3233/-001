@@ -189,7 +189,9 @@
             min-height: 0; /* 防止子元素溢出 */
             overflow: hidden;
             background-color: transparent;
-            transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing), background-color 0.5s var(--spring-easing), filter 0.5s var(--spring-easing);
+            /* 优化：移除 filter 动画，减少重绘开销 */
+            transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing);
+            will-change: transform, opacity;
         }
 
         .wallpaper {
@@ -202,14 +204,36 @@
             background-size: cover;
             background-position: center;
             z-index: 1;
-            transition: transform 0.8s var(--spring-easing), filter 0.8s var(--spring-easing);
-            transform: scale(1.05);
+            transition: transform 0.8s var(--spring-easing);
+            transform: scale(1.05) translateZ(0);
+            overflow: hidden;
+            will-change: transform;
+        }
+
+        /* 优化：使用伪元素预先应用滤镜，通过透明度切换代替直接对 filter 进行动画 */
+        .wallpaper::after {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background-image: inherit;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.7);
+            opacity: 0;
+            transition: opacity 0.8s var(--spring-easing);
+            pointer-events: none;
+            will-change: opacity;
         }
 
         .app-open .wallpaper {
-            transform: scale(1.1);
-            filter: blur(10px) brightness(0.7);
-            /* will-change handled by JS now to avoid memory leaks */
+            transform: scale(1.1) translateZ(0);
+        }
+
+        .app-open .wallpaper::after {
+            opacity: 1;
         }
 
         /* --- 主屏幕样式 --- */
@@ -225,6 +249,7 @@
             transition: opacity 0.5s var(--spring-easing), transform 0.5s var(--spring-easing);
             box-sizing: border-box;
             align-items: center;
+            will-change: transform, opacity;
         }
 
         .home-screen.hidden {
@@ -1841,6 +1866,7 @@
             pointer-events: none;
             overflow: hidden;
             box-shadow: var(--shadow-xl);
+            will-change: transform, opacity;
         }
 
         .app-page.active {
@@ -9778,7 +9804,7 @@
                 setTimeout(() => {
                     wallpaper.style.willChange = 'auto';
                     if (targetApp) targetApp.style.willChange = 'auto';
-                }, 600);
+                }, 850); // 增加延迟以匹配 0.8s 的 CSS 过渡时间
             }
             window.closeApps = function() {
                 const phoneContainer = document.getElementById('phone-ui-container');
@@ -9804,7 +9830,7 @@
                         page.style.willChange = 'auto';
                     });
                     wallpaper.style.willChange = 'auto';
-                }, 600);
+                }, 850); // 增加延迟以匹配 0.8s 的 CSS 过渡时间
 
                 if (typeof stopCamera === 'function') {
                     stopCamera();
