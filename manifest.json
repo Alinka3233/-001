@@ -8,14 +8,14 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "./图标.jpeg",
+      "src": "./软件标志.ico",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/x-icon"
     },
     {
-      "src": "./图标.jpeg",
+      "src": "./软件标志.ico",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/x-icon"
     },
     {
       "src": "./软件标志.ico",
