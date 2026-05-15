@@ -1925,7 +1925,7 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px max(12px, env(safe-area-inset-bottom, 12px)); /* 增加底部间距，避免太靠下 */
+            padding: 0 16px max(40px, env(safe-area-inset-bottom, 40px)); /* 显著增加底部间距，将 Dock 整体上移 */
             display: flex;
             justify-content: center;
             z-index: 3;
