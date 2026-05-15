@@ -5480,6 +5480,7 @@
             padding-bottom: max(10px, env(safe-area-inset-bottom, 20px));
             width: 100%;
             box-sizing: border-box;
+            transform: translateY(4px); /* 将整个互动工具栏向下微调 */
         }
 
         /* 微信输入区域媒体适配 */
