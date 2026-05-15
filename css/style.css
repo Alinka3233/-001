@@ -1890,16 +1890,17 @@
             min-width: 84px;
             max-width: 95%; /* 限制最大宽度，防止溢出 */
             padding: 12px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
-            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
             border-radius: 32px;
             display: flex;
             justify-content: center;
             gap: 16px; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
             border: none;
             transform: translateZ(0);
+            will-change: backdrop-filter;
             transition: transform 0.4s var(--spring-easing), width 0.4s var(--spring-easing), opacity 0.4s var(--spring-easing);
             margin: 0 auto;
         }
@@ -1922,9 +1923,9 @@
         .dock:has(> :nth-child(6):last-child) { width: 464px; }
 
         .dark-mode .dock {
-            background: rgba(25, 25, 25, 0.45);
-            backdrop-filter: blur(35px) saturate(180%) brightness(0.9);
-            -webkit-backdrop-filter: blur(35px) saturate(180%) brightness(0.9);
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(25px) saturate(180%) brightness(0.9);
+            -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(0.9);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
         }
 
@@ -6943,33 +6944,10 @@
                 font-size: calc(14px * var(--icon-scale, 1));
             }
         }
-        /* iOS Safari Performance Fallbacks - 针对 WebKit 内部错误的深度优化 */
+        /* iOS Safari 优化 - 移除过于激进的禁用滤镜逻辑，恢复磨砂效果 */
         @supports (-webkit-touch-callout: none) {
-            /* 1. 彻底禁用可能导致 WebKit 进程崩溃的滤镜效果 */
-            *, *::before, *::after {
-                -webkit-backdrop-filter: none !important;
-                backdrop-filter: none !important;
-                filter: none !important;
-            }
-
-            /* 2. 使用实色背景代替模糊，提高渲染稳定性 */
-            .widget, .dock, .appstore-header, .clock-tabs, .weather-header, 
-            .app-header, .safari-nav, 
-            .wechat-header, .wechat-tab, .notes-header, .control-center,
-            .wechat-chat-item, .wechat-modal-content, .wechat-plus-panel,
-            .music-list-drawer, .wechat-nav, .theme-tabs, .clock-modal-overlay {
-                background-color: rgba(255, 255, 255, 0.96) !important;
-            }
-            .dark-mode .widget, .dark-mode .dock, .dark-mode .appstore-header, 
-            .dark-mode .clock-tabs, .dark-mode .weather-header, 
-            .dark-mode .app-header, .dark-mode .safari-nav, 
-            .dark-mode .wechat-header, .dark-mode .wechat-tab, .dark-mode .notes-header,
-            .dark-mode .control-center, .dark-mode .wechat-chat-item, 
-            .dark-mode .wechat-modal-content, .dark-mode .wechat-plus-panel,
-            .dark-mode .music-list-drawer, .dark-mode .wechat-nav {
-                background-color: rgba(28, 28, 30, 0.96) !important;
-            }
-
+            /* 允许使用磨砂滤镜，现代 iOS 设备性能已足够 */
+            
             /* 3. 极简小白点与菜单，确保在任何时候都不会导致 GPU 溢出 */
             .assistive-touch, .assistive-touch-menu {
                 background-color: rgba(0, 0, 0, 0.8) !important;

@@ -17,7 +17,7 @@
             // 将全局常量移至此处，确保 fetchLocalCityForClock 等外部函数也能访问
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
 
-            // iOS 100vh 修复逻辑
+            // iOS 100vh 修复逻辑 & 全屏交互优化
             const setVH = () => {
                 let vh = window.innerHeight * 0.01;
                 document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -25,6 +25,13 @@
             setVH();
             window.addEventListener('resize', setVH);
             window.addEventListener('orientationchange', setVH);
+            
+            // 首次触摸尝试隐藏地址栏 (部分安卓/旧版浏览器有效)
+            window.addEventListener('touchstart', () => {
+                if (!window.navigator.standalone && !window.matchMedia('(display-mode: standalone)').matches) {
+                    window.scrollTo(0, 1);
+                }
+            }, { once: true });
 
         // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
         (function() {
