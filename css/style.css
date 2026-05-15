@@ -5176,7 +5176,8 @@
             position: sticky;
             bottom: 0;
             z-index: 100;
-            padding-bottom: max(2px, env(safe-area-inset-bottom, 2px)) !important; /* 减少底部导航栏间距 */
+            padding-bottom: max(2px, env(safe-area-inset-bottom, 2px)) !important;
+            transform: translateY(10px) !important; /* 精准下移 10px */
         }
 
         .wechat-nav-item {
@@ -5477,9 +5478,10 @@
             align-items: center;
             gap: 8px;
             position: relative;
-            padding-bottom: max(4px, env(safe-area-inset-bottom, 4px)) !important; /* 显著减少底部间距，让工具栏整体下移 */
+            padding-bottom: max(4px, env(safe-area-inset-bottom, 4px)) !important;
             width: 100%;
             box-sizing: border-box;
+            transform: translateY(10px) !important; /* 精准下移 10px */
         }
 
         /* 微信输入区域媒体适配 */
