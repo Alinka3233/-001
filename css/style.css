@@ -334,11 +334,12 @@
         .home-screen {
             position: relative;
             z-index: 2;
-            flex: 1;
+            flex-grow: 1;
             min-height: 0;
             width: 100% !important;
+            height: 100% !important;
             margin: 0 !important;
-            padding: calc(44px + env(safe-area-inset-top, 0px)) 0 0 0 !important;
+            padding: calc(44px + env(safe-area-inset-top, 0px)) clamp(16px, 4vw, 32px) 20px !important;
             display: flex;
             flex-direction: column;
             opacity: 1;
@@ -369,7 +370,7 @@
             gap: 24px 16px;
             width: 100%;
             min-height: 100%; /* 确保网格占据容器全部高度，方便拖拽到空白区域 */
-            padding: 10px 20px;
+            padding: 10px 0;
         }
 
         .widget {
@@ -1896,28 +1897,28 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px env(safe-area-inset-bottom);
+            padding: 0 16px 2px !important; /* 进一步压缩底部间距，让 Dock 贴近屏幕底边 */
             display: flex;
             justify-content: center;
             z-index: 3;
             box-sizing: border-box;
-            flex-shrink: 0; /* 确保不被压缩 */
-            margin-bottom: 10px; /* 给一个固定的微小间距，防止贴死 */
+            flex-shrink: 0; 
+            margin-bottom: 0 !important;
         }
 
         .dock {
             width: fit-content; /* 让 Dock 根据内容自动调整宽度 */
             min-width: 84px;
             max-width: 95%; /* 限制最大宽度，防止溢出 */
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(30px) saturate(190%) brightness(1.1);
-            -webkit-backdrop-filter: blur(30px) saturate(190%) brightness(1.1);
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(25px) saturate(180%) brightness(1.1);
             border-radius: 32px;
             display: flex;
             justify-content: center;
             gap: 16px; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
             border: none;
             transform: translateZ(0);
             will-change: backdrop-filter;
