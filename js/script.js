@@ -6707,16 +6707,13 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     const wechatNav = document.querySelector('.wechat-nav');
                     const wechatHeaderBackBtn = document.querySelector('.wechat-header .wechat-header-btn#wechat-back-btn');
                     
-                    // 如果进入朋友圈，隐藏底部导航栏，显示返回按钮，隐藏关闭按钮
-                    const wechatHeaderCloseBtn = document.getElementById('wechat-close-btn');
+                    // 如果进入朋友圈，隐藏底部导航栏，显示返回按钮
                     if (tabName === 'moments') {
                         if (wechatNav) wechatNav.style.display = 'none';
                         if (wechatHeaderBackBtn) wechatHeaderBackBtn.style.display = 'flex';
-                        if (wechatHeaderCloseBtn) wechatHeaderCloseBtn.style.display = 'none';
                     } else {
                         if (wechatNav) wechatNav.style.display = 'flex';
                         if (wechatHeaderBackBtn) wechatHeaderBackBtn.style.display = 'none';
-                        if (wechatHeaderCloseBtn) wechatHeaderCloseBtn.style.display = 'flex';
                     }
                     
                     // 更新标题

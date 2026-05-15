@@ -4470,13 +4470,13 @@
         }
 
         img.moments-avatar {
-            width: 86px;
-            height: 86px;
+            width: 64px; /* 缩小头像尺寸 */
+            height: 64px;
             border-radius: 50%; /* 修改为圆形 */
             object-fit: cover;
             background: #fff;
-            margin-bottom: -32px;
-            border: 3px solid #fff; /* 增加白边，更具高级感 */
+            margin-bottom: -24px; /* 同步调整底部边距 */
+            border: 2px solid #fff; /* 减小边框厚度 */
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
