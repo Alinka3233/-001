@@ -363,10 +363,12 @@
         .home-screen {
             position: relative;
             z-index: 2;
+            flex-grow: 1;
+            min-height: 0;
             width: 100%;
             height: 100%;
             margin: 0;
-            padding: calc(44px + env(safe-area-inset-top, 0px)) clamp(16px, 4vw, 32px) 20px;
+            padding: calc(44px + env(safe-area-inset-top, 20px)) clamp(16px, 4vw, 32px) 10px;
             display: flex;
             flex-direction: column;
             opacity: 1;
@@ -1902,8 +1904,7 @@
 
 
         .pagination {
-            padding: 0 !important;
-            margin: 0 !important;
+            padding: 12px 0;
             display: flex;
             justify-content: center;
             gap: 6px;
@@ -1925,7 +1926,7 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px 2px; 
+            padding: 0 16px max(16px, env(safe-area-inset-bottom, 20px));
             display: flex;
             justify-content: center;
             z-index: 3;
