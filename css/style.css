@@ -1897,7 +1897,7 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px max(16px, env(safe-area-inset-bottom, 20px));
+            padding: 0 16px max(6px, env(safe-area-inset-bottom, 6px));
             display: flex;
             justify-content: center;
             z-index: 3;
