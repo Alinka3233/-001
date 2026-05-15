@@ -368,7 +368,7 @@
             width: 100%;
             height: 100%;
             margin: 0;
-            padding: calc(44px + env(safe-area-inset-top, 20px)) clamp(16px, 4vw, 32px) 10px;
+            padding: calc(20px + env(safe-area-inset-top, 10px)) clamp(16px, 4vw, 32px) 10px;
             display: flex;
             flex-direction: column;
             opacity: 1;
