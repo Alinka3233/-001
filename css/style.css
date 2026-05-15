@@ -1909,16 +1909,16 @@
 
         .dock {
             width: fit-content;
-            min-width: 92px;
-            max-width: 95%;
-            padding: 12px 16px;
+            min-width: 100px;
+            max-width: 98%;
+            padding: 12px 20px;
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
             -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
             border-radius: 32px;
             display: flex;
             justify-content: center;
-            gap: 20px; 
+            gap: 24px; 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
             border: none;
             transform: translateZ(0);
@@ -1937,12 +1937,12 @@
         }
 
         /* 动态调整 Dock 宽度，配合 Sortable.js 的 DOM 变化 */
-        .dock:has(> :nth-child(1):last-child) { width: 92px; }
-        .dock:has(> :nth-child(2):last-child) { width: 172px; }
-        .dock:has(> :nth-child(3):last-child) { width: 252px; }
-        .dock:has(> :nth-child(4):last-child) { width: 332px; }
-        .dock:has(> :nth-child(5):last-child) { width: 412px; }
-        .dock:has(> :nth-child(6):last-child) { width: 492px; }
+        .dock:has(> :nth-child(1):last-child) { width: 100px; }
+        .dock:has(> :nth-child(2):last-child) { width: 184px; }
+        .dock:has(> :nth-child(3):last-child) { width: 268px; }
+        .dock:has(> :nth-child(4):last-child) { width: 352px; }
+        .dock:has(> :nth-child(5):last-child) { width: 436px; }
+        .dock:has(> :nth-child(6):last-child) { width: 520px; }
 
         .dark-mode .dock {
             background: rgba(30, 30, 30, 0.4);
