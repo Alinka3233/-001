@@ -3691,6 +3691,7 @@
             display: flex;
             align-items: center;
             gap: 24px;
+            transform: translateY(2px); /* 将右侧容器（含加号按钮）向下微调，实现垂直对齐 */
         }
 
         .wechat-header-btn {
