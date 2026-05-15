@@ -13,6 +13,9 @@
             console.warn('EternOS 已经初始化，跳过重复加载');
         } else {
             window.__EternOS_Initialized__ = true;
+            
+            // 将全局常量移至此处，确保 fetchLocalCityForClock 等外部函数也能访问
+            const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
 
             // iOS 100vh 修复逻辑
             const setVH = () => {
@@ -87,8 +90,10 @@
                 isLoaderFinished = true;
                 updateProgress(100, 10);
                 setTimeout(() => {
-                    loader.classList.add('loaded');
-                    setTimeout(() => loader.remove(), 800);
+                    if (loader) {
+                        loader.classList.add('loaded');
+                        setTimeout(() => loader.remove(), 800);
+                    }
                 }, 800);
             };
 
@@ -113,7 +118,11 @@
 
             // 3. 超时强制解锁 (解决 iOS 某些资源加载卡死问题，如字体或 CDN 异常)
             // 设定 3 秒强行进入系统，确保用户体验
-            setTimeout(finishLoader, 3000);
+            console.log('Loader safety timer started');
+            setTimeout(() => {
+                console.log('Safety timer triggered');
+                finishLoader();
+            }, 3000);
 
             // 4. 如果 load 事件已经触发，直接完成
             if (document.readyState === 'complete') {
@@ -125,7 +134,6 @@
                 initIOSAdaptation();
             }
 
-            const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
             const phoneContainer = document.getElementById('phone-ui-container');
             const homeScreen = document.getElementById('home-screen');
             const wallpaper = document.getElementById('wallpaper');
