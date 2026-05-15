@@ -8,13 +8,18 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "./软件标志.ico",
+      "src": "./图标.jpeg",
       "sizes": "192x192",
-      "type": "image/x-icon"
+      "type": "image/jpeg"
+    },
+    {
+      "src": "./图标.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
     },
     {
       "src": "./软件标志.ico",
-      "sizes": "512x512",
+      "sizes": "32x32",
       "type": "image/x-icon"
     }
   ]
