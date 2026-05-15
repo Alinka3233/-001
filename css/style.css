@@ -1925,7 +1925,7 @@
 
         .dock-container {
             width: 100%;
-            padding: 0 16px max(12px, env(safe-area-inset-bottom, 12px)); /* 增加底部间距，避免太靠下 */
+            padding: 0 16px 2px; 
             display: flex;
             justify-content: center;
             z-index: 3;
@@ -1935,17 +1935,17 @@
 
         .dock {
             width: fit-content;
-            min-width: 110px;
+            min-width: 100px;
             max-width: 98%;
-            padding: 14px 24px; /* 增加内边距，让 Dock 看起来更大 */
+            padding: 12px 20px;
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
             -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
-            border-radius: 36px; /* 配合增大后的尺寸调整圆角 */
+            border-radius: 32px;
             display: flex;
             justify-content: center;
             gap: 24px; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
             border: none;
             transform: translateZ(0);
             will-change: backdrop-filter;
@@ -1955,12 +1955,7 @@
 
         .dock .app-icon {
             flex-shrink: 0;
-            width: 64px; /* 增大图标容器宽度 */
-        }
-
-        .dock .app-icon .icon {
-            width: 64px; /* 增大图标实际尺寸 */
-            height: 64px;
+            width: 60px;
         }
 
         .dock .app-icon span {
@@ -1968,12 +1963,12 @@
         }
 
         /* 动态调整 Dock 宽度，配合 Sortable.js 的 DOM 变化 */
-        .dock:has(> :nth-child(1):last-child) { width: 110px; }
-        .dock:has(> :nth-child(2):last-child) { width: 202px; }
-        .dock:has(> :nth-child(3):last-child) { width: 294px; }
-        .dock:has(> :nth-child(4):last-child) { width: 386px; }
-        .dock:has(> :nth-child(5):last-child) { width: 478px; }
-        .dock:has(> :nth-child(6):last-child) { width: 570px; }
+        .dock:has(> :nth-child(1):last-child) { width: 100px; }
+        .dock:has(> :nth-child(2):last-child) { width: 184px; }
+        .dock:has(> :nth-child(3):last-child) { width: 268px; }
+        .dock:has(> :nth-child(4):last-child) { width: 352px; }
+        .dock:has(> :nth-child(5):last-child) { width: 436px; }
+        .dock:has(> :nth-child(6):last-child) { width: 520px; }
 
         .dark-mode .dock {
             background: rgba(30, 30, 30, 0.4);
