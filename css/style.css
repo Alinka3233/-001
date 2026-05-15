@@ -310,7 +310,7 @@
             height: 100% !important;
             height: calc(var(--vh, 1vh) * 100) !important;
             flex: 1;
-            margin: 0 !important;
+            margin: -20px 0 0 0 !important; /* 设置负值上边距，将包含应用栏与文档栏的整体模块向上平移 */
             padding: 0 !important;
             min-height: 0; 
             overflow: hidden;
