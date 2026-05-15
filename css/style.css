@@ -1890,14 +1890,14 @@
             min-width: 84px;
             max-width: 95%; /* 限制最大宽度，防止溢出 */
             padding: 12px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px) saturate(210%);
-            -webkit-backdrop-filter: blur(20px) saturate(210%);
-            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
+            border-radius: 32px;
             display: flex;
             justify-content: center;
             gap: 16px; 
-            box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
             border: none;
             transform: translateZ(0);
             transition: transform 0.4s var(--spring-easing), width 0.4s var(--spring-easing), opacity 0.4s var(--spring-easing);
@@ -1922,8 +1922,10 @@
         .dock:has(> :nth-child(6):last-child) { width: 464px; }
 
         .dark-mode .dock {
-            background: rgba(40, 40, 40, 0.4);
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            background: rgba(25, 25, 25, 0.45);
+            backdrop-filter: blur(35px) saturate(180%) brightness(0.9);
+            -webkit-backdrop-filter: blur(35px) saturate(180%) brightness(0.9);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
         }
 
         /* --- 应用页面通用样式 --- */
