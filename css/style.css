@@ -3685,6 +3685,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            transform: translateY(2px); /* 将左侧容器（含返回按钮）向下微调，实现垂直对齐 */
         }
 
         .wechat-header-right {
