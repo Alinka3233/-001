@@ -197,8 +197,7 @@
             <!-- 初始首页视图 -->
             <div id="search-view" class="sub-view active">
                 <div class="minimal-home-container">
-                    <h1 class="home-hero-text">当我感到脆弱的时候</h1>
-                    <h2 class="home-hero-text">就重复你的名字</h2>
+                    <h1 class="home-hero-text">₊⁺♡‌₊⁺</h1>
                 </div>
             </div>
 
@@ -1636,20 +1635,33 @@
                         </div>
                     </div>
                     <div class="wechat-menu" style="margin-top: 16px;">
-                        <div class="wechat-menu-item">
-                            <div class="wechat-menu-icon" style="color: #FF2D55;"><i class="fas fa-shopping-bag"></i></div>
-                            <div class="wechat-menu-text">订单与卡包</div>
-                        </div>
-                        <div class="wechat-menu-item">
-                            <div class="wechat-menu-icon" style="color: #BF5AF2;"><i class="fas fa-smile"></i></div>
-                            <div class="wechat-menu-text">表情</div>
+                        <div class="wechat-menu-item" id="wechat-switch-account-btn">
+                            <div class="wechat-menu-icon" style="color: #5E5CE6;"><i class="fas fa-user-friends"></i></div>
+                            <div class="wechat-menu-text">切换账号</div>
                             <div class="wechat-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                         </div>
-                        <div class="wechat-menu-item">
+                        <div class="wechat-menu-item" id="wechat-settings-btn">
                             <div class="wechat-menu-icon" style="color: #8E8E93;"><i class="fas fa-cog"></i></div>
                             <div class="wechat-menu-text">设置</div>
                             <div class="wechat-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 切换账号/人设界面 -->
+            <div class="wechat-account-view" id="wechat-account-view" style="display: none;">
+                <div class="wechat-account-header">
+                    <button class="wechat-account-back" id="wechat-account-back">&lt;</button>
+                    <h1>切换账号</h1>
+                </div>
+                <div class="wechat-account-content">
+                    <div class="wechat-account-list" id="wechat-account-list">
+                        <!-- 账号列表将在此动态渲染 -->
+                    </div>
+                    <div class="wechat-account-add" id="wechat-account-add">
+                        <div class="add-icon"><i class="fas fa-plus"></i></div>
+                        <span>添加账号</span>
                     </div>
                 </div>
             </div>

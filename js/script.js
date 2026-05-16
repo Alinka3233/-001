@@ -8597,6 +8597,116 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 alert(`充值成功！当前余额：¥${walletState.balance.toFixed(2)}`);
             }
             
+            // 绑定切换账号相关事件
+            const switchAccountBtn = document.getElementById('wechat-switch-account-btn');
+            const accountView = document.getElementById('wechat-account-view');
+            const accountBack = document.getElementById('wechat-account-back');
+            const accountList = document.getElementById('wechat-account-list');
+            const accountAdd = document.getElementById('wechat-account-add');
+
+            if (switchAccountBtn) {
+                switchAccountBtn.addEventListener('click', () => {
+                    accountView.style.display = 'flex';
+                    renderAccountList();
+                });
+            }
+
+            if (accountBack) {
+                accountBack.addEventListener('click', () => {
+                    accountView.style.display = 'none';
+                });
+            }
+
+            if (accountAdd) {
+                accountAdd.addEventListener('click', () => {
+                    const nickname = prompt('请输入新账号昵称:');
+                    if (nickname) {
+                        const newId = 'user_' + Date.now();
+                        const newProfile = {
+                            id: newId,
+                            nickname: nickname,
+                            avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
+                            desc: '新的人设',
+                            persona: '一个新的人设'
+                        };
+                        
+                        // 获取现有账号列表
+                        let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                        accounts.push(newProfile);
+                        localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
+                        
+                        renderAccountList();
+                    }
+                });
+            }
+
+            function renderAccountList() {
+                if (!accountList) return;
+                
+                let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                // 如果没有账号，把当前的存进去作为第一个
+                if (accounts.length === 0) {
+                    const currentProfile = {
+                        id: 'default',
+                        nickname: wechatState.profile.nickname || '我',
+                        avatar: wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
+                        desc: '默认人设'
+                    };
+                    accounts.push(currentProfile);
+                    localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
+                    localStorage.setItem('currentAccountId', 'default');
+                }
+
+                const currentId = localStorage.getItem('currentAccountId') || 'default';
+
+                accountList.innerHTML = accounts.map(acc => `
+                    <div class="wechat-account-item ${acc.id === currentId ? 'active' : ''}" data-id="${acc.id}">
+                        <img src="${acc.avatar}" class="account-avatar">
+                        <div class="account-info">
+                            <div class="account-name">${acc.nickname}</div>
+                            <div class="account-status">${acc.id === currentId ? '当前使用' : '点击切换'}</div>
+                        </div>
+                        <div class="account-check"><i class="fas fa-check"></i></div>
+                    </div>
+                `).join('');
+
+                // 绑定切换点击
+                accountList.querySelectorAll('.wechat-account-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const id = item.dataset.id;
+                        if (id === currentId) return;
+                        
+                        const targetAcc = accounts.find(a => a.id === id);
+                        if (targetAcc) {
+                            // 切换逻辑
+                            wechatState.profile.nickname = targetAcc.nickname;
+                            wechatState.profile.avatar = targetAcc.avatar;
+                            localStorage.setItem('currentAccountId', id);
+                            
+                            // 更新 UI
+                            const profileName = document.querySelector('.wechat-profile-name');
+                            const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
+                            const profileAvatarIcon = document.getElementById('wechat-profile-avatar-icon');
+                            
+                            if (profileName) profileName.textContent = targetAcc.nickname;
+                            if (profileAvatarImg) {
+                                profileAvatarImg.src = targetAcc.avatar;
+                                profileAvatarImg.style.display = 'block';
+                                if (profileAvatarIcon) profileAvatarIcon.style.display = 'none';
+                            }
+
+                            saveWechatData();
+                            renderAccountList();
+                            
+                            setTimeout(() => {
+                                accountView.style.display = 'none';
+                                alert(`已成功切换到账号: ${targetAcc.nickname}`);
+                            }, 300);
+                        }
+                    });
+                });
+            }
+
             // 提现
             function withdrawWallet() {
                 const amountInput = document.getElementById('withdraw-amount');
