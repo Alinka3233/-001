@@ -667,6 +667,36 @@
                 controlCenter.classList.remove('active');
             });
 
+            // 亮度调节功能
+            const brightnessSlider = document.getElementById('cc-brightness');
+            const brightnessFill = document.getElementById('cc-brightness-fill');
+            const brightnessOverlay = document.getElementById('brightness-overlay');
+
+            if (brightnessSlider) {
+                // 初始化亮度
+                const savedBrightness = localStorage.getItem('screenBrightness') || '100';
+                brightnessSlider.value = savedBrightness;
+                updateBrightness(savedBrightness);
+
+                brightnessSlider.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    updateBrightness(val);
+                });
+
+                brightnessSlider.addEventListener('change', (e) => {
+                    localStorage.setItem('screenBrightness', e.target.value);
+                });
+            }
+
+            function updateBrightness(value) {
+                if (brightnessFill) brightnessFill.style.width = `${value}%`;
+                if (brightnessOverlay) {
+                    // 映射：100% 亮度 = 0 遮罩透明度，0% 亮度 = 0.6 遮罩透明度（不完全黑掉，保留可见性）
+                    const opacity = (100 - value) / 100 * 0.6;
+                    brightnessOverlay.style.opacity = opacity;
+                }
+            }
+
             // 初始化计算器
             function initCalculator() {
                 const display = document.getElementById('calculator-display');
