@@ -104,35 +104,38 @@
             const finishLoader = () => {
                 if (isLoaderFinished) return;
                 isLoaderFinished = true;
-                updateProgress(100, 10);
+                updateProgress(100, 5); // 加快最后阶段的进度速度
                 setTimeout(() => {
                     if (loader) {
                         loader.classList.add('loaded');
-                        // 加载完成后显示小白点
+                        // 加载完成后立即显示小白点
                         const assistiveTouch = document.getElementById('assistive-touch');
                         if (assistiveTouch) {
                             assistiveTouch.classList.add('show');
                         }
-                        setTimeout(() => loader.remove(), 800);
+                        // 缩短移除 DOM 的等待时间，从 800ms 减少到 400ms
+                        setTimeout(() => loader.remove(), 400);
                     }
-                }, 800);
+                }, 300); // 显著减少进入主界面的等待延迟，从 800ms 减少到 300ms
             };
 
-            const updateProgress = (target, speed = 10) => {
+            const updateProgress = (target, speed = 8) => {
                 clearInterval(loaderInterval);
                 loaderInterval = setInterval(() => {
                     if (progress >= target) {
                         clearInterval(loaderInterval);
                     } else {
-                        progress += (target - progress) * 0.1 + 0.5;
+                        // 优化增长算法，使进度感更流畅
+                        const diff = target - progress;
+                        progress += diff * 0.15 + 0.8; 
                         if (progress > target) progress = target;
                         loaderBar.style.width = `${progress}%`;
                     }
                 }, speed);
             };
 
-            // 1. 初始阶段
-            updateProgress(40, 20);
+            // 1. 初始阶段，让进度瞬间跳到 60%，提升视觉上的“快”感
+            updateProgress(60, 15);
 
             // 2. 资源加载监控 (主路径)
             window.addEventListener('load', finishLoader);
