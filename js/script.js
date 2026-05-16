@@ -5527,6 +5527,45 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     }
                 }
 
+                // 处理发送转账
+                const transferRegex = /<action:transfer>([\s\S]*?)<\/action:transfer>/g;
+                let transferMatch;
+                while ((transferMatch = transferRegex.exec(reply)) !== null) {
+                    const content = transferMatch[1].trim();
+                    if (content) {
+                        try {
+                            const parts = content.split(':');
+                            const amount = parseFloat(parts[0]) || 10;
+                            const remark = parts[1] ? parts.slice(1).join(':').trim() : '';
+                            const transferId = 'tf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                            
+                            const transferContent = `
+                                <div class="wechat-transfer" data-id="${transferId}" data-amount="${amount.toFixed(2)}" data-sender="ai">
+                                    <div class="transfer-info">
+                                        <div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div>
+                                        <div class="transfer-text">
+                                            <div class="transfer-amount">¥${amount.toFixed(2)}</div>
+                                            <div class="transfer-status">微信转账</div>
+                                        </div>
+                                    </div>
+                                    ${remark ? `<div class="transfer-remark">${remark}</div>` : ''}
+                                </div>
+                            `;
+                            
+                            // 直接插入转账消息到聊天记录中
+                            if (wechatState.activeCharacterId === char.id) {
+                                addWechatMessage(transferContent, 'ai', char.avatar);
+                            }
+                            char.chatHistory.push({ role: 'ai', content: transferContent });
+                            saveWechatData();
+                            
+                            console.log(`AI角色 ${char.name} 发送了转账: ${amount}`);
+                        } catch (e) {
+                            console.error('AI发送转账失败:', e);
+                        }
+                    }
+                }
+
                 // 移除回复中的 action 标签，避免显示给用户
                 return reply.replace(/<action:.*?>[\s\S]*?<\/action:.*?>/g, '').trim();
             }
@@ -8259,7 +8298,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 // 添加转账消息到聊天记录
                 const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
                 if (char) {
-                    const transferContent = `<div class="wechat-transfer">
+                    const tfId = 'tf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                    const transferContent = `<div class="wechat-transfer" data-id="${tfId}" data-amount="${amount.toFixed(2)}" data-sender="user">
                         <div class="transfer-info">
                             <div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div>
                             <div class="transfer-text">
@@ -8272,6 +8312,36 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     addWechatMessage(transferContent, 'user', char.avatar);
                     char.chatHistory.push({ role: 'user', content: transferContent });
                     saveWechatData();
+
+                    // 模拟对方领取转账
+                    setTimeout(() => {
+                        // 更新历史记录中的转账状态
+                        for (let i = char.chatHistory.length - 1; i >= 0; i--) {
+                            if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
+                                let content = char.chatHistory[i].content;
+                                content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
+                                content = content.replace(`转账给${char.name}`, '已被接收');
+                                char.chatHistory[i].content = content;
+                                break;
+                            }
+                        }
+
+                        const systemMsg = `"${char.name}"已确认收钱`;
+                        char.chatHistory.push({ role: 'system', content: systemMsg });
+                        saveWechatData();
+
+                        // 更新 UI
+                        if (wechatState.activeCharacterId === char.id) {
+                            const tfElements = document.querySelectorAll(`.wechat-transfer[data-id="${tfId}"]`);
+                            tfElements.forEach(tf => {
+                                tf.dataset.opened = 'true';
+                                tf.style.opacity = '0.7';
+                                const statusEl = tf.querySelector('.transfer-status');
+                                if (statusEl) statusEl.textContent = '已被接收';
+                            });
+                            addWechatMessage(systemMsg, 'system', char.avatar);
+                        }
+                    }, 3000);
                 }
             }
 
@@ -8525,6 +8595,58 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
                 openModal.classList.add('active');
             }
+
+            // 处理转账点击
+            function handleTransferClick(e) {
+                const tf = e.target.closest('.wechat-transfer');
+                if (!tf) return;
+
+                const tfId = tf.dataset.id;
+                const amount = tf.dataset.amount;
+                const sender = tf.dataset.sender || 'user';
+                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                
+                if (!char) return;
+                
+                // 如果是自己发出的，或者已经领取了，不做处理（或者可以弹出详情，这里简化处理）
+                if (sender === 'user' || tf.dataset.opened === 'true') {
+                    return;
+                }
+
+                // 领取逻辑
+                if (confirm(`是否确认接收来自 ${char.name} 的 ¥${amount} 转账？`)) {
+                    // 1. 更新当前页面的 DOM 状态
+                    tf.dataset.opened = 'true';
+                    const statusEl = tf.querySelector('.transfer-status');
+                    if (statusEl) statusEl.textContent = '已收款';
+                    tf.style.opacity = '0.7';
+
+                    // 2. 持久化存储：同步更新历史记录中的 HTML 内容
+                    if (tfId) {
+                        for (let i = char.chatHistory.length - 1; i >= 0; i--) {
+                            if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
+                                let content = char.chatHistory[i].content;
+                                if (!content.includes('data-opened="true"')) {
+                                    content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
+                                    content = content.replace('微信转账', '已收款');
+                                    char.chatHistory[i].content = content;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 3. 增加钱包余额
+                    walletState.balance += parseFloat(amount);
+                    saveWalletState();
+                    updateWalletBalance();
+                    
+                    // 4. 保存微信数据
+                    saveWechatData();
+                    
+                    alert('已成功收款，金额已存入零钱');
+                }
+            }
             
             // 绑定红包相关事件
             function bindRedpacketEvents() {
@@ -8557,8 +8679,14 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     document.getElementById('wechat-redpacket-open-modal').classList.remove('active');
                 });
 
-                // 聊天列表点击代理，处理红包点击
-                document.getElementById('wechat-messages')?.addEventListener('click', handleRedpacketClick);
+                // 聊天列表点击代理，处理红包和转账点击
+                document.getElementById('wechat-messages')?.addEventListener('click', (e) => {
+                    if (e.target.closest('.wechat-redpacket')) {
+                        handleRedpacketClick(e);
+                    } else if (e.target.closest('.wechat-transfer')) {
+                        handleTransferClick(e);
+                    }
+                });
 
                 // 转账发送按钮
                 const transferSendBtn = document.getElementById('transfer-send-btn');
