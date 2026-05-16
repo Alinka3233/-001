@@ -197,7 +197,7 @@
             setInterval(updateClock, 60000);
 
             // 应用切换逻辑
-            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
+            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'community-api-config', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
             
             // --- 应用管理系统 (删除与下载) ---
             let deletedApps = JSON.parse(localStorage.getItem('deletedApps') || '[]');
@@ -2189,6 +2189,14 @@
                             openApp('vision-api-config');
                         });
                     }
+
+                    // AI社区API点击事件
+                    const generalCommunityApiToggle = document.getElementById('general-community-api-toggle');
+                    if (generalCommunityApiToggle) {
+                        generalCommunityApiToggle.addEventListener('click', () => {
+                            openApp('community-api-config');
+                        });
+                    }
                 }
             });
             
@@ -2213,6 +2221,7 @@
             const apiConfigBackBtn = document.getElementById('api-config-back-btn');
             const locationBackBtn = document.getElementById('location-back-btn');
             const visionApiConfigBackBtn = document.getElementById('vision-api-config-back-btn');
+            const communityApiConfigBackBtn = document.getElementById('community-api-config-back-btn');
             
             if (worldbookBackBtn) {
                 worldbookBackBtn.addEventListener('click', () => {
@@ -2234,6 +2243,12 @@
 
             if (visionApiConfigBackBtn) {
                 visionApiConfigBackBtn.addEventListener('click', () => {
+                    openApp('general');
+                });
+            }
+
+            if (communityApiConfigBackBtn) {
+                communityApiConfigBackBtn.addEventListener('click', () => {
                     openApp('general');
                 });
             }
@@ -2411,6 +2426,181 @@
                 });
                 visionApiTestBtn.addEventListener('click', testVisionApiConnection);
                 visionApiExtractModelBtn.addEventListener('click', detectVisionModels);
+            }
+
+            // AI社区API配置逻辑
+            const communityApiUrlInput = document.getElementById('community-api-url-input');
+            const communityApiKeyInput = document.getElementById('community-api-key-input');
+            const communityApiModelSelect = document.getElementById('community-api-model-select');
+            const communityApiCustomModelInput = document.getElementById('community-api-custom-model-input');
+            const communityApiCustomModelContainer = document.getElementById('community-api-custom-model-container');
+            const communityApiSaveBtn = document.getElementById('community-api-save-btn');
+            const communityApiTestBtn = document.getElementById('community-api-test-btn');
+            const communityApiExtractModelBtn = document.getElementById('community-api-extract-model-btn');
+
+            function loadCommunityApiConfig() {
+                const apiUrl = localStorage.getItem('communityApiUrl') || 'https://api.openai.com/v1/chat/completions';
+                const apiKey = localStorage.getItem('communityApiKey') || '';
+                const model = localStorage.getItem('communityApiModel') || 'gpt-4o-mini';
+                const customModel = localStorage.getItem('communityApiCustomModel') || '';
+                
+                if (communityApiUrlInput) communityApiUrlInput.value = apiUrl;
+                if (communityApiKeyInput) communityApiKeyInput.value = apiKey;
+                if (communityApiModelSelect) {
+                    communityApiModelSelect.value = model;
+                    if (model !== 'custom' && !Array.from(communityApiModelSelect.options).some(opt => opt.value === model)) {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        communityApiModelSelect.insertBefore(option, communityApiModelSelect.querySelector('option[value="custom"]'));
+                        communityApiModelSelect.value = model;
+                    }
+                }
+                if (communityApiCustomModelInput) communityApiCustomModelInput.value = customModel;
+                
+                if (communityApiModelSelect && communityApiModelSelect.value === 'custom') {
+                    if (communityApiCustomModelContainer) communityApiCustomModelContainer.style.display = 'flex';
+                } else {
+                    if (communityApiCustomModelContainer) communityApiCustomModelContainer.style.display = 'none';
+                }
+
+                // 触发实时验证
+                validateCommunityUrlRealtime(apiUrl);
+                validateCommunityApiKeyRealtime(apiKey);
+            }
+
+            function onCommunityApiConfigAppOpen() {
+                loadCommunityApiConfig();
+            }
+
+            function validateCommunityUrlRealtime(url) {
+                const resultDiv = document.getElementById('community-api-url-validation-result');
+                if (!resultDiv) return;
+                url = url.trim();
+                if (!url) { resultDiv.innerHTML = ''; return; }
+                try {
+                    let testUrl = url;
+                    if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) testUrl = 'https://' + testUrl;
+                    const urlObj = new URL(testUrl);
+                    if (!urlObj.hostname || !urlObj.hostname.includes('.')) {
+                        resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ 域名格式不正确</span>';
+                        return;
+                    }
+                    const isCommonEndpoint = urlObj.pathname.includes('/chat/completions') || urlObj.pathname.includes('/v1');
+                    if (isCommonEndpoint) {
+                        resultDiv.innerHTML = '<span style="color: #34c759;">✓ URL 格式正确</span>';
+                    } else {
+                        resultDiv.innerHTML = '<span style="color: #ff9500;">⚠ 建议使用完整端点</span>';
+                    }
+                } catch (e) {
+                    resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ URL 格式错误</span>';
+                }
+            }
+
+            function validateCommunityApiKeyRealtime(apiKey) {
+                const resultDiv = document.getElementById('community-api-key-validation-result');
+                if (!resultDiv) return;
+                apiKey = apiKey.trim();
+                if (!apiKey) { resultDiv.innerHTML = ''; return; }
+                if (apiKey.length < 8) {
+                    resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ Key 长度过短</span>';
+                } else {
+                    resultDiv.innerHTML = '<span style="color: #34c759;">✓ Key 格式初步识别通过</span>';
+                }
+            }
+
+            async function detectCommunityModels() {
+                const apiUrl = communityApiUrlInput.value.trim();
+                const apiKey = communityApiKeyInput.value.trim();
+                const resultDiv = document.getElementById('community-model-detection-result');
+                if (!apiUrl || !apiKey) {
+                    resultDiv.textContent = '请先输入URL和API Key';
+                    resultDiv.style.color = '#ff9500';
+                    return;
+                }
+                const originalText = communityApiExtractModelBtn.textContent;
+                communityApiExtractModelBtn.textContent = '正在提取...';
+                communityApiExtractModelBtn.disabled = true;
+                try {
+                    let baseUrl = apiUrl;
+                    if (apiUrl.includes('/chat/completions')) baseUrl = apiUrl.replace('/chat/completions', '');
+                    const modelsUrl = baseUrl.endsWith('/') ? baseUrl + 'models' : baseUrl + '/models';
+                    const response = await fetch(modelsUrl, {
+                        method: 'GET',
+                        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`请求失败 (${response.status})`);
+                    const data = await response.json();
+                    let models = [];
+                    if (data.data && Array.isArray(data.data)) models = data.data.map(m => m.id || m);
+                    else if (Array.isArray(data)) models = data.map(m => m.id || m);
+                    if (models.length === 0) throw new Error('未发现可用模型');
+                    models = [...new Set(models)].sort();
+                    if (communityApiModelSelect) {
+                        const customOption = communityApiModelSelect.querySelector('option[value="custom"]');
+                        communityApiModelSelect.innerHTML = '';
+                        models.forEach(modelId => {
+                            const option = document.createElement('option');
+                            option.value = modelId; option.textContent = modelId;
+                            communityApiModelSelect.appendChild(option);
+                        });
+                        if (customOption) communityApiModelSelect.appendChild(customOption);
+                        communityApiModelSelect.value = models[0];
+                        communityApiModelSelect.dispatchEvent(new Event('change'));
+                    }
+                    resultDiv.textContent = `✓ 成功提取 ${models.length} 个模型`;
+                    resultDiv.style.color = '#34c759';
+                } catch (error) {
+                    resultDiv.textContent = '✗ 提取失败: ' + error.message;
+                    resultDiv.style.color = '#ff3b30';
+                } finally {
+                    communityApiExtractModelBtn.textContent = originalText;
+                    communityApiExtractModelBtn.disabled = false;
+                }
+            }
+
+            async function testCommunityApiConnection() {
+                let apiUrl = communityApiUrlInput.value.trim();
+                const apiKey = communityApiKeyInput.value.trim();
+                let model = communityApiModelSelect.value;
+                if (model === 'custom') model = communityApiCustomModelInput.value.trim();
+                if (!apiUrl || !apiKey) { alert('请先填写API URL和API Key'); return; }
+                if (!apiUrl.startsWith('http')) apiUrl = 'https://' + apiUrl;
+                let testUrl = apiUrl;
+                if (!testUrl.includes('/chat/completions')) testUrl = testUrl.endsWith('/') ? testUrl + 'chat/completions' : testUrl + '/chat/completions';
+                try {
+                    communityApiTestBtn.disabled = true;
+                    communityApiTestBtn.textContent = '正在测试...';
+                    const response = await fetch(testUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                        body: JSON.stringify({ model: model || 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+                    });
+                    if (response.ok) alert('✓ Community API连接测试成功！');
+                    else alert(`连接失败 (${response.status})`);
+                } catch (error) {
+                    alert(`请求出错: ${error.message}`);
+                } finally {
+                    communityApiTestBtn.disabled = false;
+                    communityApiTestBtn.textContent = '测试连接';
+                }
+            }
+
+            if (communityApiUrlInput) {
+                communityApiUrlInput.addEventListener('input', (e) => validateCommunityUrlRealtime(e.target.value));
+                communityApiKeyInput.addEventListener('input', (e) => validateCommunityApiKeyRealtime(e.target.value));
+                communityApiModelSelect.addEventListener('change', (e) => {
+                    communityApiCustomModelContainer.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+                });
+                communityApiSaveBtn.addEventListener('click', () => {
+                    localStorage.setItem('communityApiUrl', communityApiUrlInput.value.trim());
+                    localStorage.setItem('communityApiKey', communityApiKeyInput.value.trim());
+                    localStorage.setItem('communityApiModel', communityApiModelSelect.value);
+                    localStorage.setItem('communityApiCustomModel', communityApiCustomModelInput.value.trim());
+                    alert('AI社区API配置保存成功！');
+                });
+                communityApiTestBtn.addEventListener('click', testCommunityApiConnection);
+                communityApiExtractModelBtn.addEventListener('click', detectCommunityModels);
             }
             
             // 重置所有数据按钮事件处理
@@ -2643,6 +2833,8 @@
                     onApiConfigAppOpen();
                 } else if (e.detail.app === 'vision-api-config') {
                     onVisionApiConfigAppOpen();
+                } else if (e.detail.app === 'community-api-config') {
+                    onCommunityApiConfigAppOpen();
                 } else if (e.detail.app === 'location') {
                     onLocationAppOpen();
                 }

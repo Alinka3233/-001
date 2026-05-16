@@ -33,7 +33,7 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.0.8">
+    <link rel="stylesheet" href="css/style.css?v=1.0.9">
 </head>
 <body>
     <!-- 全局加载动画 -->
@@ -603,6 +603,66 @@
         </div>
     </div>
     
+    <!-- AI社区API配置应用 -->
+    <div class="app-page" id="app-community-api-config">
+        <header class="app-header">
+            <button class="header-btn ios-back-btn" id="community-api-config-back-btn" style="width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; background: var(--switch-bg); border-radius: 50%; color: var(--secondary-text-color) !important;"><i class="fas fa-chevron-left" style="font-size: 14px;"></i></button>
+            <h1>AI社区API</h1>
+        </header>
+        <div class="app-content">
+            <div style="padding: 20px;">
+                <div style="background: rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+                    <h2 style="margin-top: 0; margin-bottom: 24px; font-size: 18px; font-weight: 600; color: var(--primary-text-color);">社区与写作 API 设置</h2>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Community API URL输入 -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">Community API URL</label>
+                            <input type="url" id="community-api-url-input" class="api-key-input" placeholder="https://api.openai.com/v1/chat/completions" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                            <div id="community-api-url-validation-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
+                        </div>
+                        
+                        <!-- Community API Key输入 -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">Community API Key</label>
+                            <input type="password" id="community-api-key-input" class="api-key-input" placeholder="输入你的API Key" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                            <div id="community-api-key-validation-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
+                        </div>
+                        
+                        <!-- Community模型选择 -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">Community 模型</label>
+                            <select id="community-api-model-select" class="api-key-input" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                                <option value="gpt-4o">gpt-4o</option>
+                                <option value="claude-3-5-sonnet-20240620">claude-3-5-sonnet</option>
+                                <option value="custom">自定义模型</option>
+                            </select>
+                        </div>
+
+                        <!-- 模型提取按钮 -->
+                        <div style="display: flex; gap: 12px;">
+                            <button id="community-api-extract-model-btn" style="flex: 1; padding: 12px; border: none; border-radius: 12px; background: #007AFF; color: white; font-size: 16px; font-weight: 500; cursor: pointer; transition: transform 0.2s, opacity 0.2s, background-color 0.2s, filter 0.2s;">提取Community模型</button>
+                        </div>
+                        <div id="community-model-detection-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
+                        
+                        <!-- 自定义模型输入 -->
+                        <div style="display: flex; flex-direction: column; gap: 8px; display: none;" id="community-api-custom-model-container">
+                            <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">自定义模型名称</label>
+                            <input type="text" id="community-api-custom-model-input" class="api-key-input" placeholder="输入自定义模型名称" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div style="display: flex; gap: 12px; margin-top: 8px;">
+                            <button id="community-api-save-btn" class="settings-button" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; color: white; background: #5856D6; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, filter 0.3s ease;">保存配置</button>
+                            <button id="community-api-test-btn" class="settings-button" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; color: white; background: #007AFF; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, filter 0.3s ease;">测试连接</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 图片识别API配置应用 -->
     <div class="app-page" id="app-vision-api-config">
         <header class="app-header">
@@ -780,6 +840,11 @@
                     <div class="settings-item" id="general-vision-api-toggle">
                         <div class="item-icon" style="background: transparent; color: var(--text-color); font-size: 18px;"><i class="fas fa-eye"></i></div>
                         <span>图片识别API</span>
+                        <i class="fas fa-chevron-right" style="color: var(--secondary-text-color); margin-left: auto;"></i>
+                    </div>
+                    <div class="settings-item" id="general-community-api-toggle">
+                        <div class="item-icon" style="background: transparent; color: var(--text-color); font-size: 18px;"><i class="fas fa-users-cog"></i></div>
+                        <span>AI社区API</span>
                         <i class="fas fa-chevron-right" style="color: var(--secondary-text-color); margin-left: auto;"></i>
                     </div>
                 </div>
@@ -2053,6 +2118,6 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.0.8"></script>
+<script src="js/script.js?v=1.0.9"></script>
 </body>
 </html>
