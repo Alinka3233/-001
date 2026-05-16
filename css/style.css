@@ -2711,6 +2711,8 @@
             display: flex;
             align-items: center;
             cursor: pointer;
+            user-select: none;
+            touch-action: none; /* 重要：防止触摸时页面滚动 */
         }
 
         .cc-slider-fill {
@@ -2732,38 +2734,6 @@
             pointer-events: none;
             mix-blend-mode: difference;
             color: #fff;
-        }
-
-        .cc-slider-horizontal input[type="range"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            -webkit-appearance: none;
-            background: transparent;
-            cursor: pointer;
-            z-index: 3;
-            margin: 0;
-            opacity: 1; /* 改回 1 但使用特殊样式使其不可见，确保交互区域存在 */
-            border: none;
-            outline: none;
-        }
-
-        /* 关键：确保 range 控件的滑块和轨道在视觉上不可见，但交互区域覆盖整个长条 */
-        .cc-slider-horizontal input[type="range"]::-webkit-slider-runnable-track {
-            background: transparent;
-            border: none;
-            height: 100%;
-        }
-
-        .cc-slider-horizontal input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 44px; /* 与高度一致，确保有足够的点击/拖动区域 */
-            height: 44px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
         }
 
         /* Music Widget */

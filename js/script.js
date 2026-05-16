@@ -667,47 +667,102 @@
                 controlCenter.classList.remove('active');
             });
 
-            // 亮度调节功能
-            const brightnessSlider = document.getElementById('cc-brightness');
+            // 亮度调节功能 (自定义触摸滑块)
+            const brightnessContainer = document.getElementById('brightness-slider-container');
             const brightnessFill = document.getElementById('cc-brightness-fill');
             const brightnessOverlay = document.getElementById('brightness-overlay');
 
-            if (brightnessSlider) {
+            if (brightnessContainer) {
                 // 初始化亮度
-                const savedBrightness = localStorage.getItem('screenBrightness') || '100';
-                brightnessSlider.value = savedBrightness;
-                updateBrightness(savedBrightness);
+                let currentBrightness = localStorage.getItem('screenBrightness') || '100';
+                updateBrightness(currentBrightness);
 
-                brightnessSlider.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    updateBrightness(val);
+                const handleBrightnessInput = (e) => {
+                    const rect = brightnessContainer.getBoundingClientRect();
+                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                    let percentage = (x / rect.width) * 100;
+                    percentage = Math.max(0, Math.min(100, percentage));
+                    
+                    updateBrightness(percentage);
+                    localStorage.setItem('screenBrightness', percentage.toFixed(0));
+                };
+
+                // 触摸事件
+                brightnessContainer.addEventListener('touchstart', (e) => {
+                    handleBrightnessInput(e);
+                    e.preventDefault();
+                }, { passive: false });
+
+                brightnessContainer.addEventListener('touchmove', (e) => {
+                    handleBrightnessInput(e);
+                    e.preventDefault();
+                }, { passive: false });
+
+                // 鼠标事件
+                let isMouseDown = false;
+                brightnessContainer.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    handleBrightnessInput(e);
                 });
 
-                brightnessSlider.addEventListener('change', (e) => {
-                    localStorage.setItem('screenBrightness', e.target.value);
+                document.addEventListener('mousemove', (e) => {
+                    if (isMouseDown) handleBrightnessInput(e);
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isMouseDown = false;
                 });
             }
 
             function updateBrightness(value) {
                 if (brightnessFill) brightnessFill.style.width = `${value}%`;
                 if (brightnessOverlay) {
-                    // 映射：100% 亮度 = 0 遮罩透明度，0% 亮度 = 0.6 遮罩透明度（不完全黑掉，保留可见性）
                     const opacity = (100 - value) / 100 * 0.6;
                     brightnessOverlay.style.opacity = opacity;
                 }
             }
 
-            // 修复滑块在移动端的拖动体验
-            if (brightnessSlider) {
-                // 处理触摸开始，确保在移动端也能立即响应
-                brightnessSlider.addEventListener('touchstart', (e) => {
-                    e.stopPropagation(); // 防止触发控制中心的拖动手势（如果有）
-                }, { passive: true });
-                
-                // 处理触摸移动
-                brightnessSlider.addEventListener('touchmove', (e) => {
-                    e.stopPropagation();
-                }, { passive: true });
+            // 音量调节功能 (自定义触摸滑块)
+            const volumeContainer = document.getElementById('volume-slider-container');
+            const volumeFill = document.getElementById('cc-volume-fill');
+
+            if (volumeContainer) {
+                let currentVolume = localStorage.getItem('systemVolume') || '50';
+                if (volumeFill) volumeFill.style.width = `${currentVolume}%`;
+
+                const handleVolumeInput = (e) => {
+                    const rect = volumeContainer.getBoundingClientRect();
+                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                    let percentage = (x / rect.width) * 100;
+                    percentage = Math.max(0, Math.min(100, percentage));
+                    
+                    if (volumeFill) volumeFill.style.width = `${percentage}%`;
+                    localStorage.setItem('systemVolume', percentage.toFixed(0));
+                };
+
+                volumeContainer.addEventListener('touchstart', (e) => {
+                    handleVolumeInput(e);
+                    e.preventDefault();
+                }, { passive: false });
+
+                volumeContainer.addEventListener('touchmove', (e) => {
+                    handleVolumeInput(e);
+                    e.preventDefault();
+                }, { passive: false });
+
+                let isVolumeMouseDown = false;
+                volumeContainer.addEventListener('mousedown', (e) => {
+                    isVolumeMouseDown = true;
+                    handleVolumeInput(e);
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isVolumeMouseDown) handleVolumeInput(e);
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isVolumeMouseDown = false;
+                });
             }
 
             // 初始化计算器
