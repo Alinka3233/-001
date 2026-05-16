@@ -7135,63 +7135,109 @@
         .assistive-touch-item:nth-child(4) { top: 50%; left: 20px; transform: translateY(-50%); }
 
 
-        /* --- ▼▼▼ 响应式布局：平板 ▼▼▼ --- */
-        @media (min-width: 768px) {
-            .apps-grid-container {
-                width: 100%;
-                max-width: none;
+        /* --- ▼▼▼ 响应式布局：小屏手机适配 ▼▼▼ --- */
+        @media (max-width: 375px) {
+            .home-screen {
+                padding: calc(10px + env(safe-area-inset-top, 10px)) 16px 10px;
             }
 
             .apps-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                justify-content: center;
-                gap: 24px 20px;
-            }
-
-            .widget {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-
-            .dock {
-                width: 100%;
-                max-width: 600px;
+                grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+                gap: 16px 12px;
             }
 
             .app-icon .icon {
-                width: calc(64px * var(--icon-scale, 1));
-                height: calc(64px * var(--icon-scale, 1));
-                font-size: calc(30px * var(--icon-scale, 1));
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+            }
+
+            .app-icon span {
+                font-size: 11px;
+            }
+
+            .dock {
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .dock .app-icon .icon {
+                width: 50px;
+                height: 50px;
             }
         }
 
-        /* --- ▼▼▼ 响应式布局：桌面 ▼▼▼ --- */
-        @media (min-width: 1025px) {
+        /* --- ▼▼▼ 响应式布局：平板 ▼▼▼ --- */
+        @media (min-width: 768px) {
+            .home-screen {
+                padding: calc(40px + env(safe-area-inset-top, 20px)) clamp(40px, 10vw, 100px) 40px;
+            }
+
             .apps-grid-container {
                 width: 100%;
-                max-width: none;
+                max-width: 900px;
+                margin: 0 auto;
             }
 
             .apps-grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                justify-content: center;
-                gap: 32px 24px;
-            }
-
-            .widget {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-
-            .dock {
-                width: 100%;
-                max-width: 800px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 40px 30px;
             }
 
             .app-icon .icon {
-                width: calc(68px * var(--icon-scale, 1));
-                height: calc(68px * var(--icon-scale, 1));
-                font-size: calc(32px * var(--icon-scale, 1));
+                width: 80px;
+                height: 80px;
+                font-size: 36px;
+            }
+
+            .app-icon span {
+                font-size: 14px;
+                margin-top: 8px;
+            }
+
+            .dock {
+                width: auto;
+                max-width: 500px;
+                padding: 16px 32px;
+                gap: 24px;
+            }
+
+            .dock .app-icon .icon {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        /* --- ▼▼▼ 响应式布局：桌面/大屏幕适配 ▼▼▼ --- */
+        @media (min-width: 1025px) {
+            .home-screen {
+                padding: calc(60px + env(safe-area-inset-top, 20px)) 0 60px;
+            }
+
+            .apps-grid-container {
+                max-width: 1000px;
+            }
+
+            .apps-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 50px 40px;
+            }
+
+            .app-icon .icon {
+                width: 90px;
+                height: 90px;
+                font-size: 42px;
+            }
+
+            .dock {
+                max-width: 700px;
+                padding: 20px 40px;
+                gap: 32px;
+            }
+
+            .dock .app-icon .icon {
+                width: 80px;
+                height: 80px;
             }
         }
 
