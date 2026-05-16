@@ -7268,45 +7268,55 @@
                 font-size: calc(14px * var(--icon-scale, 1));
             }
         }
-        /* iOS Safari 优化 - 移除过于激进的禁用滤镜逻辑，恢复磨砂效果 */
+        /* iOS Safari 性能优化：针对发热问题的专项调整 */
         @supports (-webkit-touch-callout: none) {
-            /* 允许使用磨砂滤镜，现代 iOS 设备性能已足够 */
-            
-            /* 3. 极简小白点与菜单，确保在任何时候都不会导致 GPU 溢出 */
-            .assistive-touch, .assistive-touch-menu {
-                background-color: rgba(0, 0, 0, 0.8) !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+            /* 1. 优化磨砂效果实现方式，减少 GPU 负担 */
+            .glass-effect, .dock, .app-header, .control-center, .safari-nav, .safari-footer {
+                backdrop-filter: blur(15px); /* 降低模糊半径，显著减少计算量 */
+                -webkit-backdrop-filter: blur(15px);
             }
             
-            /* 4. 禁用 will-change，防止过多的 Compositor Layers 消耗显存 */
+            /* 2. 移除会导致 GPU 持续活跃的无限动画 */
+            .loader-logo::before, .loader-logo::after {
+                animation: none !important; /* 移除背景发光循环动画 */
+            }
+            
+            .heart-path {
+                animation-duration: 4s !important; /* 放慢心形勾勒速度，降低重绘频率 */
+            }
+
+            /* 3. 限制阴影渲染深度 */
+            * {
+                box-shadow: none !important; /* 移除大部分阴影 */
+            }
+            
+            .app-icon .icon, .dock, .app-page, .assistive-touch {
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; /* 仅保留核心阴影，并简化 */
+            }
+
+            /* 4. 彻底禁用 will-change，iOS 上的 will-change 极易导致内存和发热激增 */
             * {
                 will-change: auto !important;
-                transition-property: transform, opacity, background-color, color, border-color, visibility !important;
             }
 
-            /* 5. 使用基础硬件加速，避免过度分层 */
-            #phone-ui-container, .wallpaper, .app-page, .home-screen {
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
+            /* 5. 优化壁纸渲染 */
+            .wallpaper {
+                transform: none !important; /* 移除壁纸缩放动画 */
             }
             
-            /* 6. 禁用复杂的壁纸模糊伪元素 */
             .wallpaper::after {
-                display: none !important;
+                display: none !important; /* 彻底移除模糊层伪元素 */
             }
 
-            /* 7. 优化打开应用时的背景动画，避免冲突 */
+            /* 6. 减少应用打开时的动效复杂度 */
             .app-open .wallpaper {
-                transform: scale(1.1) !important;
-                opacity: 0.6;
+                opacity: 0.5 !important;
+                filter: none !important;
             }
             
-            .home-screen.hidden {
-                opacity: 0;
-            }
-
+            /* 7. 移除动画过程中的复合滤镜 */
             .app-page {
-                transition-duration: 0.4s !important;
+                filter: none !important;
             }
         }
 
