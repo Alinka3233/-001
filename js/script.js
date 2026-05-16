@@ -1878,99 +1878,183 @@
                 });
             }
 
-            // Safari 功能
-            const loadingBar = document.getElementById('loading-bar');
-            
-            function loadUrlInSafari(url) {
-                if (!url) return;
-                let fullUrl = url.trim();
-                if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
-                    fullUrl = 'https://' + fullUrl;
+            // --- AI 小说与论坛功能 ---
+            const aiNovelMessages = document.getElementById('ai-novel-messages');
+            const aiNovelInput = document.getElementById('ai-novel-input');
+            const aiNovelSend = document.getElementById('ai-novel-send');
+            const forumPostList = document.getElementById('forum-post-list');
+            const aiForumTabs = document.querySelectorAll('.safari-tab');
+            const aiForumViews = document.querySelectorAll('.sub-view');
+            const aiForumRefresh = document.getElementById('ai-forum-refresh');
+
+            // 模拟论坛数据
+            const forumPosts = [
+                {
+                    username: "极客小助手",
+                    time: "2小时前",
+                    title: "关于 WebOS 系统性能优化的几点建议",
+                    content: "最近在开发移动端适配时发现，使用 calc(var(--vh)) 能有效解决 iOS Safari 底部工具栏遮挡的问题。此外，will-change 属性虽然能提升性能，但不建议过度使用，否则会导致内存占用过高。",
+                    likes: 128,
+                    comments: 45
+                },
+                {
+                    username: "小说爱好者",
+                    time: "5小时前",
+                    title: "求推书！有没有类似《三体》这种硬核科幻？",
+                    content: "刚看完三体，感觉整个人都被震撼了。大家有没有类似的硬核科幻小说推荐？希望是那种基于真实科学理论展开，但想象力又非常宏大的。",
+                    likes: 342,
+                    comments: 89
+                },
+                {
+                    username: "AI开发者",
+                    time: "昨天",
+                    title: "大模型在小说续写中的边界在哪里？",
+                    content: "目前 AI 生成的小说在逻辑连贯性和情感深度上已经有了长足进步，但在处理超长篇幅的伏笔埋设方面仍有欠缺。期待未来能有更强的上下文理解能力。",
+                    likes: 567,
+                    comments: 123
                 }
-                
-                // 更加鲁棒的 URL 比较，忽略末尾斜杠和协议差异
-                try {
-                    const currentUrl = new URL(safariFrame.src);
-                    const targetUrl = new URL(fullUrl);
-                    if (currentUrl.href === targetUrl.href) return;
-                } catch (e) {
-                    if (safariFrame.src === fullUrl) return;
-                }
-                
-                // 显示加载条
-                if (loadingBar) {
-                    loadingBar.classList.add('active');
-                    loadingBar.style.width = '30%';
-                }
-                
-                // 设置iframe源
-                safariFrame.src = fullUrl;
+            ];
+
+            // 切换标签页
+            aiForumTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    
+                    aiForumTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    aiForumViews.forEach(view => {
+                        view.classList.remove('active');
+                        if (view.id === `${tabName}-view`) {
+                            view.classList.add('active');
+                        }
+                    });
+                    
+                    if (tabName === 'forum') {
+                        renderForumPosts();
+                    }
+                });
+            });
+
+            // 渲染论坛帖子
+            function renderForumPosts() {
+                if (!forumPostList) return;
+                forumPostList.innerHTML = forumPosts.map(post => `
+                    <div class="forum-post">
+                        <div class="forum-post-header">
+                            <div class="forum-avatar" style="background: hsl(${Math.random() * 360}, 70%, 80%)"></div>
+                            <div class="forum-user-info">
+                                <span class="forum-username">${post.username}</span>
+                                <span class="forum-time">${post.time}</span>
+                            </div>
+                        </div>
+                        <div class="forum-post-title">${post.title}</div>
+                        <div class="forum-post-content">${post.content}</div>
+                        <div class="forum-post-stats">
+                            <span><i class="far fa-thumbs-up"></i> ${post.likes}</span>
+                            <span><i class="far fa-comment"></i> ${post.comments}</span>
+                        </div>
+                    </div>
+                `).join('');
             }
+
+            // AI 小说生成模拟逻辑
+            async function generateNovelSnippet(userInput) {
+                // 模拟 AI 生成过程
+                const responsePrefixes = [
+                    "在那片被遗忘的大陆上，",
+                    "随着一阵急促的脚步声，",
+                    "光影错落间，",
+                    "正如古老的预言所言，",
+                    "他深吸一口气，推开了那扇门，"
+                ];
+                const prefix = responsePrefixes[Math.floor(Math.random() * responsePrefixes.length)];
+                return `${prefix}针对您的构思“${userInput}”，故事展开了：空气中弥漫着未知的气息，命运的齿轮开始转动。无论前方是深渊还是荣耀，这段旅程注定不再平凡...（此处为 AI 模拟生成的内容）`;
+            }
+
+            function addAiMessage(content, type) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `ai-message ${type}`;
+                msgDiv.innerHTML = `<p>${content}</p>`;
+                aiNovelMessages.appendChild(msgDiv);
+                aiNovelMessages.scrollTop = aiNovelMessages.scrollHeight;
+            }
+
+            if (aiNovelSend) {
+                aiNovelSend.addEventListener('click', async () => {
+                    const text = aiNovelInput.value.trim();
+                    if (!text) return;
+                    
+                    addAiMessage(text, 'user');
+                    aiNovelInput.value = '';
+                    aiNovelInput.style.height = 'auto';
+                    
+                    // 模拟思考状态
+                    const typingId = 'typing-' + Date.now();
+                    const typingDiv = document.createElement('div');
+                    typingDiv.className = 'ai-message ai';
+                    typingDiv.id = typingId;
+                    typingDiv.innerHTML = '<p>AI 正在构思中...</p>';
+                    aiNovelMessages.appendChild(typingDiv);
+                    aiNovelMessages.scrollTop = aiNovelMessages.scrollHeight;
+                    
+                    const response = await generateNovelSnippet(text);
+                    
+                    setTimeout(() => {
+                        const typingMsg = document.getElementById(typingId);
+                        if (typingMsg) typingMsg.remove();
+                        addAiMessage(response, 'ai');
+                    }, 1500);
+                });
+            }
+
+            // 输入框自适应高度
+            if (aiNovelInput) {
+                aiNovelInput.addEventListener('input', () => {
+                    aiNovelInput.style.height = 'auto';
+                    aiNovelInput.style.height = (aiNovelInput.scrollHeight) + 'px';
+                });
+            }
+
+            // 刷新功能
+            if (aiForumRefresh) {
+                aiForumRefresh.addEventListener('click', () => {
+                    const activeTab = document.querySelector('.safari-tab.active').dataset.tab;
+                    if (activeTab === 'forum') {
+                        renderForumPosts();
+                    } else {
+                        aiNovelMessages.innerHTML = '<div class="ai-message system"><p>对话已重置。</p></div>';
+                    }
+                });
+            }
+
+            // 初始化渲染一次
+            renderForumPosts();
+
+            // AI 小说与论坛功能按钮绑定
+            const aiForumBack = document.getElementById('ai-forum-back');
+            const aiForumHome = document.getElementById('ai-forum-home');
             
-            // 监听iframe加载事件
-            safariFrame.addEventListener('load', () => {
-                // 隐藏加载条
-                loadingBar.classList.remove('active');
-                loadingBar.style.width = '0';
-                
-                // 优化媒体适配
-                try {
-                    // 设置viewport元标签，确保网页适配手机屏幕
-                    const doc = safariFrame.contentDocument || safariFrame.contentWindow.document;
-                    if (doc) {
-                        let viewport = doc.querySelector('meta[name=viewport]');
-                        if (viewport) {
-                            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                        } else {
-                            viewport = doc.createElement('meta');
-                            viewport.name = 'viewport';
-                            viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-                            doc.head.appendChild(viewport);
+            if (aiForumBack) {
+                aiForumBack.addEventListener('click', () => {
+                    const activeTab = document.querySelector('.safari-tab.active').dataset.tab;
+                    if (activeTab === 'forum') {
+                        renderForumPosts();
+                    } else {
+                        if (aiNovelMessages.children.length > 1) {
+                            const lastMsg = aiNovelMessages.lastElementChild;
+                            if (!lastMsg.classList.contains('system')) lastMsg.remove();
                         }
                     }
-                } catch (e) {
-                    // 跨域安全限制，无法访问iframe内容
-                }
-            });
+                });
+            }
             
-            // 监听iframe加载进度
-            safariFrame.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total) * 100;
-                    loadingBar.style.width = `${percent}%`;
-                } else {
-                    // 如果无法计算进度，使用动画效果
-                    loadingBar.classList.add('active');
-                }
-            });
-            
-            // 重新加载页面
-            window.reloadPage = function() {
-                const safariFrame = document.getElementById('safari-frame');
-                safariFrame.contentWindow.location.reload();
-            };
-            
-            // 返回首页
-            window.goHome = function() {
-                const safariFrame = document.getElementById('safari-frame');
-                safariFrame.src = 'https://m.sogou.com';
-                document.getElementById('url-input').value = 'm.sogou.com';
-            };
-            
-            // 切换浏览器菜单
-            window.toggleBrowserMenu = function() {
-                // 这里可以添加浏览器菜单的逻辑
-                alert('浏览器菜单');
-            };
-            
-            safariUrlInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    loadUrlInSafari(safariUrlInput.value);
-                }
-            });
-            
-            // 移除 MutationObserver，避免应用激活时重复加载导致的闪烁
-            // 初始加载逻辑移至 openApp 或页面加载时
+            if (aiForumHome) {
+                aiForumHome.addEventListener('click', () => {
+                    const aiNovelTab = document.querySelector('.safari-tab[data-tab="ai-novel"]');
+                    if (aiNovelTab) aiNovelTab.click();
+                });
+            }
 
             // 设置和天气功能
             darkModeToggle.addEventListener('change', () => {
@@ -9290,7 +9374,6 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             // --- 初始化 ---
             initDB();
             loadSettings();
-            // loadUrlInSafari(safariUrlInput.value); // 移除初始调用，由 HTML 中的 iframe src 负责
             getRealWeather();
             weatherRetryBtn.addEventListener('click', getRealWeather);
             loadWallpapers();

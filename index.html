@@ -184,26 +184,46 @@
         </div>
     </div>
 
-    <!-- 应用页面 -->
+    <!-- AI 小说生成器与论坛模拟器 (原浏览器应用) -->
     <div class="app-page" id="app-safari">
         <div class="safari-nav">
             <button class="safari-btn" onclick="closeApps()" title="退出"><i class="fas fa-times"></i></button>
-            <div class="safari-url-bar">
-                <i class="fas fa-lock" style="font-size: 10px; opacity: 0.5;"></i>
-                <input type="text" id="url-input" value="m.sogou.com" spellcheck="false">
-                <button class="safari-refresh-btn" onclick="reloadPage()"><i class="fas fa-redo-alt"></i></button>
+            <div class="safari-tabs">
+                <button class="safari-tab active" data-tab="ai-novel">AI 小说</button>
+                <button class="safari-tab" data-tab="forum">论坛模拟</button>
             </div>
-            <button class="safari-btn" onclick="toggleBrowserMenu()" title="更多"><i class="fas fa-ellipsis-h"></i></button>
+            <button class="safari-btn" id="ai-forum-refresh" title="刷新"><i class="fas fa-redo-alt"></i></button>
         </div>
-        <div class="loading-bar" id="loading-bar"></div>
-        <div class="app-content">
-            <iframe id="safari-frame" src="https://m.sogou.com" sandbox="allow-forms allow-scripts allow-same-origin allow-popups" style="width: 100%; height: 100%; border: none;"></iframe>
+        
+        <div class="app-content" id="ai-forum-content">
+            <!-- AI 小说生成器视图 -->
+            <div id="ai-novel-view" class="sub-view active">
+                <div class="ai-chat-container">
+                    <div class="ai-chat-messages" id="ai-novel-messages">
+                        <div class="ai-message system">
+                            <p>欢迎来到 AI 小说生成器。请输入您的小说主题或开头，我将为您续写精彩故事。</p>
+                        </div>
+                    </div>
+                    <div class="ai-input-area">
+                        <textarea id="ai-novel-input" placeholder="输入小说构思..." rows="1"></textarea>
+                        <button id="ai-novel-send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 论坛模拟器视图 -->
+            <div id="forum-view" class="sub-view">
+                <div class="forum-container">
+                    <div class="forum-list" id="forum-post-list">
+                        <!-- 论坛帖子动态生成 -->
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="safari-footer">
-            <button class="footer-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
-            <button class="footer-btn" onclick="goForward()"><i class="fas fa-chevron-right"></i></button>
-            <button class="footer-btn" onclick="goHome()"><i class="fas fa-home"></i></button>
-            <button class="footer-btn" onclick="toggleBrowserMenu()"><i class="far fa-bookmark"></i></button>
+            <button class="footer-btn" id="ai-forum-back"><i class="fas fa-chevron-left"></i></button>
+            <button class="footer-btn" id="ai-forum-home"><i class="fas fa-home"></i></button>
             <button class="footer-btn" onclick="closeApps()"><i class="far fa-window-restore"></i></button>
         </div>
     </div>
