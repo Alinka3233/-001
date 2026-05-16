@@ -188,11 +188,12 @@
     <div class="app-page" id="app-safari">
         <div class="safari-nav">
             <button class="safari-btn" onclick="closeApps()" title="退出"><i class="fas fa-times"></i></button>
-            <div class="safari-tabs">
-                <button class="safari-tab active" data-tab="ai-novel">AI 小说</button>
-                <button class="safari-tab" data-tab="forum">论坛模拟</button>
+            <div class="safari-url-bar">
+                <i class="fas fa-lock" style="font-size: 10px; opacity: 0.5;"></i>
+                <input type="text" id="ai-forum-url-input" value="seeu.novel.ai" spellcheck="false">
+                <button class="safari-refresh-btn" id="ai-forum-refresh"><i class="fas fa-redo-alt"></i></button>
             </div>
-            <button class="safari-btn" id="ai-forum-refresh" title="刷新"><i class="fas fa-redo-alt"></i></button>
+            <button class="safari-btn" onclick="toggleBrowserMenu()" title="更多"><i class="fas fa-ellipsis-h"></i></button>
         </div>
         
         <div class="app-content" id="ai-forum-content">

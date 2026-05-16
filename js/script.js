@@ -1883,12 +1883,49 @@
             const aiNovelInput = document.getElementById('ai-novel-input');
             const aiNovelSend = document.getElementById('ai-novel-send');
             const forumPostList = document.getElementById('forum-post-list');
-            const aiForumTabs = document.querySelectorAll('.safari-tab');
+            const aiForumUrlInput = document.getElementById('ai-forum-url-input');
             const aiForumViews = document.querySelectorAll('.sub-view');
             const aiForumRefresh = document.getElementById('ai-forum-refresh');
 
+            // 路由映射逻辑
+            function routeByUrl(url) {
+                if (!url) return;
+                const cleanUrl = url.trim().toLowerCase();
+                
+                // 默认隐藏所有视图
+                aiForumViews.forEach(v => v.classList.remove('active'));
+                
+                if (cleanUrl.includes('seeu.novel.ai')) {
+                    document.getElementById('ai-novel-view').classList.add('active');
+                    aiForumUrlInput.value = 'seeu.novel.ai';
+                } else if (cleanUrl.includes('chat.seeu.ai')) {
+                    document.getElementById('forum-view').classList.add('active');
+                    renderForumPosts();
+                    aiForumUrlInput.value = 'chat.seeu.ai';
+                } else {
+                    // 如果输入其他网址，默认跳转到 AI 小说，但保留输入的网址文字（模拟浏览器）
+                    document.getElementById('ai-novel-view').classList.add('active');
+                }
+            }
+
+            if (aiForumUrlInput) {
+                aiForumUrlInput.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        routeByUrl(aiForumUrlInput.value);
+                    }
+                });
+            }
+
             // 模拟论坛数据
             const forumPosts = [
+                {
+                    username: "AI小说首席体验官",
+                    time: "刚刚",
+                    title: "发现了一个超赞的 AI 小说续写站！",
+                    content: "大家快去试试 seeu.novel.ai，输入一个开头就能自动生成后面的剧情，逻辑非常顺滑，简直是网文写手的福音！",
+                    likes: 999,
+                    comments: 66
+                },
                 {
                     username: "极客小助手",
                     time: "2小时前",
@@ -2019,8 +2056,8 @@
             // 刷新功能
             if (aiForumRefresh) {
                 aiForumRefresh.addEventListener('click', () => {
-                    const activeTab = document.querySelector('.safari-tab.active').dataset.tab;
-                    if (activeTab === 'forum') {
+                    const activeView = Array.from(aiForumViews).find(v => v.classList.contains('active'));
+                    if (activeView && activeView.id === 'forum-view') {
                         renderForumPosts();
                     } else {
                         aiNovelMessages.innerHTML = '<div class="ai-message system"><p>对话已重置。</p></div>';
@@ -2037,8 +2074,8 @@
             
             if (aiForumBack) {
                 aiForumBack.addEventListener('click', () => {
-                    const activeTab = document.querySelector('.safari-tab.active').dataset.tab;
-                    if (activeTab === 'forum') {
+                    const activeView = Array.from(aiForumViews).find(v => v.classList.contains('active'));
+                    if (activeView && activeView.id === 'forum-view') {
                         renderForumPosts();
                     } else {
                         if (aiNovelMessages.children.length > 1) {
@@ -2051,8 +2088,7 @@
             
             if (aiForumHome) {
                 aiForumHome.addEventListener('click', () => {
-                    const aiNovelTab = document.querySelector('.safari-tab[data-tab="ai-novel"]');
-                    if (aiNovelTab) aiNovelTab.click();
+                    routeByUrl('seeu.novel.ai');
                 });
             }
 
