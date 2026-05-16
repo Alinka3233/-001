@@ -1887,6 +1887,9 @@
                     fullUrl = 'https://' + fullUrl;
                 }
                 
+                // 如果 URL 没有变化，则不重新加载，避免闪烁
+                if (safariFrame.src === fullUrl) return;
+                
                 // 显示加载条
                 loadingBar.classList.add('active');
                 loadingBar.style.width = '30%';
@@ -1957,16 +1960,8 @@
                 }
             });
             
-            // 当Safari应用页面被激活时，重新加载URL
-            const safariApp = document.getElementById('app-safari');
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'class' && safariApp.classList.contains('active')) {
-                        loadUrlInSafari(safariUrlInput.value);
-                    }
-                });
-            });
-            observer.observe(safariApp, { attributes: true });
+            // 移除 MutationObserver，避免应用激活时重复加载导致的闪烁
+            // 初始加载逻辑移至 openApp 或页面加载时
 
             // 设置和天气功能
             darkModeToggle.addEventListener('change', () => {
