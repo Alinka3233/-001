@@ -619,12 +619,14 @@
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">Vision API URL</label>
                             <input type="url" id="vision-api-url-input" class="api-key-input" placeholder="https://api.openai.com/v1/chat/completions" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                            <div id="vision-api-url-validation-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
                         </div>
                         
                         <!-- Vision API Key输入 -->
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">Vision API Key</label>
                             <input type="password" id="vision-api-key-input" class="api-key-input" placeholder="输入你的API Key" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; background: rgba(255, 255, 255, 0.9);">
+                            <div id="vision-api-key-validation-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
                         </div>
                         
                         <!-- Vision模型选择 -->
@@ -638,6 +640,12 @@
                             </select>
                         </div>
 
+                        <!-- 模型提取按钮 -->
+                        <div style="display: flex; gap: 12px;">
+                            <button id="vision-api-extract-model-btn" style="flex: 1; padding: 12px; border: none; border-radius: 12px; background: #007AFF; color: white; font-size: 16px; font-weight: 500; cursor: pointer; transition: transform 0.2s, opacity 0.2s, background-color 0.2s, filter 0.2s;">提取Vision模型</button>
+                        </div>
+                        <div id="vision-model-detection-result" style="font-size: 12px; margin-top: 4px; min-height: 18px;"></div>
+                        
                         <!-- 自定义模型输入 -->
                         <div style="display: flex; flex-direction: column; gap: 8px; display: none;" id="vision-api-custom-model-container">
                             <label style="font-size: 14px; font-weight: 500; color: var(--primary-text-color);">自定义模型名称</label>

@@ -2246,85 +2246,171 @@
             const visionApiCustomModelContainer = document.getElementById('vision-api-custom-model-container');
             const visionApiSaveBtn = document.getElementById('vision-api-save-btn');
             const visionApiTestBtn = document.getElementById('vision-api-test-btn');
+            const visionApiExtractModelBtn = document.getElementById('vision-api-extract-model-btn');
 
-            // 初始化加载Vision配置
-            if (visionApiUrlInput) {
-                visionApiUrlInput.value = localStorage.getItem('visionApiUrl') || 'https://api.openai.com/v1/chat/completions';
-                visionApiKeyInput.value = localStorage.getItem('visionApiKey') || '';
-                const savedModel = localStorage.getItem('visionApiModel') || 'gpt-4o';
-                visionApiModelSelect.value = savedModel;
-                visionApiCustomModelInput.value = localStorage.getItem('visionApiCustomModel') || '';
+            function loadVisionApiConfig() {
+                const apiUrl = localStorage.getItem('visionApiUrl') || 'https://api.openai.com/v1/chat/completions';
+                const apiKey = localStorage.getItem('visionApiKey') || '';
+                const model = localStorage.getItem('visionApiModel') || 'gpt-4o';
+                const customModel = localStorage.getItem('visionApiCustomModel') || '';
                 
-                if (savedModel === 'custom') {
-                    visionApiCustomModelContainer.style.display = 'block';
+                if (visionApiUrlInput) visionApiUrlInput.value = apiUrl;
+                if (visionApiKeyInput) visionApiKeyInput.value = apiKey;
+                if (visionApiModelSelect) {
+                    visionApiModelSelect.value = model;
+                    if (model !== 'custom' && !Array.from(visionApiModelSelect.options).some(opt => opt.value === model)) {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        visionApiModelSelect.insertBefore(option, visionApiModelSelect.querySelector('option[value="custom"]'));
+                        visionApiModelSelect.value = model;
+                    }
+                }
+                if (visionApiCustomModelInput) visionApiCustomModelInput.value = customModel;
+                
+                if (visionApiModelSelect && visionApiModelSelect.value === 'custom') {
+                    if (visionApiCustomModelContainer) visionApiCustomModelContainer.style.display = 'flex';
+                } else {
+                    if (visionApiCustomModelContainer) visionApiCustomModelContainer.style.display = 'none';
                 }
 
-                visionApiModelSelect.addEventListener('change', (e) => {
-                    visionApiCustomModelContainer.style.display = e.target.value === 'custom' ? 'block' : 'none';
-                });
+                // 触发实时验证
+                validateVisionUrlRealtime(apiUrl);
+                validateVisionApiKeyRealtime(apiKey);
+            }
 
-                visionApiSaveBtn.addEventListener('click', () => {
-                    const apiUrl = visionApiUrlInput.value.trim();
-                    const apiKey = visionApiKeyInput.value.trim();
-                    const model = visionApiModelSelect.value;
-                    const customModel = visionApiCustomModelInput.value.trim();
+            function onVisionApiConfigAppOpen() {
+                loadVisionApiConfig();
+            }
 
-                    if (!apiUrl) {
-                        alert('请输入有效的API URL');
+            function validateVisionUrlRealtime(url) {
+                const resultDiv = document.getElementById('vision-api-url-validation-result');
+                if (!resultDiv) return;
+                url = url.trim();
+                if (!url) { resultDiv.innerHTML = ''; return; }
+                try {
+                    let testUrl = url;
+                    if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) testUrl = 'https://' + testUrl;
+                    const urlObj = new URL(testUrl);
+                    if (!urlObj.hostname || !urlObj.hostname.includes('.')) {
+                        resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ 域名格式不正确</span>';
                         return;
                     }
+                    const isCommonEndpoint = urlObj.pathname.includes('/chat/completions') || urlObj.pathname.includes('/v1');
+                    if (isCommonEndpoint) {
+                        resultDiv.innerHTML = '<span style="color: #34c759;">✓ URL 格式正确</span>';
+                    } else {
+                        resultDiv.innerHTML = '<span style="color: #ff9500;">⚠ 建议使用完整端端点</span>';
+                    }
+                } catch (e) {
+                    resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ URL 格式错误</span>';
+                }
+            }
 
-                    localStorage.setItem('visionApiUrl', apiUrl);
-                    localStorage.setItem('visionApiKey', apiKey);
-                    localStorage.setItem('visionApiModel', model);
-                    localStorage.setItem('visionApiCustomModel', customModel);
+            function validateVisionApiKeyRealtime(apiKey) {
+                const resultDiv = document.getElementById('vision-api-key-validation-result');
+                if (!resultDiv) return;
+                apiKey = apiKey.trim();
+                if (!apiKey) { resultDiv.innerHTML = ''; return; }
+                if (apiKey.length < 8) {
+                    resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ Key 长度过短</span>';
+                } else {
+                    resultDiv.innerHTML = '<span style="color: #34c759;">✓ Key 格式初步识别通过</span>';
+                }
+            }
 
+            async function detectVisionModels() {
+                const apiUrl = visionApiUrlInput.value.trim();
+                const apiKey = visionApiKeyInput.value.trim();
+                const resultDiv = document.getElementById('vision-model-detection-result');
+                if (!apiUrl || !apiKey) {
+                    resultDiv.textContent = '请先输入URL和API Key';
+                    resultDiv.style.color = '#ff9500';
+                    return;
+                }
+                const originalText = visionApiExtractModelBtn.textContent;
+                visionApiExtractModelBtn.textContent = '正在提取...';
+                visionApiExtractModelBtn.disabled = true;
+                try {
+                    let baseUrl = apiUrl;
+                    if (apiUrl.includes('/chat/completions')) baseUrl = apiUrl.replace('/chat/completions', '');
+                    const modelsUrl = baseUrl.endsWith('/') ? baseUrl + 'models' : baseUrl + '/models';
+                    const response = await fetch(modelsUrl, {
+                        method: 'GET',
+                        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`请求失败 (${response.status})`);
+                    const data = await response.json();
+                    let models = [];
+                    if (data.data && Array.isArray(data.data)) models = data.data.map(m => m.id || m);
+                    else if (Array.isArray(data)) models = data.map(m => m.id || m);
+                    if (models.length === 0) throw new Error('未发现可用模型');
+                    models = [...new Set(models)].sort();
+                    if (visionApiModelSelect) {
+                        const customOption = visionApiModelSelect.querySelector('option[value="custom"]');
+                        visionApiModelSelect.innerHTML = '';
+                        models.forEach(modelId => {
+                            const option = document.createElement('option');
+                            option.value = modelId; option.textContent = modelId;
+                            visionApiModelSelect.appendChild(option);
+                        });
+                        if (customOption) visionApiModelSelect.appendChild(customOption);
+                        visionApiModelSelect.value = models[0];
+                        visionApiModelSelect.dispatchEvent(new Event('change'));
+                    }
+                    resultDiv.textContent = `✓ 成功提取 ${models.length} 个模型`;
+                    resultDiv.style.color = '#34c759';
+                } catch (error) {
+                    resultDiv.textContent = '✗ 提取失败: ' + error.message;
+                    resultDiv.style.color = '#ff3b30';
+                } finally {
+                    visionApiExtractModelBtn.textContent = originalText;
+                    visionApiExtractModelBtn.disabled = false;
+                }
+            }
+
+            async function testVisionApiConnection() {
+                let apiUrl = visionApiUrlInput.value.trim();
+                const apiKey = visionApiKeyInput.value.trim();
+                let model = visionApiModelSelect.value;
+                if (model === 'custom') model = visionApiCustomModelInput.value.trim();
+                if (!apiUrl || !apiKey) { alert('请先填写API URL和API Key'); return; }
+                if (!apiUrl.startsWith('http')) apiUrl = 'https://' + apiUrl;
+                let testUrl = apiUrl;
+                if (!testUrl.includes('/chat/completions')) testUrl = testUrl.endsWith('/') ? testUrl + 'chat/completions' : testUrl + '/chat/completions';
+                try {
+                    visionApiTestBtn.disabled = true;
+                    visionApiTestBtn.textContent = '正在测试...';
+                    const response = await fetch(testUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                        body: JSON.stringify({ model: model || 'gpt-4o', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+                    });
+                    if (response.ok) alert('✓ Vision API连接测试成功！');
+                    else alert(`连接失败 (${response.status})`);
+                } catch (error) {
+                    alert(`请求出错: ${error.message}`);
+                } finally {
+                    visionApiTestBtn.disabled = false;
+                    visionApiTestBtn.textContent = '测试连接';
+                }
+            }
+
+            if (visionApiUrlInput) {
+                visionApiUrlInput.addEventListener('input', (e) => validateVisionUrlRealtime(e.target.value));
+                visionApiKeyInput.addEventListener('input', (e) => validateVisionApiKeyRealtime(e.target.value));
+                visionApiModelSelect.addEventListener('change', (e) => {
+                    visionApiCustomModelContainer.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+                });
+                visionApiSaveBtn.addEventListener('click', () => {
+                    localStorage.setItem('visionApiUrl', visionApiUrlInput.value.trim());
+                    localStorage.setItem('visionApiKey', visionApiKeyInput.value.trim());
+                    localStorage.setItem('visionApiModel', visionApiModelSelect.value);
+                    localStorage.setItem('visionApiCustomModel', visionApiCustomModelInput.value.trim());
                     alert('图片识别API配置保存成功！');
                 });
-
-                visionApiTestBtn.addEventListener('click', async () => {
-                    const apiUrl = visionApiUrlInput.value.trim();
-                    const apiKey = visionApiKeyInput.value.trim();
-                    const model = visionApiModelSelect.value === 'custom' ? visionApiCustomModelInput.value.trim() : visionApiModelSelect.value;
-
-                    if (!apiUrl || !apiKey) {
-                        alert('请先输入URL和API Key');
-                        return;
-                    }
-
-                    visionApiTestBtn.disabled = true;
-                    visionApiTestBtn.textContent = '测试中...';
-
-                    try {
-                        let testUrl = apiUrl;
-                        if (!testUrl.startsWith('http')) testUrl = 'https://' + testUrl;
-
-                        const response = await fetch(testUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${apiKey}`
-                            },
-                            body: JSON.stringify({
-                                model: model,
-                                messages: [{ role: "user", content: "test" }],
-                                max_tokens: 5
-                            })
-                        });
-
-                        if (response.ok) {
-                            alert('连接测试成功！');
-                        } else {
-                            const errorData = await response.json();
-                            alert(`连接失败: ${errorData.error?.message || response.statusText}`);
-                        }
-                    } catch (error) {
-                        alert(`请求出错: ${error.message}`);
-                    } finally {
-                        visionApiTestBtn.disabled = false;
-                        visionApiTestBtn.textContent = '测试连接';
-                    }
-                });
+                visionApiTestBtn.addEventListener('click', testVisionApiConnection);
+                visionApiExtractModelBtn.addEventListener('click', detectVisionModels);
             }
             
             // 重置所有数据按钮事件处理
@@ -2555,6 +2641,8 @@
                     onJsonRestrictionsAppOpen();
                 } else if (e.detail.app === 'api-config') {
                     onApiConfigAppOpen();
+                } else if (e.detail.app === 'vision-api-config') {
+                    onVisionApiConfigAppOpen();
                 } else if (e.detail.app === 'location') {
                     onLocationAppOpen();
                 }
