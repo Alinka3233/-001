@@ -4142,7 +4142,9 @@
                         
                         switch (action) {
                             case 'home':
+                                // 立即执行返回，不等待菜单收起
                                 closeApps();
+                                // moveBack 负责收起菜单，可以稍微延迟以确保动画流畅
                                 moveBack();
                                 break;
                             case 'app-switcher':
