@@ -2166,6 +2166,14 @@
                             openApp('api-config');
                         });
                     }
+
+                    // 图片识别API点击事件
+                    const generalVisionApiToggle = document.getElementById('general-vision-api-toggle');
+                    if (generalVisionApiToggle) {
+                        generalVisionApiToggle.addEventListener('click', () => {
+                            openApp('vision-api-config');
+                        });
+                    }
                 }
             });
             
@@ -2189,6 +2197,7 @@
             const worldbookBackBtn = document.getElementById('worldbook-back-btn');
             const apiConfigBackBtn = document.getElementById('api-config-back-btn');
             const locationBackBtn = document.getElementById('location-back-btn');
+            const visionApiConfigBackBtn = document.getElementById('vision-api-config-back-btn');
             
             if (worldbookBackBtn) {
                 worldbookBackBtn.addEventListener('click', () => {
@@ -2205,6 +2214,101 @@
             if (locationBackBtn) {
                 locationBackBtn.addEventListener('click', () => {
                     openApp('general');
+                });
+            }
+
+            if (visionApiConfigBackBtn) {
+                visionApiConfigBackBtn.addEventListener('click', () => {
+                    openApp('general');
+                });
+            }
+            
+            // 图片识别API配置逻辑
+            const visionApiUrlInput = document.getElementById('vision-api-url-input');
+            const visionApiKeyInput = document.getElementById('vision-api-key-input');
+            const visionApiModelSelect = document.getElementById('vision-api-model-select');
+            const visionApiCustomModelInput = document.getElementById('vision-api-custom-model-input');
+            const visionApiCustomModelContainer = document.getElementById('vision-api-custom-model-container');
+            const visionApiSaveBtn = document.getElementById('vision-api-save-btn');
+            const visionApiTestBtn = document.getElementById('vision-api-test-btn');
+
+            // 初始化加载Vision配置
+            if (visionApiUrlInput) {
+                visionApiUrlInput.value = localStorage.getItem('visionApiUrl') || 'https://api.openai.com/v1/chat/completions';
+                visionApiKeyInput.value = localStorage.getItem('visionApiKey') || '';
+                const savedModel = localStorage.getItem('visionApiModel') || 'gpt-4o';
+                visionApiModelSelect.value = savedModel;
+                visionApiCustomModelInput.value = localStorage.getItem('visionApiCustomModel') || '';
+                
+                if (savedModel === 'custom') {
+                    visionApiCustomModelContainer.style.display = 'block';
+                }
+
+                visionApiModelSelect.addEventListener('change', (e) => {
+                    visionApiCustomModelContainer.style.display = e.target.value === 'custom' ? 'block' : 'none';
+                });
+
+                visionApiSaveBtn.addEventListener('click', () => {
+                    const apiUrl = visionApiUrlInput.value.trim();
+                    const apiKey = visionApiKeyInput.value.trim();
+                    const model = visionApiModelSelect.value;
+                    const customModel = visionApiCustomModelInput.value.trim();
+
+                    if (!apiUrl) {
+                        alert('请输入有效的API URL');
+                        return;
+                    }
+
+                    localStorage.setItem('visionApiUrl', apiUrl);
+                    localStorage.setItem('visionApiKey', apiKey);
+                    localStorage.setItem('visionApiModel', model);
+                    localStorage.setItem('visionApiCustomModel', customModel);
+
+                    alert('图片识别API配置保存成功！');
+                });
+
+                visionApiTestBtn.addEventListener('click', async () => {
+                    const apiUrl = visionApiUrlInput.value.trim();
+                    const apiKey = visionApiKeyInput.value.trim();
+                    const model = visionApiModelSelect.value === 'custom' ? visionApiCustomModelInput.value.trim() : visionApiModelSelect.value;
+
+                    if (!apiUrl || !apiKey) {
+                        alert('请先输入URL和API Key');
+                        return;
+                    }
+
+                    visionApiTestBtn.disabled = true;
+                    visionApiTestBtn.textContent = '测试中...';
+
+                    try {
+                        let testUrl = apiUrl;
+                        if (!testUrl.startsWith('http')) testUrl = 'https://' + testUrl;
+
+                        const response = await fetch(testUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify({
+                                model: model,
+                                messages: [{ role: "user", content: "test" }],
+                                max_tokens: 5
+                            })
+                        });
+
+                        if (response.ok) {
+                            alert('连接测试成功！');
+                        } else {
+                            const errorData = await response.json();
+                            alert(`连接失败: ${errorData.error?.message || response.statusText}`);
+                        }
+                    } catch (error) {
+                        alert(`请求出错: ${error.message}`);
+                    } finally {
+                        visionApiTestBtn.disabled = false;
+                        visionApiTestBtn.textContent = '测试连接';
+                    }
                 });
             }
             
@@ -8706,6 +8810,72 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 });
             }
             
+            // 处理图片发送
+            async function sendWechatImage(file) {
+                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                if (!char) return;
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
+                    const imageHtml = `<div class="wechat-msg-image"><img src="${base64Image}" onclick="previewImage('${base64Image}')"></div>`;
+                    
+                    // 添加到界面
+                    addWechatMessage(imageHtml, 'user', wechatState.profile.avatar);
+                    char.chatHistory.push({ role: 'user', content: imageHtml });
+                    saveWechatData();
+
+                    // 尝试识别图片内容
+                    let visionDescription = "[用户发送了一张图片]";
+                    const visionApiUrl = localStorage.getItem('visionApiUrl');
+                    const visionApiKey = localStorage.getItem('visionApiKey');
+                    const visionModel = localStorage.getItem('visionApiModel') === 'custom' ? 
+                                       localStorage.getItem('visionApiCustomModel') : 
+                                       localStorage.getItem('visionApiModel');
+
+                    if (visionApiUrl && visionApiKey) {
+                        try {
+                            const response = await fetch(visionApiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${visionApiKey}`
+                                },
+                                body: JSON.stringify({
+                                    model: visionModel || 'gpt-4o',
+                                    messages: [
+                                        {
+                                            role: "user",
+                                            content: [
+                                                { type: "text", text: "请简要描述这张图片的内容，直接输出描述，不要有任何多余的开头。" },
+                                                { type: "image_url", image_url: { url: base64Image } }
+                                            ]
+                                        }
+                                    ],
+                                    max_tokens: 300
+                                })
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                const description = data.choices[0]?.message?.content;
+                                if (description) {
+                                    visionDescription = `[用户发送了一张图片，图片内容描述：${description}]`;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('图片识别失败:', error);
+                        }
+                    }
+
+                    // 触发 AI 回复
+                    char.isTyping = true;
+                    if (wechatState.activeCharacterId === char.id) showWechatTyping(char);
+                    processWechatAIMessage(char, [visionDescription]);
+                };
+                reader.readAsDataURL(file);
+            }
+
             // 更多功能面板
             function bindMorePanelEvents() {
                 const moreBtn = document.getElementById('wechat-more-btn');
@@ -8727,7 +8897,16 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 
                 // 绑定加号面板项
                 document.getElementById('plus-panel-photo')?.addEventListener('click', () => {
-                    alert('图片发送功能开发中...');
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            sendWechatImage(file);
+                        }
+                    };
+                    input.click();
                     plusPanel.classList.remove('active');
                 });
                 
