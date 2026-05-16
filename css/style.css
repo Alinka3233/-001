@@ -1602,7 +1602,7 @@
         }
 
         .calendar-header {
-            padding: calc(15px + env(safe-area-inset-top, 20px)) 20px 15px;
+            padding: calc(30px + env(safe-area-inset-top, 20px)) 20px 15px;
             border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
