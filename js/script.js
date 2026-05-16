@@ -197,7 +197,7 @@
             setInterval(updateClock, 60000);
 
             // 应用切换逻辑
-            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
+            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
             
             // --- 应用管理系统 (删除与下载) ---
             let deletedApps = JSON.parse(localStorage.getItem('deletedApps') || '[]');
