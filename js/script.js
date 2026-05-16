@@ -1456,6 +1456,8 @@
                     };
                     request.onsuccess = e => {
                         db = e.target.result;
+                        // 数据库就绪后立即预加载相册，防止打开应用时闪烁
+                        loadPhotosFromDB();
                     };
                     request.onerror = e => {
                         console.error('IndexedDB error:', e.target.error || e.target.errorCode);
@@ -1541,7 +1543,7 @@
                     });
                     
                     transaction.oncomplete = () => {
-                        loadPhotosFromDB();
+                        loadPhotosFromDB(true); // 强制刷新
                         updateCameraGalleryPreview(); // 同时更新相机的预览
                         alert(`成功导入 ${dataList.length} 张照片到相册`);
                         photoFileInput.value = ''; // 清空 input 以便下次导入
@@ -1553,15 +1555,28 @@
                     };
                 }
             });
-            function loadPhotosFromDB() {
+            let isPhotosRendered = false;
+            let lastPhotoCount = 0;
+
+            function loadPhotosFromDB(force = false) {
                 if (!db) return;
                 const transaction = db.transaction('photos', 'readonly');
                 const store = transaction.objectStore('photos');
                 const request = store.getAll();
                 request.onsuccess = () => {
                     const photos = request.result;
+                    
+                    // 如果不是强制刷新，且图片数量没变，且已经渲染过，则跳过以防止闪烁
+                    if (!force && isPhotosRendered && photos.length === lastPhotoCount) {
+                        return;
+                    }
+
                     const photosContainer = document.getElementById('photos-container');
+                    if (!photosContainer) return;
+
                     photosContainer.innerHTML = '';
+                    lastPhotoCount = photos.length;
+                    isPhotosRendered = true;
                     
                     if (photos.length > 0) {
                         photosEmptyState.style.display = 'none';
@@ -1844,7 +1859,7 @@
                             console.log('照片保存成功');
                             updateCameraGalleryPreview();
                             if (activeApp === 'photos') {
-                                loadPhotosFromDB();
+                                loadPhotosFromDB(true);
                             }
                             resolve(photoData);
                         };
