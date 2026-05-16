@@ -667,27 +667,39 @@
                 controlCenter.classList.remove('active');
             });
 
-            // 亮度调节功能 (自定义触摸滑块)
+            // 亮度调节功能 (自定义触摸滑块 - 极致性能优化版)
             const brightnessContainer = document.getElementById('brightness-slider-container');
             const brightnessFill = document.getElementById('cc-brightness-fill');
             const brightnessOverlay = document.getElementById('brightness-overlay');
 
             if (brightnessContainer) {
-                // 初始化亮度
                 let currentBrightness = localStorage.getItem('screenBrightness') || '100';
+                let rafId = null;
+                let storageTimeout = null;
+                
                 updateBrightness(currentBrightness);
 
                 const handleBrightnessInput = (e) => {
                     const rect = brightnessContainer.getBoundingClientRect();
-                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const x = clientX - rect.left;
                     let percentage = (x / rect.width) * 100;
                     percentage = Math.max(0, Math.min(100, percentage));
                     
-                    updateBrightness(percentage);
-                    localStorage.setItem('screenBrightness', percentage.toFixed(0));
+                    // 使用 requestAnimationFrame 确保在浏览器渲染帧内更新 UI，解决卡顿
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        updateBrightness(percentage);
+                    });
+
+                    // 对 localStorage 写入进行防抖，减少同步 IO 阻塞
+                    if (storageTimeout) clearTimeout(storageTimeout);
+                    storageTimeout = setTimeout(() => {
+                        localStorage.setItem('screenBrightness', percentage.toFixed(0));
+                    }, 100);
                 };
 
-                // 触摸事件
+                // 触摸事件 (非被动，因为需要 preventDefault)
                 brightnessContainer.addEventListener('touchstart', (e) => {
                     handleBrightnessInput(e);
                     e.preventDefault();
@@ -722,22 +734,33 @@
                 }
             }
 
-            // 音量调节功能 (自定义触摸滑块)
+            // 音量调节功能 (自定义触摸滑块 - 极致性能优化版)
             const volumeContainer = document.getElementById('volume-slider-container');
             const volumeFill = document.getElementById('cc-volume-fill');
 
             if (volumeContainer) {
                 let currentVolume = localStorage.getItem('systemVolume') || '50';
+                let volumeRafId = null;
+                let volumeStorageTimeout = null;
+
                 if (volumeFill) volumeFill.style.width = `${currentVolume}%`;
 
                 const handleVolumeInput = (e) => {
                     const rect = volumeContainer.getBoundingClientRect();
-                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const x = clientX - rect.left;
                     let percentage = (x / rect.width) * 100;
                     percentage = Math.max(0, Math.min(100, percentage));
                     
-                    if (volumeFill) volumeFill.style.width = `${percentage}%`;
-                    localStorage.setItem('systemVolume', percentage.toFixed(0));
+                    if (volumeRafId) cancelAnimationFrame(volumeRafId);
+                    volumeRafId = requestAnimationFrame(() => {
+                        if (volumeFill) volumeFill.style.width = `${percentage}%`;
+                    });
+
+                    if (volumeStorageTimeout) clearTimeout(volumeStorageTimeout);
+                    volumeStorageTimeout = setTimeout(() => {
+                        localStorage.setItem('systemVolume', percentage.toFixed(0));
+                    }, 100);
                 };
 
                 volumeContainer.addEventListener('touchstart', (e) => {
