@@ -1884,14 +1884,13 @@
             const aiNovelSend = document.getElementById('ai-novel-send');
             const forumPostList = document.getElementById('forum-post-list');
             const aiForumUrlInput = document.getElementById('ai-forum-url-input');
-            const fakeSearchInput = document.getElementById('fake-search-input');
             const aiForumViews = document.querySelectorAll('.sub-view');
             const aiForumRefresh = document.getElementById('ai-forum-refresh');
 
             // 路由映射逻辑
             window.routeByUrl = function(url) {
-                if (!url) {
-                    // 默认显示搜索页
+                if (!url || url.trim() === '') {
+                    // 默认显示首页文字页
                     aiForumViews.forEach(v => v.classList.remove('active'));
                     document.getElementById('search-view').classList.add('active');
                     aiForumUrlInput.value = '';
@@ -1910,10 +1909,9 @@
                     renderForumPosts();
                     aiForumUrlInput.value = 'chat.seeu.ai';
                 } else {
-                    // 搜索逻辑
+                    // 如果输入其他网址，依然停留在首页，不跳转
                     document.getElementById('search-view').classList.add('active');
                     aiForumUrlInput.value = url;
-                    if (fakeSearchInput) fakeSearchInput.value = url;
                 }
             }
 
@@ -1921,14 +1919,6 @@
                 aiForumUrlInput.addEventListener('keyup', (e) => {
                     if (e.key === 'Enter') {
                         routeByUrl(aiForumUrlInput.value);
-                    }
-                });
-            }
-
-            if (fakeSearchInput) {
-                fakeSearchInput.addEventListener('keyup', (e) => {
-                    if (e.key === 'Enter') {
-                        routeByUrl(fakeSearchInput.value);
                     }
                 });
             }

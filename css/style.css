@@ -2131,98 +2131,26 @@
             display: flex;
         }
 
-        /* 虚假搜索页面样式 */
-        .search-page-container {
+        /* 初始首页样式 */
+        .minimal-home-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-            padding: 0 20px;
-            gap: 30px;
-        }
-
-        .search-logo {
-            font-size: 48px;
-            font-weight: 800;
-            letter-spacing: -2px;
-        }
-
-        .logo-s { color: #4285F4; }
-        .logo-e { color: #EA4335; }
-        .logo-e2 { color: #FBBC05; }
-        .logo-u { color: #34A853; }
-
-        .search-box-wrapper {
-            width: 100%;
-            max-width: 500px;
-            height: 48px;
             background: #fff;
-            border: 1px solid #dfe1e5;
-            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 12px;
         }
 
-        .dark-mode .search-box-wrapper {
-            background: #303134;
-            border-color: #5f6368;
-            box-shadow: none;
+        .dark-mode .minimal-home-container {
+            background: #000;
         }
 
-        .search-box-wrapper i {
-            color: #9aa0a6;
-            font-size: 16px;
-        }
-
-        #fake-search-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 16px;
+        .home-hero-text {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 2px;
             color: var(--text-color);
-        }
-
-        .search-quick-links {
-            display: flex;
-            gap: 40px;
-            margin-top: 20px;
-        }
-
-        .quick-link-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .quick-link-item:active {
-            transform: scale(0.9);
-        }
-
-        .link-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #fff;
-        }
-
-        .link-icon.ai-novel { background: linear-gradient(135deg, #6e8efb, #a777e3); }
-        .link-icon.forum { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
-
-        .quick-link-item span {
-            font-size: 12px;
-            color: var(--secondary-text-color);
+            opacity: 0.8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         /* AI 小说生成器样式 */
