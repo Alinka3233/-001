@@ -1882,17 +1882,26 @@
             const loadingBar = document.getElementById('loading-bar');
             
             function loadUrlInSafari(url) {
+                if (!url) return;
                 let fullUrl = url.trim();
                 if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
                     fullUrl = 'https://' + fullUrl;
                 }
                 
-                // 如果 URL 没有变化，则不重新加载，避免闪烁
-                if (safariFrame.src === fullUrl) return;
+                // 更加鲁棒的 URL 比较，忽略末尾斜杠和协议差异
+                try {
+                    const currentUrl = new URL(safariFrame.src);
+                    const targetUrl = new URL(fullUrl);
+                    if (currentUrl.href === targetUrl.href) return;
+                } catch (e) {
+                    if (safariFrame.src === fullUrl) return;
+                }
                 
                 // 显示加载条
-                loadingBar.classList.add('active');
-                loadingBar.style.width = '30%';
+                if (loadingBar) {
+                    loadingBar.classList.add('active');
+                    loadingBar.style.width = '30%';
+                }
                 
                 // 设置iframe源
                 safariFrame.src = fullUrl;
@@ -9281,7 +9290,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             // --- 初始化 ---
             initDB();
             loadSettings();
-            loadUrlInSafari(safariUrlInput.value);
+            // loadUrlInSafari(safariUrlInput.value); // 移除初始调用，由 HTML 中的 iframe src 负责
             getRealWeather();
             weatherRetryBtn.addEventListener('click', getRealWeather);
             loadWallpapers();
