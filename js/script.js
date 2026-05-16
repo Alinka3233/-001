@@ -85,6 +85,15 @@
             }
             window.__EternOS_DOM_Initialized__ = true;
 
+            // --- 核心功能优先初始化：辅助触控 (小白点) ---
+            try {
+                if (typeof initAssistiveTouch === 'function') {
+                    initAssistiveTouch();
+                }
+            } catch (e) {
+                console.error('辅助触控初始化失败:', e);
+            }
+
             // --- 加载进度控制逻辑 (优化 iOS 兼容性) ---
             const loader = document.getElementById('os-loader');
             const loaderBar = document.getElementById('loader-progress-bar');
@@ -1958,27 +1967,6 @@
                     comments: 123
                 }
             ];
-
-            // 切换标签页
-            aiForumTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabName = tab.dataset.tab;
-                    
-                    aiForumTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    aiForumViews.forEach(view => {
-                        view.classList.remove('active');
-                        if (view.id === `${tabName}-view`) {
-                            view.classList.add('active');
-                        }
-                    });
-                    
-                    if (tabName === 'forum') {
-                        renderForumPosts();
-                    }
-                });
-            });
 
             // 渲染论坛帖子
             function renderForumPosts() {
@@ -4258,8 +4246,7 @@
                 }
             }
             
-            // 初始化辅助触控
-            initAssistiveTouch();
+            // 初始化辅助触控已移至 DOMContentLoaded 顶部
             
             // --- Wechat应用功能 ---
             const wechatState = {

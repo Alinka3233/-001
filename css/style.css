@@ -7001,25 +7001,25 @@
         .assistive-touch {
             -webkit-tap-highlight-color: transparent;
             touch-action: none;
-            position: fixed;
+            position: fixed !important;
             bottom: 200px;
             right: 20px;
             width: 60px;
             height: 60px;
-            background: rgba(0, 0, 0, 0.4); /* 降低默认亮度 */
+            background: rgba(0, 0, 0, 0.4); 
             backdrop-filter: blur(15px) saturate(180%);
             -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-radius: 14px;
             box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.2) inset, 0 8px 32px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            z-index: 10000;
-            /* 优化：使用 translate3d 提高性能，并优化过渡效果 */
+            z-index: 100000 !important;
             transition: transform 0.4s var(--spring-easing), opacity 0.4s ease, border-radius 0.4s ease;
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: center;
             user-select: none;
-            opacity: 0.5; /* 默认更透明，模拟 iOS 闲置状态 */
+            opacity: 0.6; 
+            pointer-events: auto !important;
         }
         
         .assistive-touch.active,
