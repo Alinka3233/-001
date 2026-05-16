@@ -697,6 +697,19 @@
                 }
             }
 
+            // 修复滑块在移动端的拖动体验
+            if (brightnessSlider) {
+                // 处理触摸开始，确保在移动端也能立即响应
+                brightnessSlider.addEventListener('touchstart', (e) => {
+                    e.stopPropagation(); // 防止触发控制中心的拖动手势（如果有）
+                }, { passive: true });
+                
+                // 处理触摸移动
+                brightnessSlider.addEventListener('touchmove', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+            }
+
             // 初始化计算器
             function initCalculator() {
                 const display = document.getElementById('calculator-display');
