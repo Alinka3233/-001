@@ -221,7 +221,7 @@
                 { id: 'calendar', name: '日历', icon: 'fas fa-calendar-alt', color: '#fff' },
                 { id: 'notes', name: '备忘录', icon: 'fas fa-sticky-note', img: 'https://cdn.jim-nielsen.com/ios/1024/notes-2025-10-20.png?rf=1024', color: '#FFCC00' },
                 { id: 'phone', name: '电话', icon: 'fas fa-phone', img: 'https://cdn.jim-nielsen.com/ios/1024/phone-2025-10-20.png?rf=1024', color: '#28CD41' },
-                { id: 'safari', name: 'Safari', icon: 'fab fa-safari', img: 'https://images.icon-icons.com/2552/PNG/512/safari_ios_browser_logo_icon_152966.png', color: '#fff' },
+                { id: 'safari', name: 'AI 社区', icon: 'fas fa-robot', img: 'https://cdn-icons-png.flaticon.com/512/6134/6134346.png', color: '#fff' },
                 { id: 'messages', name: '信息', icon: 'fas fa-comment', img: 'https://cdn.jim-nielsen.com/ios/1024/messages-2025-10-20.png?rf=1024', color: '#28CD41' },
                 { id: 'music', name: '音乐', icon: 'fas fa-music', color: '#FF2D55' }
             ];
