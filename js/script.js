@@ -5498,9 +5498,10 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             const parts = content.split(':');
                             const amount = parseFloat(parts[0]) || 10;
                             const msg = parts[1] ? parts.slice(1).join(':').trim() : '恭喜发财，大吉大利';
+                            const rpId = 'rp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                             
                             const redpacketContent = `
-                                <div class="wechat-redpacket" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="ai">
+                                <div class="wechat-redpacket" data-id="${rpId}" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="ai">
                                     <div class="wechat-redpacket-top">
                                         <div class="wechat-redpacket-icon"></div>
                                         <div class="wechat-redpacket-info">
@@ -8400,6 +8401,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const rp = e.target.closest('.wechat-redpacket');
                 if (!rp) return;
 
+                const rpId = rp.dataset.id;
                 const amount = rp.dataset.amount;
                 const msg = rp.dataset.msg;
                 const sender = rp.dataset.sender || 'user';
@@ -8420,6 +8422,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const openContent = document.querySelector('.redpacket-open-content');
 
                 // 重置状态
+                openBtn.onclick = null; // 先解绑之前的点击事件，防止重复触发
                 openBtn.classList.remove('spinning');
                 openBtn.style.display = 'flex';
                 detailContent.style.display = 'none';
@@ -8487,10 +8490,29 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         openContent.style.display = 'none';
                         detailContent.style.display = 'flex';
                         
-                        // 标记红包为已领取
+                        // 1. 更新当前页面的 DOM 状态
                         rp.dataset.opened = 'true';
                         rp.querySelector('.wechat-redpacket-status').textContent = '已领取';
                         rp.style.opacity = '0.7';
+
+                        // 2. 核心修复：同步更新历史记录中的 HTML 内容
+                        if (rpId) {
+                            for (let i = char.chatHistory.length - 1; i >= 0; i--) {
+                                if (char.chatHistory[i].content.includes(`data-id="${rpId}"`)) {
+                                    let content = char.chatHistory[i].content;
+                                    // 添加 data-opened 属性和样式
+                                    if (!content.includes('data-opened="true"')) {
+                                        content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true" style="opacity: 0.7"');
+                                        content = content.replace('<div class="wechat-redpacket-status">领取红包</div>', '<div class="wechat-redpacket-status">已领取</div>');
+                                        char.chatHistory[i].content = content;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 3. 持久化存储
+                        saveWechatData();
                         
                         // 如果是AI发的红包，增加钱包余额
                         if (isAI) {
