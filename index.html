@@ -190,15 +190,41 @@
             <button class="safari-btn" onclick="closeApps()" title="退出"><i class="fas fa-times"></i></button>
             <div class="safari-url-bar">
                 <i class="fas fa-lock" style="font-size: 10px; opacity: 0.5;"></i>
-                <input type="text" id="ai-forum-url-input" value="seeu.novel.ai" spellcheck="false">
+                <input type="text" id="ai-forum-url-input" value="" placeholder="搜索或输入网址" spellcheck="false">
                 <button class="safari-refresh-btn" id="ai-forum-refresh"><i class="fas fa-redo-alt"></i></button>
             </div>
             <button class="safari-btn" onclick="toggleBrowserMenu()" title="更多"><i class="fas fa-ellipsis-h"></i></button>
         </div>
         
         <div class="app-content" id="ai-forum-content">
+            <!-- 虚假搜索页面 (默认首页) -->
+            <div id="search-view" class="sub-view active">
+                <div class="search-page-container">
+                    <div class="search-logo">
+                        <span class="logo-s">S</span>
+                        <span class="logo-e">e</span>
+                        <span class="logo-e2">e</span>
+                        <span class="logo-u">U</span>
+                    </div>
+                    <div class="search-box-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="fake-search-input" placeholder="在 SeeU 中搜索...">
+                    </div>
+                    <div class="search-quick-links">
+                        <div class="quick-link-item" onclick="routeByUrl('seeu.novel.ai')">
+                            <div class="link-icon ai-novel"><i class="fas fa-pen-nib"></i></div>
+                            <span>AI 小说</span>
+                        </div>
+                        <div class="quick-link-item" onclick="routeByUrl('chat.seeu.ai')">
+                            <div class="link-icon forum"><i class="fas fa-comments"></i></div>
+                            <span>模拟论坛</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- AI 小说生成器视图 -->
-            <div id="ai-novel-view" class="sub-view active">
+            <div id="ai-novel-view" class="sub-view">
                 <div class="ai-chat-container">
                     <div class="ai-chat-messages" id="ai-novel-messages">
                         <div class="ai-message system">
