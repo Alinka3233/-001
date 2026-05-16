@@ -308,8 +308,9 @@
             background-size: cover;
             background-position: center;
             z-index: 1;
-            transition: transform 0.8s var(--spring-easing);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform: scale(1.05) translateZ(0);
+            will-change: transform;
             overflow: hidden;
         }
 
@@ -326,7 +327,8 @@
             background-position: center;
             filter: blur(20px) brightness(0.7);
             opacity: 0;
-            transition: opacity 0.8s var(--spring-easing);
+            transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: opacity;
             pointer-events: none;
         }
 
@@ -505,9 +507,10 @@
             gap: 6px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.4s var(--spring-easing);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             width: 100%;
             position: relative; /* 为删除按钮提供定位基准 */
+            will-change: transform;
         }
 
         .app-icon .icon {
@@ -520,11 +523,12 @@
             font-size: calc(28px * var(--icon-scale, 1));
             color: #fff;
             box-shadow: var(--shadow-sm);
-            transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing), background-color 0.5s var(--spring-easing), filter 0.5s var(--spring-easing);
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             border: none;
             overflow: hidden;
             position: relative;
             background-size: cover;
+            will-change: transform;
         }
 
 
@@ -1970,8 +1974,9 @@
             display: flex;
             flex-direction: column;
             opacity: 0;
-            transform: scale(0.94) translateY(20px); /* 减小初始偏移，加快视觉归位感 */
-            transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.25s ease; /* 极致缩短响应时间 */
+            transform: scale(0.94) translateY(20px) translateZ(0); /* 减小初始偏移，加快视觉归位感，开启 GPU 加速 */
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform, opacity;
             pointer-events: none;
             overflow: hidden;
             box-shadow: var(--shadow-xl);
@@ -2592,20 +2597,23 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(0px); /* 初始不应用滤镜，减少渲染开销 */
+            -webkit-backdrop-filter: blur(0px);
             z-index: 2000;
             display: flex;
             justify-content: flex-end; /* 靠右 */
             align-items: flex-start; /* 靠上 */
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.4s var(--spring-easing), opacity 0.4s var(--spring-easing), background-color 0.4s var(--spring-easing), filter 0.4s var(--spring-easing);
+            transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+            will-change: opacity, backdrop-filter;
         }
 
         .control-center.active {
             opacity: 1;
             pointer-events: all;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .control-center-content {
@@ -2620,9 +2628,10 @@
             box-shadow: 
                 0 30px 60px rgba(0, 0, 0, 0.3),
                 inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-            transform: translateY(-100%) scale(0.95);
+            transform: translateY(-100%) scale(0.95) translateZ(0); /* 强制开启 GPU 加速 */
             transform-origin: top right;
-            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+            will-change: transform, opacity;
             max-height: 85%;
             overflow-y: auto;
             border: none;
@@ -2677,9 +2686,10 @@
             font-size: 14px;
             color: #fff;
             cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease;
             border: none;
             position: relative;
+            will-change: transform;
         }
 
         .cc-icon-btn.active {
@@ -2721,8 +2731,9 @@
             left: 0;
             height: 100%;
             background: rgba(255, 255, 255, 0.9);
-            transition: width 0.1s linear;
+            transition: none; /* 移除 transition，由 JS requestAnimationFrame 控制，避免冲突导致的卡顿 */
             pointer-events: none;
+            will-change: width;
         }
 
         .cc-slider-icon {

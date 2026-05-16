@@ -563,7 +563,7 @@
                 setTimeout(() => {
                     wallpaper.style.willChange = 'auto';
                     if (targetApp) targetApp.style.willChange = 'auto';
-                }, 850); // 增加延迟以匹配 0.8s 的 CSS 过渡时间
+                }, 450); // 调整延迟以匹配新的 0.4s CSS 过渡时间
             }
             window.closeApps = function() {
                 const phoneContainer = document.getElementById('phone-ui-container');
