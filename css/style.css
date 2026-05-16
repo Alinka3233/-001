@@ -206,27 +206,6 @@
             50% { transform: scale(1.2); opacity: 0.6; }
         }
 
-        /* 细线条进度条 */
-        .loader-progress-container {
-            width: 100%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 1px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #loader-progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 0%;
-            background: #fff;
-            transition: width 0.4s cubic-bezier(0.1, 0.5, 0.5, 1);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
         .loader-text {
             color: #fff;
             font-size: 10px;
@@ -234,7 +213,7 @@
             text-transform: uppercase;
             font-weight: 200;
             opacity: 0.6;
-            margin-top: 10px;
+            margin-top: 20px; /* 增加一点间距 */
         }
 
         #os-loader.loaded {
