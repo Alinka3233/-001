@@ -1336,12 +1336,12 @@
                 updateCCButtons();
             });
 
-            // 亮度和音量滑块事件处理
+            // 亮度和音量滑块事件处理 (旧逻辑已在上方重构为自定义触摸滑块，此处移除冲突声明并清理失效代码)
             const brightnessInput = document.getElementById('cc-brightness');
-            const brightnessFill = document.getElementById('cc-brightness-fill');
             const volumeInput = document.getElementById('cc-volume');
-            const volumeFill = document.getElementById('cc-volume-fill');
 
+            // 按钮状态已由上方 updateCCButtons 统一管理，此处旧逻辑会导致报错，故注销
+            /*
             if (brightnessInput && brightnessFill) {
                 brightnessInput.addEventListener('input', (e) => {
                     const val = e.target.value;
@@ -1357,6 +1357,7 @@
                     console.log('音量已调整为:', val);
                 });
             }
+            */
 
             // 初始化按钮状态
             updateCCButtons();
