@@ -32,16 +32,14 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.0.5">
+    <link rel="stylesheet" href="css/style.css?v=1.0.6">
 </head>
 <body>
     <!-- 全局加载动画 -->
     <div id="os-loader">
         <div class="loader-content">
             <div class="loader-logo">
-                <svg viewBox="0 0 100 100">
-                    <path class="heart-path" d="M50,30 C50,30 50,20 30,20 C10,20 10,50 50,80 C90,50 90,20 70,20 C50,20 50,30 50,30" />
-                </svg>
+                <img src="./软件标志.ico" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <div style="width: 100%;">
                 <div class="loader-progress-container">
@@ -163,9 +161,9 @@
             <div class="app-icon" data-app="safari">
                 <div class="delete-btn" onclick="deleteApp(event, 'safari')"><i class="fas fa-times"></i></div>
                 <div class="icon safari">
-                    <i class="fab fa-safari"></i>
+                    <img src="./软件标志.ico" alt="AI 社区" style="width: 100%; height: 100%; border-radius: 20%; object-fit: cover;">
                 </div>
-                <span>Safari</span>
+                <span>AI 社区</span>
             </div>
             <div class="app-icon" data-app="messages">
                 <div class="delete-btn" onclick="deleteApp(event, 'messages')"><i class="fas fa-times"></i></div>
@@ -200,7 +198,7 @@
             <!-- 初始首页视图 -->
             <div id="search-view" class="sub-view active">
                 <div class="minimal-home-container">
-                    <h1 class="home-hero-text">see-u-tomorrow</h1>
+                    <h1 class="home-hero-text">我们，相遇，相见，不受世人束缚。</h1>
                 </div>
             </div>
 
@@ -1992,6 +1990,6 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.0.5"></script>
+<script src="js/script.js?v=1.0.6"></script>
 </body>
 </html>
