@@ -108,6 +108,11 @@
                 setTimeout(() => {
                     if (loader) {
                         loader.classList.add('loaded');
+                        // 加载完成后显示小白点
+                        const assistiveTouch = document.getElementById('assistive-touch');
+                        if (assistiveTouch) {
+                            assistiveTouch.classList.add('show');
+                        }
                         setTimeout(() => loader.remove(), 800);
                     }
                 }, 800);

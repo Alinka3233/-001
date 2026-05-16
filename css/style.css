@@ -7013,13 +7013,20 @@
             box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.2) inset, 0 8px 32px rgba(0, 0, 0, 0.3);
             cursor: pointer;
             z-index: 100000 !important;
-            transition: transform 0.4s var(--spring-easing), opacity 0.4s ease, border-radius 0.4s ease;
+            transition: transform 0.4s var(--spring-easing), opacity 0.8s ease, border-radius 0.4s ease, visibility 0.8s;
             display: flex !important;
             align-items: center;
             justify-content: center;
             user-select: none;
-            opacity: 0.6; 
+            opacity: 0; 
+            pointer-events: none !important;
+            visibility: hidden;
+        }
+
+        .assistive-touch.show {
+            opacity: 0.6;
             pointer-events: auto !important;
+            visibility: visible;
         }
         
         .assistive-touch.active,
