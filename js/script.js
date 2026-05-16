@@ -4716,29 +4716,7 @@
                             // 初始化默认数据
                             wechatState.characters = wechatState.defaultCharacters;
                             wechatState.moments = [];
-                            // 初始化默认朋友圈数据
-                            wechatState.moments = [
-                                {
-                                    id: 1,
-                                    userId: 'currentUser',
-                                    userName: wechatState.profile.nickname || '我',
-                                    content: '今天天气真好，适合出去走走！',
-                                    images: ['https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&h=600&fit=crop'],
-                                    likes: [],
-                                    comments: [],
-                                    timestamp: Date.now() - 3600000
-                                },
-                                {
-                                    id: 2,
-                                    userId: 'other',
-                                    userName: '李四',
-                                    content: '分享一张美食照片，看起来是不是很美味？',
-                                    images: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&h=800&fit=crop'],
-                                    likes: [],
-                                    comments: [],
-                                    timestamp: Date.now() - 7200000
-                                }
-                            ];
+                            // 不再初始化默认朋友圈数据，保持朋友圈为空
                             await saveWechatData();
                         }
                     }
