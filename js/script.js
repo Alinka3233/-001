@@ -582,11 +582,11 @@
                 const phoneContainer = document.getElementById('phone-ui-container');
                 const appPages = document.querySelectorAll('.app-page');
                 
-                // 激活动画前添加 will-change
-                wallpaper.style.willChange = 'transform, opacity';
-                const activePage = Array.from(appPages).find(p => p.classList.contains('active'));
-                if (activePage) activePage.style.willChange = 'transform, opacity';
-
+                // 立即移除 active 类，让 CSS 动画瞬间开始
+                appPages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                
                 phoneContainer.classList.remove('app-open');
                 
                 // 退出应用时，根据手电筒状态恢复背景颜色
@@ -596,26 +596,13 @@
                     document.body.style.backgroundColor = '';
                 }
                 
+                // 清理工作不需要延迟那么久
                 setTimeout(() => {
-                    appPages.forEach(page => {
-                        page.classList.remove('active');
-                        page.style.willChange = 'auto';
-                    });
-                    wallpaper.style.willChange = 'auto';
-                }, 850); // 增加延迟以匹配 0.8s 的 CSS 过渡时间
-
-                if (typeof stopCamera === 'function') {
-                    stopCamera();
-                }
-                if (typeof stopVideoCall === 'function') {
-                    stopVideoCall();
-                }
-                if (typeof stopScanCamera === 'function') {
-                    stopScanCamera();
-                }
-                if (typeof stopWorldClock === 'function') {
-                    stopWorldClock();
-                }
+                    if (typeof stopCamera === 'function') stopCamera();
+                    if (typeof stopVideoCall === 'function') stopVideoCall();
+                    if (typeof stopScanCamera === 'function') stopScanCamera();
+                    if (typeof stopWorldClock === 'function') stopWorldClock();
+                }, 400); 
             }
             wallpaper.addEventListener('click', closeApps);
 
@@ -4103,7 +4090,7 @@
                 
                 // 辅助函数：缩回原位
                 function moveBack() {
-                    assistiveTouch.style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+                    assistiveTouch.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)';
                     updatePosition();
                     
                     menuVisible = false;

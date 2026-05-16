@@ -1991,8 +1991,8 @@
             display: flex;
             flex-direction: column;
             opacity: 0;
-            transform: scale(0.92) translateY(30px); /* 初始缩放比例微调，让弹窗更灵动 */
-            transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease; /* 缩短时间，优化贝塞尔曲线 */
+            transform: scale(0.94) translateY(20px); /* 减小初始偏移，加快视觉归位感 */
+            transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.25s ease; /* 极致缩短响应时间 */
             pointer-events: none;
             overflow: hidden;
             box-shadow: var(--shadow-xl);
@@ -7114,6 +7114,11 @@
             font-size: 26px; /* 调大图标 */
             color: #fff;
             border-radius: 16px;
+        }
+
+        .assistive-touch-item:active {
+            transform: scale(0.9) !important; /* 点击时瞬间缩小，提供即时反馈 */
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .assistive-touch-item i {
