@@ -8615,18 +8615,6 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 });
             }
 
-            // 设置界面中的切换账号按钮
-            const settingsSwitchAccountBtn = document.getElementById('wechat-settings-switch-account-btn');
-            if (settingsSwitchAccountBtn) {
-                settingsSwitchAccountBtn.addEventListener('click', () => {
-                    accountView.style.display = 'flex';
-                    renderAccountList();
-                    // 同时关闭设置模态框
-                    const settingsModal = document.getElementById('wechat-settings-modal');
-                    if (settingsModal) settingsModal.style.display = 'none';
-                });
-            }
-
             if (accountBack) {
                 accountBack.addEventListener('click', () => {
                     accountView.style.display = 'none';
