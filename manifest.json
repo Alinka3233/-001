@@ -2,24 +2,26 @@
   "name": "Etern OS",
   "short_name": "Etern",
   "description": "Etern OS - A Premium Web OS Experience",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "./图标.jpeg",
+      "src": "图标.jpeg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
-      "src": "./图标.jpeg",
+      "src": "图标.jpeg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
-      "src": "./软件标志.ico",
-      "sizes": "32x32",
+      "src": "软件标志.ico",
+      "sizes": "32x32 48x48 64x64",
       "type": "image/x-icon"
     }
   ]
