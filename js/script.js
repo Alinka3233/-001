@@ -4759,7 +4759,8 @@
                 profile: {
                     nickname: '',
                     wechatid: '',
-                    avatar: ''
+                    avatar: '',
+                    persona: ''
                 },
                 moments: [],
                 momentsCover: '',
@@ -5837,6 +5838,8 @@
                     ? "- 你可以在回复中加入适当的动作描写，描写内容请用括号 () 包围，例如：(微微低头，露出一丝微笑) 好的呀。" 
                     : "- **绝对禁令**：严禁输出任何形式的动作描写、神态描写或场景描写（即严禁输出括号 () 及其内部内容）。你只需要输出角色说的话，不需要描述角色在做什么。";
                 
+                const userPersona = wechatState.profile.persona ? `### 用户人设 (你的聊天对象)\n${wechatState.profile.persona}\n` : '';
+
                 return `你现在进入深度角色扮演模式。
 
 # 核心准则：你必须完全化身为角色"${char.name}"。
@@ -5850,6 +5853,7 @@ ${char.persona}
 ### 语言风格与说话方式 (你的表现形式)
 ${char.speakingStyle}
 
+${userPersona}
 ### 系统上下文
 - 当前时间：${timeString}
 - 环境信息：${appDataString}
@@ -8611,6 +8615,18 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 });
             }
 
+            // 设置界面中的切换账号按钮
+            const settingsSwitchAccountBtn = document.getElementById('wechat-settings-switch-account-btn');
+            if (settingsSwitchAccountBtn) {
+                settingsSwitchAccountBtn.addEventListener('click', () => {
+                    accountView.style.display = 'flex';
+                    renderAccountList();
+                    // 同时关闭设置模态框
+                    const settingsModal = document.getElementById('wechat-settings-modal');
+                    if (settingsModal) settingsModal.style.display = 'none';
+                });
+            }
+
             if (accountBack) {
                 accountBack.addEventListener('click', () => {
                     accountView.style.display = 'none';
@@ -8650,7 +8666,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         id: 'default',
                         nickname: wechatState.profile.nickname || '我',
                         avatar: wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
-                        desc: '默认人设'
+                        persona: wechatState.profile.persona || '一个普通的用户'
                     };
                     accounts.push(currentProfile);
                     localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
@@ -8681,6 +8697,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             // 切换逻辑
                             wechatState.profile.nickname = targetAcc.nickname;
                             wechatState.profile.avatar = targetAcc.avatar;
+                            wechatState.profile.persona = targetAcc.persona || '';
                             localStorage.setItem('currentAccountId', id);
                             
                             // 更新 UI
@@ -9965,7 +9982,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const editAvatarIcon = document.getElementById('wechat-edit-avatar-icon');
                 const editNickname = document.getElementById('wechat-edit-nickname');
                 const editWechatid = document.getElementById('wechat-edit-wechatid');
-                const editBio = document.getElementById('wechat-edit-bio');
+                const editPersona = document.getElementById('wechat-edit-persona');
                 
                 const profileName = document.querySelector('.wechat-profile-name');
                 const profileDesc = document.querySelector('.wechat-profile-desc');
@@ -9986,8 +10003,9 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         editModal.style.display = 'flex';
                         
                         // 从wechatState填充表单数据
-                        editNickname.value = wechatState.profile.nickname;
-                        editWechatid.value = wechatState.profile.wechatid;
+                        editNickname.value = wechatState.profile.nickname || '';
+                        editWechatid.value = wechatState.profile.wechatid || '';
+                        if (editPersona) editPersona.value = wechatState.profile.persona || '';
                         
                         // 初始化头像
                         if (wechatState.profile.avatar) {
@@ -10074,6 +10092,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         // 更新wechatState中的个人资料
                         wechatState.profile.nickname = newNickname;
                         wechatState.profile.wechatid = newWechatid;
+                        if (editPersona) wechatState.profile.persona = editPersona.value.trim();
+                        
                         // 保存头像，检查src是否有值而不是检查display属性
                         if (editAvatarImg.src && editAvatarImg.src !== '') {
                             wechatState.profile.avatar = editAvatarImg.src;
