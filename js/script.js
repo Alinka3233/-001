@@ -10746,8 +10746,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
             window.openMemoryDetail = function(charId) {
                 activeMemoryCharId = charId;
-                const char = wechatState.characters.find(c => c.id === charId);
-                if (!char) return;
+                const char = wechatState.characters.find(c => c.id == charId);
+                if (!char) {
+                    console.error('未找到角色:', charId);
+                    return;
+                }
 
                 const mainView = document.getElementById('memory-main-view');
                 const detailView = document.getElementById('memory-detail-view');
@@ -10797,7 +10800,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     return;
                 }
 
-                const char = wechatState.characters.find(c => c.id === activeMemoryCharId);
+                const char = wechatState.characters.find(c => c.id == activeMemoryCharId);
                 if (!char) return;
 
                 if (!char.memories) char.memories = [];
@@ -10810,7 +10813,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             });
 
             window.editCharacterMemory = async function(charId, memoryIndex) {
-                const char = wechatState.characters.find(c => c.id === charId);
+                const char = wechatState.characters.find(c => c.id == charId);
                 if (!char || !char.memories) return;
 
                 const currentText = char.memories[memoryIndex];
@@ -10826,7 +10829,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             window.deleteCharacterMemory = async function(charId, memoryIndex) {
                 if (!confirm('确定要删除这段记忆吗？')) return;
 
-                const char = wechatState.characters.find(c => c.id === charId);
+                const char = wechatState.characters.find(c => c.id == charId);
                 if (!char || !char.memories) return;
 
                 char.memories.splice(memoryIndex, 1);
