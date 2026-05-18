@@ -6349,12 +6349,17 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
                 // 获取最近的群聊历史
                 const history = group.chatHistory.slice(-15).map(msg => {
+                    let content = msg.content;
+                    if (content.includes('<img') || content.includes('wechat-msg-image')) {
+                        content = msg.visionDescription || '[图片]';
+                    }
+                    
                     if (msg.role === 'user') {
-                        return { role: 'user', content: `[用户]: ${msg.content}` };
+                        return { role: 'user', content: `[用户]: ${content}` };
                     } else {
                         // 寻找发送该消息的角色
                         const sender = wechatState.characters.find(c => c.avatar === msg.avatar);
-                        return { role: 'assistant', content: `[${sender ? sender.name : '未知'}]: ${msg.content}` };
+                        return { role: 'assistant', content: `[${sender ? sender.name : '未知'}]: ${content}` };
                     }
                 });
                 
@@ -6503,7 +6508,9 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         .filter(m => m.content && m.content.trim() !== '')
                         .map(m => {
                             let textContent = m.content;
-                            if (textContent.includes('wechat-redpacket')) {
+                            if (textContent.includes('<img') || textContent.includes('wechat-msg-image')) {
+                                textContent = m.visionDescription || '[用户发送了一张图片]';
+                            } else if (textContent.includes('wechat-redpacket')) {
                                 const amountMatch = textContent.match(/data-amount="([^"]+)"/);
                                 const msgMatch = textContent.match(/data-msg="([^"]+)"/);
                                 if (amountMatch && msgMatch) {
@@ -9782,10 +9789,66 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 });
             }
             
-            // 处理图片发送
+            // 获取图片的视觉描述内容
+            async function getVisionDescription(base64Image) {
+                const visionApiUrl = localStorage.getItem('visionApiUrl');
+                const visionApiKey = localStorage.getItem('visionApiKey');
+                const visionModel = localStorage.getItem('visionApiModel') === 'custom' ? 
+                                   localStorage.getItem('visionApiCustomModel') : 
+                                   localStorage.getItem('visionApiModel');
+
+                if (!visionApiUrl || !visionApiKey) {
+                    return "[用户发送了一张图片]";
+                }
+
+                try {
+                    const response = await fetch(visionApiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${visionApiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: visionModel || 'gpt-4o',
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: [
+                                        { type: "text", text: "请简要描述这张图片的内容，直接输出描述，不要有任何多余的开头。如果你觉得图片是截图或者是特定的对话内容，请说明。" },
+                                        { type: "image_url", image_url: { url: base64Image } }
+                                    ]
+                                }
+                            ],
+                            max_tokens: 300
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const description = data.choices[0]?.message?.content;
+                        if (description) {
+                            return `[用户发送了一张图片，图片内容描述：${description}]`;
+                        }
+                    }
+                } catch (error) {
+                    console.error('图片识别失败:', error);
+                }
+                return "[用户发送了一张图片]";
+            }
+
+            // 修改发送图片逻辑
             async function sendWechatImage(file) {
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
-                if (!char) return;
+                const chatId = wechatState.activeChatId;
+                const chatType = wechatState.activeChatType;
+                
+                let target;
+                if (chatType === 'single') {
+                    target = wechatState.characters.find(c => c.id == chatId);
+                } else {
+                    target = (wechatState.groups || []).find(g => g.id == chatId);
+                }
+
+                if (!target) return;
 
                 const reader = new FileReader();
                 reader.onload = async (e) => {
@@ -9794,56 +9857,25 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     // 添加到界面
                     addWechatMessage(imageHtml, 'user', wechatState.profile.avatar);
-                    char.chatHistory.push({ role: 'user', content: imageHtml });
+                    
+                    // 识别图片
+                    const visionDescription = await getVisionDescription(base64Image);
+                    
+                    target.chatHistory.push({ 
+                        role: 'user', 
+                        content: imageHtml, 
+                        visionDescription: visionDescription 
+                    });
                     saveWechatData();
 
-                    // 尝试识别图片内容
-                    let visionDescription = "[用户发送了一张图片]";
-                    const visionApiUrl = localStorage.getItem('visionApiUrl');
-                    const visionApiKey = localStorage.getItem('visionApiKey');
-                    const visionModel = localStorage.getItem('visionApiModel') === 'custom' ? 
-                                       localStorage.getItem('visionApiCustomModel') : 
-                                       localStorage.getItem('visionApiModel');
-
-                    if (visionApiUrl && visionApiKey) {
-                        try {
-                            const response = await fetch(visionApiUrl, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${visionApiKey}`
-                                },
-                                body: JSON.stringify({
-                                    model: visionModel || 'gpt-4o',
-                                    messages: [
-                                        {
-                                            role: "user",
-                                            content: [
-                                                { type: "text", text: "请简要描述这张图片的内容，直接输出描述，不要有任何多余的开头。" },
-                                                { type: "image_url", image_url: { url: base64Image } }
-                                            ]
-                                        }
-                                    ],
-                                    max_tokens: 300
-                                })
-                            });
-
-                            if (response.ok) {
-                                const data = await response.json();
-                                const description = data.choices[0]?.message?.content;
-                                if (description) {
-                                    visionDescription = `[用户发送了一张图片，图片内容描述：${description}]`;
-                                }
-                            }
-                        } catch (error) {
-                            console.error('图片识别失败:', error);
-                        }
-                    }
-
                     // 触发 AI 回复
-                    char.isTyping = true;
-                    if (wechatState.activeCharacterId === char.id) showWechatTyping(char);
-                    processWechatAIMessage(char, [visionDescription]);
+                    if (chatType === 'single') {
+                        target.isTyping = true;
+                        if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                        processWechatAIMessage(target, [visionDescription]);
+                    } else {
+                        processGroupAIMessage(target, [visionDescription]);
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -10248,13 +10280,39 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             }
             
             // 发送照片到聊天
-            function sendPhoto(imageData) {
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
-                if (char) {
-                    const photoContent = `<img src="${imageData}" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;">`;
-                    addWechatMessage(photoContent, 'user', char.avatar);
-                    char.chatHistory.push({ role: 'user', content: photoContent });
-                    saveWechatData();
+            async function sendPhoto(imageData) {
+                const chatId = wechatState.activeChatId;
+                const chatType = wechatState.activeChatType;
+                
+                let target;
+                if (chatType === 'single') {
+                    target = wechatState.characters.find(c => c.id == chatId);
+                } else {
+                    target = (wechatState.groups || []).find(g => g.id == chatId);
+                }
+
+                if (!target) return;
+
+                const photoContent = `<img src="${imageData}" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;" onclick="previewImage('${imageData}')">`;
+                addWechatMessage(photoContent, 'user', wechatState.profile.avatar);
+                
+                // 识别图片内容
+                const visionDescription = await getVisionDescription(imageData);
+                
+                target.chatHistory.push({ 
+                    role: 'user', 
+                    content: photoContent,
+                    visionDescription: visionDescription
+                });
+                saveWechatData();
+
+                // 触发 AI 回复
+                if (chatType === 'single') {
+                    target.isTyping = true;
+                    if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                    processWechatAIMessage(target, [visionDescription]);
+                } else {
+                    processGroupAIMessage(target, [visionDescription]);
                 }
             }
             
