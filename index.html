@@ -33,7 +33,7 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.3.3">
+    <link rel="stylesheet" href="css/style.css?v=1.3.4">
 </head>
 <body>
     <!-- 全局加载动画 -->
@@ -604,14 +604,27 @@
     <!-- 角色记忆管理 -->
     <div class="app-page" id="app-memory-manager">
         <header class="app-header">
-            <button class="ios-back-btn" onclick="closeApps()" style="font-size: 20px !important; font-weight: 300 !important;">&lt;</button>
-            <h1>角色记忆管理</h1>
+            <button class="ios-back-btn" id="memory-manager-back-btn" style="font-size: 20px !important; font-weight: 300 !important;">&lt;</button>
+            <h1 id="memory-manager-title">角色记忆</h1>
             <div style="width: 50px;"></div>
         </header>
         <div class="app-content">
-            <div style="padding: 16px;">
-                <div id="memory-manager-list">
-                    <!-- 角色记忆列表将在此动态渲染 -->
+            <div id="memory-main-view">
+                <div style="padding: 16px;">
+                    <div id="memory-char-list">
+                        <!-- 角色列表将在此动态渲染 -->
+                    </div>
+                </div>
+            </div>
+            <div id="memory-detail-view" style="display: none;">
+                <div style="padding: 16px;">
+                    <div class="memory-add-section" style="margin-bottom: 20px;">
+                        <textarea id="manual-memory-input" placeholder="输入新的记忆内容，让AI永久记住..." style="width: 100%; height: 80px; border-radius: 12px; border: 1px solid #ddd; padding: 12px; font-size: 14px; margin-bottom: 10px; resize: none;"></textarea>
+                        <button id="save-manual-memory-btn" style="width: 100%; background: #007AFF; color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 600;">存入记忆</button>
+                    </div>
+                    <div id="memory-detail-list">
+                        <!-- 单个角色的记忆条目将在此渲染 -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -2262,7 +2275,7 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.3.3"></script>
+<script src="js/script.js?v=1.3.4"></script>
 <div id="brightness-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 999999; opacity: 0; will-change: opacity; transition: opacity 0.05s linear;"></div>
 </body>
 </html>

@@ -2588,61 +2588,69 @@
             background-color: #000;
         }
 
-        /* 角色记忆管理样式 */
+        /* 角色记忆管理样式 - 升级版 */
         #app-memory-manager {
             background-color: #f2f2f7;
         }
 
-        .memory-char-section {
+        .memory-char-card {
             background: #fff;
             border-radius: 16px;
             padding: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        .memory-char-header {
+        .memory-char-card:active {
+            transform: scale(0.98);
+        }
+
+        .memory-char-card-info {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 16px;
-            border-bottom: 0.5px solid #f0f0f0;
-            padding-bottom: 12px;
         }
 
-        .memory-char-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .memory-char-card-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             object-fit: cover;
         }
 
-        .memory-char-name {
+        .memory-char-card-name {
             font-size: 17px;
             font-weight: 600;
             color: #1d1d1f;
         }
 
-        .memory-items {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .memory-char-card-count {
+            font-size: 13px;
+            color: #8e8e93;
+            background: #f2f2f7;
+            padding: 2px 8px;
+            border-radius: 10px;
         }
 
         .memory-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background: #f9f9f9;
-            padding: 12px;
+            background: #fff;
             border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
             position: relative;
         }
 
         .memory-text {
-            font-size: 14px;
+            font-size: 15px;
             color: #333;
-            line-height: 1.4;
+            line-height: 1.5;
+            margin-bottom: 12px;
             word-break: break-word;
         }
 
