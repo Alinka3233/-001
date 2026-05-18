@@ -33,7 +33,7 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.2.1">
+    <link rel="stylesheet" href="css/style.css?v=1.2.2">
 </head>
 <body>
     <!-- 全局加载动画 -->
@@ -613,6 +613,45 @@
                 <div id="memory-manager-list">
                     <!-- 角色记忆列表将在此动态渲染 -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建新身份弹窗 -->
+    <div class="wechat-modal" id="wechat-add-identity-modal">
+        <div class="wechat-modal-content" style="max-width: 90%; width: 340px;">
+            <div class="wechat-modal-header">
+                <h2>创建新身份</h2>
+                <button class="wechat-modal-close" id="wechat-add-identity-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="wechat-modal-body" style="padding: 20px;">
+                <div class="wechat-edit-profile-form">
+                    <!-- 头像上传 -->
+                    <div class="wechat-edit-profile-avatar" id="add-identity-avatar-btn" style="margin-bottom: 24px;">
+                        <img id="add-identity-avatar-img" src="https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png" style="display: block;">
+                        <div class="wechat-edit-avatar-mask"><i class="fas fa-camera"></i></div>
+                        <input type="file" id="add-identity-avatar-input" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="wechat-edit-profile-item">
+                        <label class="wechat-edit-profile-label">昵称</label>
+                        <input type="text" class="wechat-edit-profile-input" id="add-identity-nickname" placeholder="输入新身份昵称">
+                    </div>
+                    
+                    <div class="wechat-edit-profile-item">
+                        <label class="wechat-edit-profile-label">微信号</label>
+                        <input type="text" class="wechat-edit-profile-input" id="add-identity-wechatid" placeholder="设置微信号">
+                    </div>
+                    
+                    <div class="wechat-edit-profile-item">
+                        <label class="wechat-edit-profile-label">用户人设 (对AI生效)</label>
+                        <textarea class="wechat-edit-profile-textarea" id="add-identity-persona" placeholder="描述你是谁，你的性格，与角色的关系等..." style="height: 100px;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="wechat-modal-footer">
+                <button class="wechat-modal-btn cancel" id="add-identity-cancel-btn">取消</button>
+                <button class="wechat-modal-btn confirm" id="add-identity-confirm-btn">完成创建</button>
             </div>
         </div>
     </div>
@@ -2143,7 +2182,7 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.2.1"></script>
+<script src="js/script.js?v=1.2.2"></script>
 <div id="brightness-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 999999; opacity: 0; will-change: opacity; transition: opacity 0.05s linear;"></div>
 </body>
 </html>

@@ -8631,28 +8631,75 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
             if (accountAdd) {
                 accountAdd.addEventListener('click', () => {
-                    const nickname = prompt('请输入新身份的昵称:');
-                    if (nickname) {
-                        const persona = prompt('请输入新身份的人设描述 (AI会以此感知你是谁):', '一个普通的用户');
-                        if (persona !== null) {
-                            const newId = 'user_' + Date.now();
-                            const newProfile = {
-                                id: newId,
-                                nickname: nickname,
-                                avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
-                                persona: persona || '一个普通的用户'
-                            };
-                            
-                            // 获取现有账号列表
-                            let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
-                            accounts.push(newProfile);
-                            localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
-                            
-                            renderAccountList();
-                            alert('新身份创建成功！');
-                        }
+                    const modal = document.getElementById('wechat-add-identity-modal');
+                    if (modal) {
+                        // 重置表单
+                        document.getElementById('add-identity-nickname').value = '';
+                        document.getElementById('add-identity-wechatid').value = '';
+                        document.getElementById('add-identity-persona').value = '';
+                        document.getElementById('add-identity-avatar-img').src = 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png';
+                        
+                        modal.classList.add('active');
                     }
                 });
+            }
+
+            // 处理创建身份弹窗的事件
+            const addIdentityModal = document.getElementById('wechat-add-identity-modal');
+            const addIdentityClose = document.getElementById('wechat-add-identity-close');
+            const addIdentityCancel = document.getElementById('add-identity-cancel-btn');
+            const addIdentityConfirm = document.getElementById('add-identity-confirm-btn');
+            const addIdentityAvatarBtn = document.getElementById('add-identity-avatar-btn');
+            const addIdentityAvatarInput = document.getElementById('add-identity-avatar-input');
+            const addIdentityAvatarImg = document.getElementById('add-identity-avatar-img');
+
+            if (addIdentityClose) addIdentityClose.onclick = () => addIdentityModal.classList.remove('active');
+            if (addIdentityCancel) addIdentityCancel.onclick = () => addIdentityModal.classList.remove('active');
+            
+            if (addIdentityAvatarBtn && addIdentityAvatarInput) {
+                addIdentityAvatarBtn.onclick = () => addIdentityAvatarInput.click();
+                addIdentityAvatarInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            addIdentityAvatarImg.src = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
+
+            if (addIdentityConfirm) {
+                addIdentityConfirm.onclick = async () => {
+                    const nickname = document.getElementById('add-identity-nickname').value.trim();
+                    const wechatid = document.getElementById('add-identity-wechatid').value.trim();
+                    const persona = document.getElementById('add-identity-persona').value.trim();
+                    const avatar = addIdentityAvatarImg.src;
+
+                    if (!nickname) {
+                        alert('请输入昵称');
+                        return;
+                    }
+
+                    const newId = 'user_' + Date.now();
+                    const newProfile = {
+                        id: newId,
+                        nickname: nickname,
+                        wechatid: wechatid,
+                        avatar: avatar,
+                        persona: persona || '一个普通的用户'
+                    };
+                    
+                    // 获取现有账号列表
+                    let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                    accounts.push(newProfile);
+                    localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
+                    
+                    addIdentityModal.classList.remove('active');
+                    renderAccountList();
+                    alert('新身份创建成功！');
+                };
             }
 
             function renderAccountList() {
@@ -8664,6 +8711,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     const currentProfile = {
                         id: 'default',
                         nickname: wechatState.profile.nickname || '我',
+                        wechatid: wechatState.profile.wechatid || '',
                         avatar: wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
                         persona: wechatState.profile.persona || '一个普通的用户'
                     };
@@ -8696,15 +8744,18 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             // 切换逻辑
                             wechatState.profile.nickname = targetAcc.nickname;
                             wechatState.profile.avatar = targetAcc.avatar;
+                            wechatState.profile.wechatid = targetAcc.wechatid || '';
                             wechatState.profile.persona = targetAcc.persona || '';
                             localStorage.setItem('currentAccountId', id);
                             
                             // 更新 UI
                             const profileName = document.querySelector('.wechat-profile-name');
+                            const profileWechatId = document.querySelector('.wechat-profile-id');
                             const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
                             const profileAvatarIcon = document.getElementById('wechat-profile-avatar-icon');
                             
                             if (profileName) profileName.textContent = targetAcc.nickname;
+                            if (profileWechatId) profileWechatId.textContent = `微信号：${targetAcc.wechatid || ''}`;
                             if (profileAvatarImg) {
                                 profileAvatarImg.src = targetAcc.avatar;
                                 profileAvatarImg.style.display = 'block';
