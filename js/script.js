@@ -10734,14 +10734,23 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 }
 
                 charListContainer.innerHTML = chars.map(char => `
-                    <div class="memory-char-card" onclick="openMemoryDetail('${char.id}')">
-                        <div class="memory-char-card-info">
+                    <div class="memory-char-card" data-id="${char.id}" style="cursor: pointer;">
+                        <div class="memory-char-card-info" style="pointer-events: none;">
                             <img src="${char.avatar}" class="memory-char-card-avatar">
                             <span class="memory-char-card-name">${char.name}</span>
                         </div>
-                        <span class="memory-char-card-count">${(char.memories || []).length} 条</span>
+                        <span class="memory-char-card-count" style="pointer-events: none;">${(char.memories || []).length} 条</span>
                     </div>
                 `).join('');
+
+                // 采用 addEventListener 代替内联 onclick，确保即便在 0 条记忆时也能稳定进入
+                charListContainer.querySelectorAll('.memory-char-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const charId = this.dataset.id;
+                        console.log('正在进入角色记忆详情, ID:', charId);
+                        openMemoryDetail(charId);
+                    });
+                });
             };
 
             window.openMemoryDetail = function(charId) {
@@ -10771,9 +10780,18 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 const listContainer = document.getElementById('memory-detail-list');
                 if (!listContainer) return;
 
-                const memories = char.memories || [];
+                // 确保 memories 始终是一个数组
+                if (!char.memories) char.memories = [];
+
+                const memories = char.memories;
                 if (memories.length === 0) {
-                    listContainer.innerHTML = '<div class="memory-empty">暂无长期记忆，可以手动添加或等待对话生成</div>';
+                    listContainer.innerHTML = `
+                        <div class="memory-empty" style="background: #fff; border-radius: 12px; padding: 30px 20px; border: 1px dashed #ddd;">
+                            <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">🧠</div>
+                            暂无长期记忆<br>
+                            <span style="font-size: 12px; opacity: 0.7; margin-top: 8px; display: block;">您可以在上方手动输入，或等待 AI 在对话中自动生成。</span>
+                        </div>
+                    `;
                     return;
                 }
 
