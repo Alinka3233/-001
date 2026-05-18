@@ -8623,23 +8623,26 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
             if (accountAdd) {
                 accountAdd.addEventListener('click', () => {
-                    const nickname = prompt('请输入新账号昵称:');
+                    const nickname = prompt('请输入新身份的昵称:');
                     if (nickname) {
-                        const newId = 'user_' + Date.now();
-                        const newProfile = {
-                            id: newId,
-                            nickname: nickname,
-                            avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
-                            desc: '新的人设',
-                            persona: '一个新的人设'
-                        };
-                        
-                        // 获取现有账号列表
-                        let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
-                        accounts.push(newProfile);
-                        localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
-                        
-                        renderAccountList();
+                        const persona = prompt('请输入新身份的人设描述 (AI会以此感知你是谁):', '一个普通的用户');
+                        if (persona !== null) {
+                            const newId = 'user_' + Date.now();
+                            const newProfile = {
+                                id: newId,
+                                nickname: nickname,
+                                avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
+                                persona: persona || '一个普通的用户'
+                            };
+                            
+                            // 获取现有账号列表
+                            let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                            accounts.push(newProfile);
+                            localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
+                            
+                            renderAccountList();
+                            alert('新身份创建成功！');
+                        }
                     }
                 });
             }
