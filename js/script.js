@@ -4687,10 +4687,23 @@
             async function takeScreenshot() {
                 if (isTakingScreenshot) return;
                 isTakingScreenshot = true;
+                
                 const assistiveTouch = document.getElementById('assistive-touch');
                 const originalAssistiveTouchVisibility = assistiveTouch ? assistiveTouch.style.visibility : '';
-                const originalAssistiveTouchOpacity = assistiveTouch ? assistiveTouch.style.opacity : '';
-                const originalAssistiveTouchPointerEvents = assistiveTouch ? assistiveTouch.style.pointerEvents : '';
+                
+                // 1. 立即反馈：闪白动画，让用户感知截图已开始
+                const flashOverlay = document.createElement('div');
+                flashOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:1000000;opacity:0;transition:opacity 0.1s ease;pointer-events:none;';
+                document.body.appendChild(flashOverlay);
+                
+                // 触发闪烁
+                requestAnimationFrame(() => {
+                    flashOverlay.style.opacity = '0.8';
+                    setTimeout(() => {
+                        flashOverlay.style.opacity = '0';
+                        setTimeout(() => flashOverlay.remove(), 200);
+                    }, 100);
+                });
 
                 try {
                     if (typeof html2canvas === 'undefined') {
@@ -4701,51 +4714,56 @@
                     const targetElement = document.getElementById('phone-ui-container') || document.body;
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-                    // 截图前临时隐藏小白点，确保不会被截入画面
+                    // 2. 极致提速：临时隐藏干扰元素
                     if (assistiveTouch) {
                         assistiveTouch.style.visibility = 'hidden';
-                        assistiveTouch.style.opacity = '0';
-                        assistiveTouch.style.pointerEvents = 'none';
                     }
 
-                    // 先等待样式和菜单收起动画生效
-                    await new Promise(resolve => requestAnimationFrame(resolve));
-                    await new Promise(resolve => setTimeout(resolve, 120));
+                    // 等待 UI 平静，但缩短等待时间（从 120ms 降至 50ms）
+                    await new Promise(resolve => setTimeout(resolve, 50));
 
+                    // 3. 核心优化：针对移动端大幅降低渲染压力
                     const canvas = await html2canvas(targetElement, {
-                        scale: Math.min(window.devicePixelRatio || 1, isIOS ? 1.5 : 2),
+                        // 降低倍率：移动端 1.2 倍足以保持清晰且速度极快
+                        scale: isIOS ? 1.2 : 1.5, 
                         useCORS: true,
                         allowTaint: false,
-                        backgroundColor: getComputedStyle(document.body).backgroundColor || '#000',
+                        backgroundColor: '#000',
                         logging: false,
-                        imageTimeout: 3000,
+                        // 移除动画耗时参数
+                        imageTimeout: 1500, 
                         removeContainer: true,
+                        // 开启硬件加速提示
+                        cache: true,
                         ignoreElements: (element) => {
                             if (!element || !element.tagName) return false;
+                            // 忽略极其耗费渲染资源的元素（如模糊滤镜遮罩层，如果可能）
                             return element.id === 'assistive-touch'
                                 || element.id === 'assistive-touch-menu'
                                 || element.tagName === 'IFRAME';
                         }
                     });
 
-                    let screenshotDataUrl = '';
-                    try {
-                        screenshotDataUrl = canvas.toDataURL('image/png');
-                    } catch (error) {
-                        // 某些 iOS WebKit 场景下 PNG 更容易失败，退回 JPEG
-                        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-                    }
+                    let screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.85); // 改用 JPEG 进一步提速
 
                     await savePhotoToDB(screenshotDataUrl);
-                    alert('截图已保存到相册，可在照片应用中按需下载到本地');
+                    
+                    // 4. 成功反馈
+                    const toast = document.createElement('div');
+                    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:20px;z-index:1000001;font-size:14px;pointer-events:none;';
+                    toast.textContent = '已保存到相册';
+                    document.body.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 500);
+                    }, 1500);
+
                 } catch (error) {
                     console.error('截图失败:', error);
-                    alert('截图保存失败，请稍后重试');
+                    alert('截图失败');
                 } finally {
                     if (assistiveTouch) {
                         assistiveTouch.style.visibility = originalAssistiveTouchVisibility;
-                        assistiveTouch.style.opacity = originalAssistiveTouchOpacity;
-                        assistiveTouch.style.pointerEvents = originalAssistiveTouchPointerEvents;
                     }
                     isTakingScreenshot = false;
                 }
