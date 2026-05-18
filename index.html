@@ -33,7 +33,7 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.2.0">
+    <link rel="stylesheet" href="css/style.css?v=1.2.1">
 </head>
 <body>
     <!-- 全局加载动画 -->
@@ -601,6 +601,22 @@
         </div>
     </div>
     
+    <!-- 角色记忆管理 -->
+    <div class="app-page" id="app-memory-manager">
+        <header class="app-header">
+            <button class="ios-back-btn" onclick="closeApps()" style="font-size: 20px !important; font-weight: 300 !important;">&lt;</button>
+            <h1>角色记忆管理</h1>
+            <div style="width: 50px;"></div>
+        </header>
+        <div class="app-content">
+            <div style="padding: 16px;">
+                <div id="memory-manager-list">
+                    <!-- 角色记忆列表将在此动态渲染 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- AI社区API配置应用 -->
     <div class="app-page" id="app-community-api-config">
         <header class="app-header">
@@ -2127,7 +2143,7 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.2.0"></script>
+<script src="js/script.js?v=1.2.1"></script>
 <div id="brightness-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 999999; opacity: 0; will-change: opacity; transition: opacity 0.05s linear;"></div>
 </body>
 </html>

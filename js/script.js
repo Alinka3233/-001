@@ -197,7 +197,7 @@
             setInterval(updateClock, 60000);
 
             // 应用切换逻辑
-            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'community-api-config', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
+            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'community-api-config', 'memory-manager', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
             
             // --- 应用管理系统 (删除与下载) ---
             let deletedApps = JSON.parse(localStorage.getItem('deletedApps') || '[]');
@@ -899,6 +899,14 @@
                         currentValue = '0.';
                         shouldResetDisplay = false;
                     } else if (!currentValue.includes('.')) {
+                        // 秘密指令触发检查：如果在输入点之前是 5201314
+                        if (currentValue === '5201314') {
+                            currentValue = '0';
+                            updateDisplay();
+                            openApp('memory-manager');
+                            renderMemoryManager();
+                            return;
+                        }
                         currentValue += '.';
                     }
                     updateDisplay();
@@ -10171,6 +10179,79 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             bindAvatarEvents();
             
             // --- 微信个人中心功能 --- 
+            
+            // --- 角色记忆管理功能 ---
+            window.renderMemoryManager = async function() {
+                const listContainer = document.getElementById('memory-manager-list');
+                if (!listContainer) return;
+
+                listContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#8e8e93;">加载中...</div>';
+
+                // 确保微信数据已加载
+                if (!wechatState.characters || wechatState.characters.length === 0) {
+                    await loadWechatData();
+                }
+
+                const chars = wechatState.characters;
+                if (!chars || chars.length === 0) {
+                    listContainer.innerHTML = '<div class="memory-empty">未发现任何角色</div>';
+                    return;
+                }
+
+                let html = '';
+                chars.forEach(char => {
+                    const memories = char.memories || [];
+                    html += `
+                        <div class="memory-char-section">
+                            <div class="memory-char-header">
+                                <img src="${char.avatar}" class="memory-char-avatar">
+                                <div class="memory-char-name">${char.name}</div>
+                            </div>
+                            <div class="memory-items">
+                                ${memories.length === 0 ? '<div class="memory-empty">暂无长期记忆</div>' : 
+                                    memories.map((m, index) => `
+                                        <div class="memory-item">
+                                            <div class="memory-text">${m}</div>
+                                            <div class="memory-actions">
+                                                <button class="memory-btn memory-btn-edit" onclick="editCharacterMemory('${char.id}', ${index})">编辑</button>
+                                                <button class="memory-btn memory-btn-delete" onclick="deleteCharacterMemory('${char.id}', ${index})">删除</button>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listContainer.innerHTML = html;
+            };
+
+            window.editCharacterMemory = async function(charId, memoryIndex) {
+                const char = wechatState.characters.find(c => c.id === charId);
+                if (!char || !char.memories) return;
+
+                const currentText = char.memories[memoryIndex];
+                const newText = prompt('编辑记忆内容:', currentText);
+
+                if (newText !== null && newText.trim() !== '' && newText !== currentText) {
+                    char.memories[memoryIndex] = newText.trim();
+                    await saveWechatData();
+                    renderMemoryManager();
+                }
+            };
+
+            window.deleteCharacterMemory = async function(charId, memoryIndex) {
+                if (!confirm('确定要删除这段记忆吗？删除后AI将不再记得这件事。')) return;
+
+                const char = wechatState.characters.find(c => c.id === charId);
+                if (!char || !char.memories) return;
+
+                char.memories.splice(memoryIndex, 1);
+                await saveWechatData();
+                renderMemoryManager();
+            };
+            
             // 为菜单项添加点击事件
             document.addEventListener('click', (e) => {
                 // 处理菜单项点击

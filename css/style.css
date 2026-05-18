@@ -2588,6 +2588,102 @@
             background-color: #000;
         }
 
+        /* 角色记忆管理样式 */
+        #app-memory-manager {
+            background-color: #f2f2f7;
+        }
+
+        .memory-char-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .memory-char-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            border-bottom: 0.5px solid #f0f0f0;
+            padding-bottom: 12px;
+        }
+
+        .memory-char-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .memory-char-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .memory-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .memory-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .memory-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .memory-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .memory-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .memory-btn-edit {
+            color: #007AFF;
+        }
+
+        .memory-btn-delete {
+            color: #FF3B30;
+        }
+
+        .memory-btn:active {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .memory-empty {
+            text-align: center;
+            padding: 20px;
+            color: #8e8e93;
+            font-size: 14px;
+            font-style: italic;
+        }
+
         /* --- 控制中心样式 --- */
         /* --- iOS 26 Control Center Styling --- */
         .control-center {
