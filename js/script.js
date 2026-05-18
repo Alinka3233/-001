@@ -4792,7 +4792,8 @@
                 isSummarizing: false,
                 isTyping: false,
                 editingCharId: null,
-                defaultCharacters: []
+                defaultCharacters: [],
+                groups: []
             };
 
             // 初始化微信界面
@@ -4833,6 +4834,7 @@
                         if (saved.momentsCover) {
                             wechatState.momentsCover = saved.momentsCover;
                         }
+                        wechatState.groups = saved.groups || [];
                         
                         // 迁移旧的localStorage数据到IndexedDB（如果存在）
                         const oldLocalStorageData = localStorage.getItem('wechat_app_state');
@@ -5169,7 +5171,8 @@
                         profile: wechatState.profile,
                         moments: wechatState.moments,
                         momentsCover: wechatState.momentsCover,
-                        settings: wechatState.settings
+                        settings: wechatState.settings,
+                        groups: wechatState.groups || []
                     };
                     
                     // 计算数据大小
@@ -5405,25 +5408,40 @@
                 const now = new Date();
                 const timeString = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-                listView.innerHTML = wechatState.characters.map(char => {
-                    const lastMessage = char.chatHistory[char.chatHistory.length - 1];
+                // 合并角色和群组列表
+                const chatList = [
+                    ...wechatState.characters.map(c => ({ ...c, type: 'single' })),
+                    ...(wechatState.groups || []).map(g => ({ ...g, type: 'group' }))
+                ];
+
+                // 排序：置顶的在前，然后按最后一条消息时间（这里简化为保持原有排序或按最后消息，目前主要处理显示）
+                chatList.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return 0;
+                });
+
+                listView.innerHTML = chatList.map(item => {
+                    const lastMessage = item.chatHistory[item.chatHistory.length - 1];
                     const previewText = lastMessage ? lastMessage.content.substring(0, 20) + (lastMessage.content.length > 20 ? '...' : '') : '开始聊天吧~';
-                    const isPinned = char.pinned || false;
+                    const isPinned = item.pinned || false;
+                    const avatar = item.type === 'group' ? (item.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png') : item.avatar;
+                    const name = item.type === 'group' ? `${item.name}(${item.members.length})` : item.name;
 
                     return `
-                        <div class="wechat-chat-item" data-char-id="${char.id}" ${isPinned ? 'data-pinned="true"' : ''}>
+                        <div class="wechat-chat-item" data-id="${item.id}" data-type="${item.type}" ${isPinned ? 'data-pinned="true"' : ''}>
                             <div class="wechat-chat-item-content">
-                                <img src="${char.avatar}" class="wechat-chat-avatar">
+                                <img src="${avatar}" class="wechat-chat-avatar">
                                 <div class="wechat-chat-content">
                                     <div class="wechat-chat-item-header">
-                                        <span class="wechat-chat-name">${char.name}${isPinned ? ' <i class="fas fa-thumbtack" style="font-size: 12px; color: #8e8e93;"></i>' : ''}</span>
+                                        <span class="wechat-chat-name">${name}${isPinned ? ' <i class="fas fa-thumbtack" style="font-size: 12px; color: #8e8e93;"></i>' : ''}</span>
                                         <span class="wechat-chat-time">${timeString}</span>
                                     </div>
                                     <div class="wechat-chat-preview">${previewText}</div>
                                 </div>
                             </div>
                             <div class="wechat-chat-item-actions">
-                                <button class="wechat-action-btn wechat-pin-btn">置顶</button>
+                                <button class="wechat-action-btn wechat-pin-btn">${isPinned ? '取消置顶' : '置顶'}</button>
                             </div>
                         </div>
                     `;
@@ -5432,8 +5450,9 @@
                 // 绑定点击事件
                 listView.querySelectorAll('.wechat-chat-item').forEach(item => {
                     item.addEventListener('click', () => {
-                        const charId = parseInt(item.dataset.charId);
-                        openWechatChat(charId);
+                        const id = item.dataset.id;
+                        const type = item.dataset.type;
+                        openWechatChat(id, type);
                     });
 
                     // 添加左滑手势
@@ -5516,17 +5535,29 @@
                 renderWechatList();
             }
 
-            function openWechatChat(charId) {
-                wechatState.activeCharacterId = charId;
-                const char = wechatState.characters.find(c => c.id === charId);
-                if (!char) return;
+            function openWechatChat(id, type = 'single') {
+                wechatState.activeChatId = id;
+                wechatState.activeChatType = type;
+                
+                let target;
+                if (type === 'single') {
+                    target = wechatState.characters.find(c => c.id == id);
+                } else {
+                    target = (wechatState.groups || []).find(g => g.id == id);
+                }
+                
+                if (!target) return;
 
                 document.getElementById('wechat-list-view').style.display = 'none';
                 document.getElementById('wechat-chat-view').classList.add('active');
-                document.getElementById('wechat-current-avatar').src = char.avatar;
                 
-                // 如果角色正在输入，则显示对方正在输入，否则显示角色名称
-                document.getElementById('wechat-current-name').textContent = char.isTyping ? '对方正在输入...' : char.name;
+                const avatarImg = document.getElementById('wechat-current-avatar');
+                if (avatarImg) {
+                    avatarImg.src = type === 'group' ? (target.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png') : target.avatar;
+                    avatarImg.style.display = 'block';
+                }
+                
+                document.getElementById('wechat-current-name').textContent = target.name || target.nickname;
 
                 // 隐藏底部导航栏
                 const wechatNav = document.querySelector('.wechat-nav');
@@ -5537,13 +5568,14 @@
                 const wechatPlusBtn = document.getElementById('wechat-plus-btn');
                 if (wechatPlusBtn) wechatPlusBtn.style.display = 'none';
 
-                renderWechatMessages(char);
+                renderWechatMessages(target);
             }
 
             function closeWechatChat() {
                 document.getElementById('wechat-list-view').style.display = 'block';
                 document.getElementById('wechat-chat-view').classList.remove('active');
-                wechatState.activeCharacterId = null;
+                wechatState.activeChatId = null;
+                wechatState.activeChatType = 'single';
                 wechatState.conversationTurns = 0;
                 
                 // 显示底部导航栏
@@ -5554,19 +5586,29 @@
                 document.getElementById('wechat-header-title').textContent = '微信';
                 const wechatPlusBtn = document.getElementById('wechat-plus-btn');
                 if (wechatPlusBtn) wechatPlusBtn.style.display = 'flex';
+
+                renderWechatList();
             }
 
-            function renderWechatMessages(char) {
+            // 绑定返回按钮
+            document.getElementById('wechat-back-btn')?.addEventListener('click', closeWechatChat);
+
+            function renderWechatMessages(target) {
                 const messageList = document.getElementById('wechat-messages');
                 messageList.innerHTML = '';
 
-                char.chatHistory.forEach(msg => {
-                    // 无论用户还是AI，都不在渲染时做分段，保持历史记录的真实状态
-                    addWechatMessage(msg.content, msg.role, char.avatar);
+                const isGroup = wechatState.activeChatType === 'group';
+
+                target.chatHistory.forEach(msg => {
+                    if (isGroup) {
+                        addWechatMessage(msg.content, msg.role, msg.avatar, msg.nickname);
+                    } else {
+                        addWechatMessage(msg.content, msg.role, target.avatar);
+                    }
                 });
                 
-                if (char.isTyping) {
-                    showWechatTyping(char);
+                if (target.isTyping) {
+                    showWechatTyping(target);
                 }
             }
 
@@ -5576,7 +5618,7 @@
                 return div.innerHTML;
             }
 
-            function addWechatMessage(content, role, avatar) {
+            function addWechatMessage(content, role, avatar, nickname = null) {
                 const messageList = document.getElementById('wechat-messages');
                 if (!messageList) return;
                 
@@ -5606,9 +5648,17 @@
                     const isSpecial = content.includes('wechat-redpacket') || content.includes('wechat-transfer');
                     const bubbleStyle = isSpecial ? 'background: transparent; box-shadow: none; padding: 0;' : '';
                     
+                    // 群聊显示昵称
+                    const nicknameHtml = (nickname && wechatState.activeChatType === 'group' && displayRole === 'ai') 
+                        ? `<div class="wechat-msg-nickname">${nickname}</div>` 
+                        : '';
+
                     div.innerHTML = `
                         <img src="${avatarUrl}" class="wechat-message-avatar">
-                        <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''}" style="${bubbleStyle}">${finalContent}</div>
+                        <div class="wechat-msg-content-wrapper" style="display: flex; flex-direction: column;">
+                            ${nicknameHtml}
+                            <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''}" style="${bubbleStyle}">${finalContent}</div>
+                        </div>
                     `;
                 }
 
@@ -5739,7 +5789,7 @@
                                 openApp('wechat');
                             }
                             // 如果已经在微信内但没打开聊天框，或者在别人的聊天框，强制打开这个人的聊天框
-                            openWechatChat(char.id);
+                            openWechatChat(char.id, 'single');
                         });
                     }
                     
@@ -6080,60 +6130,310 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 return reply.replace(/<action:.*?>[\s\S]*?<\/action:.*?>/g, '').trim();
             }
 
+            // --- 群聊功能实现 ---
+            let selectedMemberIds = [];
+
+            window.openCreateGroupModal = function() {
+                const modal = document.getElementById('wechat-create-group-modal');
+                if (!modal) return;
+                
+                selectedMemberIds = [];
+                renderCreateGroupList();
+                modal.style.display = 'flex';
+                
+                // 隐藏右上角菜单
+                const plusMenu = document.getElementById('wechat-plus-menu');
+                if (plusMenu) plusMenu.style.display = 'none';
+            };
+
+            function renderCreateGroupList() {
+                const listContainer = document.getElementById('wechat-create-group-list');
+                if (!listContainer) return;
+
+                const chars = wechatState.characters || [];
+                listContainer.innerHTML = chars.map(char => `
+                    <div class="wechat-create-group-item ${selectedMemberIds.includes(char.id) ? 'selected' : ''}" data-id="${char.id}">
+                        <div class="wechat-group-checkbox">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <img src="${char.avatar}" class="wechat-group-member-avatar">
+                        <span class="wechat-group-member-name">${char.name}</span>
+                    </div>
+                `).join('');
+
+                // 绑定点击事件
+                listContainer.querySelectorAll('.wechat-create-group-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const charId = parseInt(item.dataset.id);
+                        const index = selectedMemberIds.indexOf(charId);
+                        if (index === -1) {
+                            selectedMemberIds.push(charId);
+                            item.classList.add('selected');
+                        } else {
+                            selectedMemberIds.splice(index, 1);
+                            item.classList.remove('selected');
+                        }
+                    });
+                });
+            }
+
+            // 发起群聊确认
+            document.getElementById('create-group-confirm-btn')?.addEventListener('click', () => {
+                if (selectedMemberIds.length < 2) {
+                    alert('请至少选择两个角色加入群聊');
+                    return;
+                }
+
+                const groupId = 'group_' + Date.now();
+                const selectedChars = wechatState.characters.filter(c => selectedMemberIds.includes(c.id));
+                const groupName = selectedChars.map(c => c.name).join('、').substring(0, 15) + (selectedChars.length > 3 ? '...' : '');
+
+                const newGroup = {
+                    id: groupId,
+                    name: groupName,
+                    members: [...selectedMemberIds],
+                    chatHistory: [],
+                    pinned: false,
+                    avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png'
+                };
+
+                if (!wechatState.groups) wechatState.groups = [];
+                wechatState.groups.push(newGroup);
+                
+                document.getElementById('wechat-create-group-modal').style.display = 'none';
+                
+                saveWechatData();
+                renderWechatList();
+                openWechatChat(groupId, 'group');
+            });
+
+            document.getElementById('wechat-create-group-close')?.addEventListener('click', () => {
+                document.getElementById('wechat-create-group-modal').style.display = 'none';
+            });
+            
+            document.getElementById('create-group-cancel-btn')?.addEventListener('click', () => {
+                document.getElementById('wechat-create-group-modal').style.display = 'none';
+            });
+
+            // 群聊信息弹窗
+            document.getElementById('wechat-chat-info-btn')?.addEventListener('click', () => {
+                const chatId = wechatState.activeChatId;
+                const chatType = wechatState.activeChatType;
+
+                if (chatType !== 'group') return;
+
+                const group = wechatState.groups.find(g => g.id === chatId);
+                if (!group) return;
+
+                const grid = document.getElementById('wechat-group-members-grid');
+                const nameDisplay = document.getElementById('wechat-group-name-display');
+                
+                if (nameDisplay) nameDisplay.textContent = group.name;
+                
+                if (grid) {
+                    const members = wechatState.characters.filter(c => group.members.includes(c.id));
+                    grid.innerHTML = members.map(m => `
+                        <div class="group-member-item">
+                            <img src="${m.avatar}" class="group-member-avatar">
+                            <div class="group-member-name">${m.name}</div>
+                        </div>
+                    `).join('') + `
+                        <div class="group-member-item" onclick="alert('暂不支持邀请新成员')">
+                            <div style="width: 50px; height: 50px; border-radius: 6px; border: 1px dashed #c7c7cc; display: flex; align-items: center; justify-content: center; color: #c7c7cc;">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="group-member-name">邀请</div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('wechat-group-info-modal').style.display = 'flex';
+            });
+
+            document.getElementById('wechat-group-info-close')?.addEventListener('click', () => {
+                document.getElementById('wechat-group-info-modal').style.display = 'none';
+            });
+
+            document.getElementById('wechat-group-delete-btn')?.addEventListener('click', () => {
+                if (confirm('确定要删除并退出该群聊吗？聊天记录将被清除。')) {
+                    const index = wechatState.groups.findIndex(g => g.id === wechatState.activeChatId);
+                    if (index !== -1) {
+                        wechatState.groups.splice(index, 1);
+                        saveWechatData();
+                        document.getElementById('wechat-group-info-modal').style.display = 'none';
+                        closeWechatChat();
+                        renderWechatList();
+                    }
+                }
+            });
+
             async function sendWechatMessage() {
                 const input = document.getElementById('wechat-input');
                 const text = input.value.trim();
                 if (!text) return;
 
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
-                if (!char) return;
+                const chatId = wechatState.activeChatId;
+                const chatType = wechatState.activeChatType;
+                
+                let target;
+                if (chatType === 'single') {
+                    target = wechatState.characters.find(c => c.id == chatId);
+                } else {
+                    target = (wechatState.groups || []).find(g => g.id == chatId);
+                }
+
+                if (!target) return;
 
                 // 添加用户消息到界面和历史
-                addWechatMessage(text, 'user', char.avatar);
-                char.chatHistory.push({ role: 'user', content: text });
+                addWechatMessage(text, 'user', wechatState.profile.avatar);
+                target.chatHistory.push({ role: 'user', content: text });
                 saveWechatData();
                 input.value = '';
                 
                 // 刷新联系人列表
                 renderWechatList();
 
-                // 检查是否启用了延迟回复 (时间 > 0)
-                const delayTimeVal = parseInt(localStorage.getItem('wechatDelayReplyTime') || '3');
-                const isDelayEnabled = delayTimeVal > 0;
-                
-                if (isDelayEnabled) {
-                    const delayTime = delayTimeVal * 1000;
+                if (chatType === 'single') {
+                    // 检查是否启用了延迟回复
+                    const delayTimeVal = parseInt(localStorage.getItem('wechatDelayReplyTime') || '3');
+                    const isDelayEnabled = delayTimeVal > 0;
                     
-                    // 将消息加入待处理队列
-                    if (!char.pendingUserMessages) char.pendingUserMessages = [];
-                    char.pendingUserMessages.push(text);
-                    
-                    // 不要在每次输入时显示打字指示器，等待用户多次输入后再显示
-                    
-                    // 重置定时器
-                    if (char.delayReplyTimer) {
-                        clearTimeout(char.delayReplyTimer);
+                    if (isDelayEnabled) {
+                        const delayTime = delayTimeVal * 1000;
+                        if (!target.pendingUserMessages) target.pendingUserMessages = [];
+                        target.pendingUserMessages.push(text);
+                        
+                        if (target.delayReplyTimer) clearTimeout(target.delayReplyTimer);
+                        
+                        target.delayReplyTimer = setTimeout(() => {
+                            const combinedMessages = [...target.pendingUserMessages];
+                            target.pendingUserMessages = [];
+                            target.isTyping = true;
+                            if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                            processWechatAIMessage(target, combinedMessages);
+                        }, delayTime);
+                    } else {
+                        target.isTyping = true;
+                        if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                        processWechatAIMessage(target, [text]);
                     }
-                    
-                    char.delayReplyTimer = setTimeout(() => {
-                        // 定时器触发，处理合并消息
-                        const combinedMessages = [...char.pendingUserMessages];
-                        char.pendingUserMessages = []; // 清空队列
-                        
-                        // 开始处理消息时才显示正在输入
-                        char.isTyping = true;
-                        if (wechatState.activeCharacterId === char.id) {
-                            showWechatTyping(char);
-                        }
-                        
-                        processWechatAIMessage(char, combinedMessages);
-                    }, delayTime);
                 } else {
-                    char.isTyping = true;
-                    if (wechatState.activeCharacterId === char.id) {
-                        showWechatTyping(char);
+                    // 群聊逻辑：触发群成员回复
+                    processGroupAIMessage(target, [text]);
+                }
+            }
+
+            async function processGroupAIMessage(group, newMessages) {
+                // 群聊中，随机选择 1-2 个成员回复，或者轮流回复
+                const members = wechatState.characters.filter(c => group.members.includes(c.id));
+                if (members.length === 0) return;
+
+                // 简单的群聊 AI 逻辑：让群内所有 AI 依次看到这条消息并决定是否回复
+                // 这里我们简化为让群内每个 AI 都有概率回复
+                for (const member of members) {
+                    // 模拟思考时间
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                    
+                    // 获取群聊上下文的回复
+                    let reply = await getGroupAIResponse(member, group, newMessages);
+                    
+                    if (reply && reply.trim() !== '' && !reply.includes('不回复')) {
+                        // 发送消息，群聊中显示昵称
+                        await sendGroupMessageBySentences(reply, member, group);
                     }
-                    processWechatAIMessage(char, [text]);
+                }
+                
+                saveWechatData();
+            }
+
+            async function getGroupAIResponse(member, group, newMessages) {
+                if (!wechatState.settings.apiKey) return null;
+
+                const messages = [];
+                const systemPrompt = buildGroupSystemPrompt(member, group);
+                messages.push({ role: 'system', content: systemPrompt });
+
+                // 获取最近的群聊历史
+                const history = group.chatHistory.slice(-15).map(msg => {
+                    if (msg.role === 'user') {
+                        return { role: 'user', content: `[用户]: ${msg.content}` };
+                    } else {
+                        // 寻找发送该消息的角色
+                        const sender = wechatState.characters.find(c => c.avatar === msg.avatar);
+                        return { role: 'assistant', content: `[${sender ? sender.name : '未知'}]: ${msg.content}` };
+                    }
+                });
+                
+                messages.push(...history);
+
+                try {
+                    const response = await fetch(wechatState.settings.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${wechatState.settings.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: wechatState.settings.model,
+                            messages: messages,
+                            temperature: 0.8
+                        })
+                    });
+
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                } catch (error) {
+                    console.error('群聊AI请求失败:', error);
+                    return null;
+                }
+            }
+
+            function buildGroupSystemPrompt(member, group) {
+                const char = member;
+                const otherMembers = wechatState.characters
+                    .filter(c => group.members.includes(c.id) && c.id !== member.id)
+                    .map(c => c.name).join('、');
+
+                return `你现在正在一个名为"${group.name}"的群聊中。
+你的身份是"${char.name}"。
+群内其他成员有：${otherMembers}。
+
+# 核心准则：
+- 你必须完全以"${char.name}"的身份说话。
+- 保持你的角色人设和说话风格。
+- 这是一个群聊环境，你的回复应该自然，可以接话，也可以开启新话题。
+- 如果你觉得当前对话不需要你插话，请回复"不回复"。
+- 回复要简短，像真实的微信聊天。
+
+### 角色人设
+${char.persona}
+
+### 说话风格
+${char.speakingStyle}
+
+### 用户人设 (群主/当前聊天对象)
+${wechatState.profile.persona || '一个普通的用户'}`;
+            }
+
+            async function sendGroupMessageBySentences(text, member, group) {
+                const sentences = text.split(/[\n。！？!?]/).filter(s => s.trim() !== '');
+                
+                for (const sentence of sentences) {
+                    // 模拟打字
+                    const typingTime = Math.min(sentence.length * 200, 3000);
+                    await new Promise(resolve => setTimeout(resolve, typingTime));
+                    
+                    // 添加消息到界面
+                    addWechatMessage(sentence, 'ai', member.avatar, member.name);
+                    group.chatHistory.push({ 
+                        role: 'ai', 
+                        content: sentence, 
+                        avatar: member.avatar,
+                        nickname: member.name 
+                    });
+                    
+                    saveWechatData();
+                    renderWechatList();
                 }
             }
 
@@ -8429,7 +8729,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         
                         switch(menuText) {
                             case '发起群聊':
-                                alert('发起群聊功能开发中');
+                                openCreateGroupModal();
                                 break;
                             case '添加朋友':
                                 // 打开添加联系人功能
@@ -9338,7 +9638,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 if (tf.dataset.opened === 'true') {
                     statusIcon.className = 'fas fa-check-circle';
                     statusIcon.style.color = '#07C160';
-                    statusText.textContent = sender === 'user' ? '对方已收钱' : '已收钱';
+                    statusText.textContent = sender === 'user' ? '对方已收款' : '已收钱';
                     actionArea.style.display = 'none';
                     receiveTimeItem.style.display = 'flex';
                 } else {

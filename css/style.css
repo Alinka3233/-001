@@ -2684,6 +2684,84 @@
             font-style: italic;
         }
 
+        /* 群聊相关样式 */
+        .wechat-create-group-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+
+        .wechat-group-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #c7c7cc;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .wechat-create-group-item.selected .wechat-group-checkbox {
+            background-color: #07C160;
+            border-color: #07C160;
+        }
+
+        .wechat-group-checkbox i {
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+
+        .wechat-create-group-item.selected .wechat-group-checkbox i {
+            display: block;
+        }
+
+        .wechat-group-member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            margin-right: 12px;
+        }
+
+        .wechat-group-member-name {
+            font-size: 16px;
+            color: #1d1d1f;
+        }
+
+        .group-member-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .group-member-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .group-member-name {
+            font-size: 12px;
+            color: #8e8e93;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .wechat-msg-nickname {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-bottom: 4px;
+            margin-left: 48px; /* 对应头像宽度+间距 */
+        }
+
         /* --- 控制中心样式 --- */
         /* --- iOS 26 Control Center Styling --- */
         .control-center {

@@ -656,6 +656,50 @@
         </div>
     </div>
 
+    <!-- 发起群聊选择成员弹窗 -->
+    <div class="wechat-modal" id="wechat-create-group-modal">
+        <div class="wechat-modal-content" style="max-width: 90%; width: 340px;">
+            <div class="wechat-modal-header">
+                <h2>发起群聊</h2>
+                <button class="wechat-modal-close" id="wechat-create-group-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="wechat-modal-body" style="padding: 16px; max-height: 400px; overflow-y: auto;">
+                <div id="wechat-create-group-list">
+                    <!-- 角色选择列表将在此渲染 -->
+                </div>
+            </div>
+            <div class="wechat-modal-footer">
+                <button class="wechat-modal-btn cancel" id="create-group-cancel-btn">取消</button>
+                <button class="wechat-modal-btn confirm" id="create-group-confirm-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 群聊信息弹窗 -->
+    <div class="wechat-modal" id="wechat-group-info-modal">
+        <div class="wechat-modal-content" style="max-width: 90%; width: 340px;">
+            <div class="wechat-modal-header">
+                <h2>聊天信息</h2>
+                <button class="wechat-modal-close" id="wechat-group-info-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="wechat-modal-body" style="padding: 16px; max-height: 400px; overflow-y: auto;">
+                <div class="wechat-group-members-grid" id="wechat-group-members-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center;">
+                    <!-- 群成员列表 -->
+                </div>
+                <div class="wechat-menu" style="margin-top: 24px;">
+                    <div class="wechat-menu-item">
+                        <div class="wechat-menu-text">群聊名称</div>
+                        <div class="wechat-menu-arrow" id="wechat-group-name-display" style="margin-right: 8px; color: #8e8e93;">未命名</div>
+                        <i class="fas fa-chevron-right" style="color: #c7c7cc; font-size: 14px;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="wechat-modal-footer">
+                <button class="wechat-modal-btn cancel" id="wechat-group-delete-btn" style="color: #ff3b30; width: 100%;">删除并退出</button>
+            </div>
+        </div>
+    </div>
+
     <!-- AI社区API配置应用 -->
     <div class="app-page" id="app-community-api-config">
         <header class="app-header">
@@ -1871,10 +1915,13 @@
         <!-- 聊天视图 -->
         <div class="wechat-chat-view" id="wechat-chat-view">
             <div class="wechat-chat-header">
-            <button class="wechat-back-btn" id="wechat-back-btn" style="font-size: 24px !important; font-weight: 300 !important; border: none; background: none; color: inherit; cursor: pointer;">&lt;</button>
+                <button class="wechat-back-btn" id="wechat-back-btn" style="font-size: 24px !important; font-weight: 300 !important; border: none; background: none; color: inherit; cursor: pointer;">&lt;</button>
                 <div class="wechat-chat-info">
                     <img id="wechat-current-avatar" class="wechat-chat-avatar-small" src="">
                     <span id="wechat-current-name" class="wechat-chat-title"></span>
+                </div>
+                <div class="wechat-chat-header-right" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%);">
+                    <button id="wechat-chat-info-btn" style="border: none; background: none; font-size: 20px; color: #333; cursor: pointer;"><i class="fas fa-ellipsis-h"></i></button>
                 </div>
             </div>
             <div class="wechat-message-list" id="wechat-messages"></div>
