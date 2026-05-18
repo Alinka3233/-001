@@ -8748,19 +8748,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             wechatState.profile.persona = targetAcc.persona || '';
                             localStorage.setItem('currentAccountId', id);
                             
-                            // 更新 UI
-                            const profileName = document.querySelector('.wechat-profile-name');
-                            const profileWechatId = document.querySelector('.wechat-profile-id');
-                            const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
-                            const profileAvatarIcon = document.getElementById('wechat-profile-avatar-icon');
-                            
-                            if (profileName) profileName.textContent = targetAcc.nickname;
-                            if (profileWechatId) profileWechatId.textContent = `微信号：${targetAcc.wechatid || ''}`;
-                            if (profileAvatarImg) {
-                                profileAvatarImg.src = targetAcc.avatar;
-                                profileAvatarImg.style.display = 'block';
-                                if (profileAvatarIcon) profileAvatarIcon.style.display = 'none';
-                            }
+                            // 更新 UI (直接调用统一的渲染函数)
+                            renderWechatProfile();
 
                             saveWechatData();
                             renderAccountList();
@@ -10153,6 +10142,18 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         
                         // 保存到localStorage
                         saveWechatData();
+                        
+                        // 同步更新切换账号列表中的数据
+                        const currentId = localStorage.getItem('currentAccountId') || 'default';
+                        let accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                        const accIndex = accounts.findIndex(a => a.id === currentId);
+                        if (accIndex !== -1) {
+                            accounts[accIndex].nickname = wechatState.profile.nickname;
+                            accounts[accIndex].avatar = wechatState.profile.avatar;
+                            accounts[accIndex].wechatid = wechatState.profile.wechatid;
+                            accounts[accIndex].persona = wechatState.profile.persona;
+                            localStorage.setItem('wechatAccounts', JSON.stringify(accounts));
+                        }
                         
                         // 渲染到页面
                         renderWechatProfile();
