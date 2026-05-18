@@ -9314,45 +9314,91 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
                 
                 if (!char) return;
+
+                // 显示转账详情模态框
+                const detailModal = document.getElementById('wechat-transfer-detail-modal');
+                const statusIcon = document.getElementById('transfer-detail-status-icon');
+                const statusText = document.getElementById('transfer-detail-status-text');
+                const amountNum = document.getElementById('transfer-detail-amount-num');
+                const receiveBtn = document.getElementById('transfer-detail-receive-btn');
+                const actionArea = document.getElementById('transfer-detail-action-area');
+                const receiveTimeItem = document.getElementById('transfer-detail-receive-time-item');
+                const timeEl = document.getElementById('transfer-detail-time');
+                const receiveTimeEl = document.getElementById('transfer-detail-receive-time');
+
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
                 
-                // 如果是自己发出的，或者已经领取了，不做处理（或者可以弹出详情，这里简化处理）
-                if (sender === 'user' || tf.dataset.opened === 'true') {
-                    return;
-                }
+                timeEl.textContent = timeStr;
+                receiveTimeEl.textContent = timeStr; // 简化处理，收钱时间也设为现在
 
-                // 领取逻辑
-                if (confirm(`是否确认接收来自 ${char.name} 的 ¥${amount} 转账？`)) {
-                    // 1. 更新当前页面的 DOM 状态
-                    tf.dataset.opened = 'true';
-                    const statusEl = tf.querySelector('.transfer-status');
-                    if (statusEl) statusEl.textContent = '已收款';
-                    tf.style.opacity = '0.7';
+                amountNum.textContent = parseFloat(amount).toFixed(2);
+                
+                // 根据状态设置 UI
+                if (tf.dataset.opened === 'true') {
+                    statusIcon.className = 'fas fa-check-circle';
+                    statusIcon.style.color = '#07C160';
+                    statusText.textContent = sender === 'user' ? '对方已收钱' : '已收钱';
+                    actionArea.style.display = 'none';
+                    receiveTimeItem.style.display = 'flex';
+                } else {
+                    if (sender === 'user') {
+                        statusIcon.className = 'fas fa-clock';
+                        statusIcon.style.color = '#f89e24';
+                        statusText.textContent = '待对方收钱';
+                        actionArea.style.display = 'none';
+                        receiveTimeItem.style.display = 'none';
+                    } else {
+                        statusIcon.className = 'fas fa-arrow-circle-down';
+                        statusIcon.style.color = '#f89e24';
+                        statusText.textContent = '请确认收钱';
+                        actionArea.style.display = 'flex';
+                        receiveTimeItem.style.display = 'none';
+                        
+                        // 绑定收钱按钮
+                        receiveBtn.onclick = () => {
+                            // 1. 更新当前页面的 DOM 状态
+                            tf.dataset.opened = 'true';
+                            const statusEl = tf.querySelector('.transfer-status');
+                            if (statusEl) statusEl.textContent = '已收款';
+                            tf.style.opacity = '0.7';
 
-                    // 2. 持久化存储：同步更新历史记录中的 HTML 内容
-                    if (tfId) {
-                        for (let i = char.chatHistory.length - 1; i >= 0; i--) {
-                            if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
-                                let content = char.chatHistory[i].content;
-                                if (!content.includes('data-opened="true"')) {
-                                    content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
-                                    content = content.replace('微信转账', '已收款');
-                                    char.chatHistory[i].content = content;
+                            // 2. 持久化存储：同步更新历史记录中的 HTML 内容
+                            if (tfId) {
+                                for (let i = char.chatHistory.length - 1; i >= 0; i--) {
+                                    if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
+                                        let content = char.chatHistory[i].content;
+                                        if (!content.includes('data-opened="true"')) {
+                                            content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
+                                            content = content.replace('微信转账', '已收款');
+                                            char.chatHistory[i].content = content;
+                                        }
+                                        break;
+                                    }
                                 }
-                                break;
                             }
-                        }
+                            
+                            // 3. 增加钱包余额
+                            walletState.balance += parseFloat(amount);
+                            saveWalletState();
+                            updateWalletBalance();
+                            
+                            // 4. 保存微信数据
+                            saveWechatData();
+                            
+                            // 5. 更新详情页 UI
+                            statusIcon.className = 'fas fa-check-circle';
+                            statusIcon.style.color = '#07C160';
+                            statusText.textContent = '已收钱';
+                            actionArea.style.display = 'none';
+                            receiveTimeItem.style.display = 'flex';
+                            
+                            alert('已成功收款，金额已存入零钱');
+                        };
                     }
-                    
-                    // 3. 增加钱包余额
-                    walletState.balance += parseFloat(amount);
-                    saveWalletState();
-                    updateWalletBalance();
-                    
-                    // 4. 保存微信数据
-                    saveWechatData();
-                    
-                    alert('已成功收款，金额已存入零钱');
                 }
+
+                detailModal.classList.add('active');
             }
             
             // 绑定红包相关事件
@@ -9405,6 +9451,14 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const transferCancelBtn = document.getElementById('transfer-cancel-btn');
                 if (transferCancelBtn) {
                     transferCancelBtn.addEventListener('click', closeTransferModal);
+                }
+
+                // 转账详情关闭按钮
+                const transferDetailClose = document.getElementById('transfer-detail-close');
+                if (transferDetailClose) {
+                    transferDetailClose.addEventListener('click', () => {
+                        document.getElementById('wechat-transfer-detail-modal').classList.remove('active');
+                    });
                 }
             }
             

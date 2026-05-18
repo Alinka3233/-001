@@ -33,7 +33,7 @@
     
     <title>Etern OS</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.3.0">
+    <link rel="stylesheet" href="css/style.css?v=1.3.1">
 </head>
 <body>
     <!-- 全局加载动画 -->
@@ -1520,6 +1520,40 @@
                 </div>
             </div>
 
+            <!-- 转账详情模态框 -->
+            <div class="wechat-modal wechat-transfer-detail-view" id="wechat-transfer-detail-modal">
+                <div class="transfer-detail-container">
+                    <div class="transfer-detail-header">
+                        <button class="transfer-detail-close" id="transfer-detail-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="transfer-detail-content">
+                        <div class="transfer-detail-icon">
+                            <i class="fas fa-check-circle" id="transfer-detail-status-icon"></i>
+                        </div>
+                        <div class="transfer-detail-status" id="transfer-detail-status-text">已收钱</div>
+                        <div class="transfer-detail-amount">¥<span id="transfer-detail-amount-num">0.00</span></div>
+                        
+                        <div class="transfer-detail-info">
+                            <div class="info-item">
+                                <div class="info-label">转账时间</div>
+                                <div class="info-value" id="transfer-detail-time">2024-01-01 12:00:00</div>
+                            </div>
+                            <div class="info-item" id="transfer-detail-receive-time-item">
+                                <div class="info-label">收钱时间</div>
+                                <div class="info-value" id="transfer-detail-receive-time">2024-01-01 12:01:00</div>
+                            </div>
+                        </div>
+
+                        <div class="transfer-detail-action" id="transfer-detail-action-area">
+                            <button class="transfer-receive-btn" id="transfer-detail-receive-btn">确认收钱</button>
+                        </div>
+                    </div>
+                    <div class="transfer-detail-footer">
+                        常见问题
+                    </div>
+                </div>
+            </div>
+
             
             
             <!-- 红包发送模态框 -->
@@ -2182,7 +2216,7 @@
     <script src="https://cdn.staticfile.net/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.staticfile.net/Sortable/1.15.2/Sortable.min.js"></script>
     
-<script src="js/script.js?v=1.3.0"></script>
+<script src="js/script.js?v=1.3.1"></script>
 <div id="brightness-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 999999; opacity: 0; will-change: opacity; transition: opacity 0.05s linear;"></div>
 </body>
 </html>
