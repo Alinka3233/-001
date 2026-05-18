@@ -4685,90 +4685,116 @@
                 const assistiveTouch = document.getElementById('assistive-touch');
                 const originalAssistiveTouchVisibility = assistiveTouch ? assistiveTouch.style.visibility : '';
                 
-                // 1. 立即反馈：闪白动画，让用户感知截图已开始
+                // 1. 立即反馈：闪白动画
                 const flashOverlay = document.createElement('div');
-                flashOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:1000000;opacity:0;transition:opacity 0.1s ease;pointer-events:none;';
+                flashOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:1000000;opacity:0;transition:opacity 0.05s ease;pointer-events:none;';
                 document.body.appendChild(flashOverlay);
                 
-                // 触发闪烁
                 requestAnimationFrame(() => {
                     flashOverlay.style.opacity = '0.8';
                     setTimeout(() => {
                         flashOverlay.style.opacity = '0';
-                        setTimeout(() => flashOverlay.remove(), 200);
-                    }, 100);
+                        setTimeout(() => flashOverlay.remove(), 100);
+                    }, 50);
                 });
 
                 try {
                     if (typeof html2canvas === 'undefined') {
-                        alert('截图功能需要 html2canvas 库支持');
-                        return;
+                        throw new Error('未加载 html2canvas 库');
                     }
 
                     const targetElement = document.getElementById('phone-ui-container') || document.body;
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-                    // 2. 极致提速：临时隐藏干扰元素
+                    // 2. 准备阶段
                     if (assistiveTouch) {
                         assistiveTouch.style.visibility = 'hidden';
                     }
 
-                    // 等待 UI 平静，但缩短等待时间（从 120ms 降至 50ms）
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    // 缩短等待
+                    await new Promise(resolve => setTimeout(resolve, 30));
 
-                    // 3. 核心优化：针对移动端大幅降低渲染压力
+                    // 3. 执行截图：使用高兼容性配置
                     const canvas = await html2canvas(targetElement, {
-                        // 降低倍率：移动端 1.0 - 1.2 倍足以保持清晰且稳定性高
-                        scale: isIOS ? 1 : 1.2, 
+                        scale: isIOS ? 1 : 1.2,
                         useCORS: true,
-                        allowTaint: false, // 严禁 allowTaint: true，否则 toDataURL 会报安全错误导致截图失败
+                        allowTaint: false,
                         backgroundColor: '#000',
-                        logging: false, 
-                        imageTimeout: 10000, // 增加图片加载等待时间到 10s
+                        logging: false,
+                        imageTimeout: 15000, // 增加到 15s
                         removeContainer: true,
-                        cache: true,
-                        ignoreElements: (element) => {
-                            if (!element || !element.tagName) return false;
-                            return element.id === 'assistive-touch'
-                                || element.id === 'assistive-touch-menu'
-                                || element.tagName === 'IFRAME';
+                        // 关键优化：在克隆的 DOM 中移除所有导致失败的复杂样式
+                        onclone: (clonedDoc) => {
+                            const elements = clonedDoc.getElementsByTagName('*');
+                            for (let i = 0; i < elements.length; i++) {
+                                const el = elements[i];
+                                // 移除 backdrop-filter，这是 html2canvas 崩溃的首要原因
+                                if (window.getComputedStyle(el).backdropFilter !== 'none' || 
+                                    window.getComputedStyle(el).webkitBackdropFilter !== 'none') {
+                                    el.style.backdropFilter = 'none';
+                                    el.style.webkitBackdropFilter = 'none';
+                                    // 补偿：如果背景太透明，稍微加深一点背景色防止内容看不清
+                                    const bg = window.getComputedStyle(el).backgroundColor;
+                                    if (bg.includes('rgba')) {
+                                        el.style.backgroundColor = bg.replace(/[\d\.]+\)$/, '0.9)');
+                                    }
+                                }
+                                // 移除某些可能引起渲染问题的动画
+                                el.style.animation = 'none';
+                                el.style.transition = 'none';
+                            }
+                            // 确保目标容器在克隆文档中也是可见的
+                            const clonedTarget = clonedDoc.getElementById('phone-ui-container');
+                            if (clonedTarget) {
+                                clonedTarget.style.transform = 'none';
+                                clonedTarget.style.position = 'relative';
+                                clonedTarget.style.top = '0';
+                                clonedTarget.style.left = '0';
+                                clonedTarget.style.margin = '0';
+                            }
                         }
                     });
 
+                    // 4. 数据转换与保存
                     let screenshotDataUrl = '';
                     try {
-                        // 优先使用 JPEG 压缩以减少内存占用和提高保存速度
-                        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        // 尝试高质量 JPEG
+                        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.9);
                     } catch (e) {
-                        console.warn('JPEG 导出失败，尝试 PNG:', e);
+                        // 回退到 PNG
                         screenshotDataUrl = canvas.toDataURL('image/png');
                     }
 
                     if (!screenshotDataUrl || screenshotDataUrl === 'data:,') {
-                        throw new Error('生成的图片数据为空');
+                        throw new Error('Canvas 转换失败');
                     }
 
                     await savePhotoToDB(screenshotDataUrl);
                     
-                    // 4. 成功反馈
-                    const toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:20px;z-index:1000001;font-size:14px;pointer-events:none;';
-                    toast.textContent = '已保存到相册';
-                    document.body.appendChild(toast);
-                    setTimeout(() => {
-                        toast.style.opacity = '0';
-                        setTimeout(() => toast.remove(), 500);
-                    }, 1500);
+                    // 5. 成功反馈
+                    showToast('已保存到相册');
 
                 } catch (error) {
-                    console.error('截图失败:', error);
-                    alert('截图失败');
+                    console.error('截图引擎详细错误:', error);
+                    alert('截图失败: ' + error.message);
                 } finally {
                     if (assistiveTouch) {
                         assistiveTouch.style.visibility = originalAssistiveTouchVisibility;
                     }
                     isTakingScreenshot = false;
                 }
+            }
+
+            // 通用 Toast 提示
+            function showToast(text) {
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:20px;z-index:1000001;font-size:14px;pointer-events:none;transition:opacity 0.3s ease;';
+                toast.textContent = text;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 1500);
             }
             
             // 初始化辅助触控已移至 DOMContentLoaded 顶部
