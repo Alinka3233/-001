@@ -5551,12 +5551,6 @@
                 document.getElementById('wechat-list-view').style.display = 'none';
                 document.getElementById('wechat-chat-view').classList.add('active');
                 
-                const avatarImg = document.getElementById('wechat-current-avatar');
-                if (avatarImg) {
-                    avatarImg.src = type === 'group' ? (target.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png') : target.avatar;
-                    avatarImg.style.display = 'block';
-                }
-                
                 document.getElementById('wechat-current-name').textContent = target.name || target.nickname;
 
                 // 隐藏底部导航栏
