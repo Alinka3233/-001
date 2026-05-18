@@ -5349,11 +5349,11 @@
                     profileDesc.textContent = `微信号: ${wechatState.profile.wechatid}`;
                 }
                 
-                const avatarUrl = wechatState.profile.avatar || '';
+                const avatarUrl = wechatState.profile.avatar || GREY_AVATAR;
                 
                 // 更新个人资料头像
                 if (profileAvatarImg && profileAvatarIcon) {
-                    if (avatarUrl) {
+                    if (avatarUrl && avatarUrl !== '') {
                         profileAvatarImg.src = avatarUrl;
                         profileAvatarImg.style.display = 'block';
                         profileAvatarIcon.style.display = 'none';
@@ -8629,6 +8629,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 });
             }
 
+            const GREY_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mMsLStfDwAFXwJv6P790wAAAABJRU5ErkJggg==';
+
             if (accountAdd) {
                 accountAdd.addEventListener('click', () => {
                     const modal = document.getElementById('wechat-add-identity-modal');
@@ -8637,7 +8639,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         document.getElementById('add-identity-nickname').value = '';
                         document.getElementById('add-identity-wechatid').value = '';
                         document.getElementById('add-identity-persona').value = '';
-                        document.getElementById('add-identity-avatar-img').src = 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png';
+                        document.getElementById('add-identity-avatar-img').src = GREY_AVATAR;
                         
                         modal.classList.add('active');
                     }
@@ -8712,7 +8714,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         id: 'default',
                         nickname: wechatState.profile.nickname || '我',
                         wechatid: wechatState.profile.wechatid || '',
-                        avatar: wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png',
+                        avatar: wechatState.profile.avatar || GREY_AVATAR,
                         persona: wechatState.profile.persona || '一个普通的用户'
                     };
                     accounts.push(currentProfile);
