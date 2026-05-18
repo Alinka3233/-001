@@ -8616,16 +8616,45 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             const accountList = document.getElementById('wechat-account-list');
             const accountAdd = document.getElementById('wechat-account-add');
 
+            const accountCancelBtn = document.getElementById('wechat-account-cancel-btn');
+
             if (switchAccountBtn) {
                 switchAccountBtn.addEventListener('click', () => {
                     accountView.style.display = 'flex';
+                    setTimeout(() => {
+                        accountView.classList.add('active');
+                    }, 10);
                     renderAccountList();
                 });
             }
 
             if (accountBack) {
                 accountBack.addEventListener('click', () => {
-                    accountView.style.display = 'none';
+                    accountView.classList.remove('active');
+                    setTimeout(() => {
+                        accountView.style.display = 'none';
+                    }, 400);
+                });
+            }
+
+            if (accountCancelBtn) {
+                accountCancelBtn.addEventListener('click', () => {
+                    accountView.classList.remove('active');
+                    setTimeout(() => {
+                        accountView.style.display = 'none';
+                    }, 400);
+                });
+            }
+
+            // 点击遮罩层关闭
+            if (accountView) {
+                accountView.addEventListener('click', (e) => {
+                    if (e.target === accountView) {
+                        accountView.classList.remove('active');
+                        setTimeout(() => {
+                            accountView.style.display = 'none';
+                        }, 400);
+                    }
                 });
             }
 
@@ -8757,8 +8786,11 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             renderAccountList();
                             
                             setTimeout(() => {
-                                accountView.style.display = 'none';
-                                alert(`已成功切换到账号: ${targetAcc.nickname}`);
+                                accountView.classList.remove('active');
+                                setTimeout(() => {
+                                    accountView.style.display = 'none';
+                                    alert(`已成功切换到账号: ${targetAcc.nickname}`);
+                                }, 400);
                             }, 300);
                         }
                     });
