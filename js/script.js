@@ -5349,24 +5349,31 @@
                     profileDesc.textContent = `微信号: ${wechatState.profile.wechatid}`;
                 }
                 
-                const avatarUrl = wechatState.profile.avatar || GREY_AVATAR;
+                const avatarUrl = wechatState.profile.avatar;
                 
-                // 更新个人资料头像
+                // 更新个人资料头像：只有在有真实头像且不是默认灰色占位符时才显示 <img>
                 if (profileAvatarImg) {
-                    if (avatarUrl && avatarUrl !== '') {
+                    if (avatarUrl && avatarUrl !== '' && avatarUrl !== GREY_AVATAR) {
                         profileAvatarImg.src = avatarUrl;
                         profileAvatarImg.style.display = 'block';
                     } else {
+                        // 关键：如果没有头像，必须彻底隐藏 img 标签并清空 src，防止浏览器显示“图片裂开”图标
                         profileAvatarImg.style.display = 'none';
+                        profileAvatarImg.src = ''; 
                     }
                 }
                 
                 // 更新朋友圈顶部封面头像
                 if (momentsProfileAvatar) {
-                    if (avatarUrl) {
+                    if (avatarUrl && avatarUrl !== '' && avatarUrl !== GREY_AVATAR) {
                         momentsProfileAvatar.src = avatarUrl;
+                        momentsProfileAvatar.style.display = 'block';
                     } else {
-                        momentsProfileAvatar.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAgMjBDMjcuOSAyMCAxMCAzNy45IDEwIDYwcyAxNy45IDQwIDQwIDQwIDQwLTE3LjkgNDA0MC00ME01MCAyMEMyNy45IDIwIDEwIDM3LjkgMTAgNjBzMTcuOSA0MCA0MCA0MCA0MC0xNy45IDQwLTQwTTEwIDYwQzEwIDM3LjkgMjcuOSAyMCA1MCAyME02MCAzMEM2MCAxOC45IDQ5LjEgOCAzNyA4QzI0LjkgOCAxNCAxOC45IDE0IDMwQzE0IDQxLjEgMjQuOSA1MiAzNyA1MkMyNC45IDUyIDE0IDQxLjEgMTQgMzBDMTQgMTguOSAyNC45IDggMzcgOEM0OS4xIDggNjAgMTguOSA2MCAzMFoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNNTAgNTJjLTYuNiAwLTEyLTUuNC0xMi0xMnMxMi02LjYgMTItMTIgMTIgMTIgMTIgNS40IDEyIDEyUzU2LjYgNTIgNTAgNTJaIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI3LjEgNTZDMTYuMyA1NiA4IDQ3LjcgOCAzN0MxNS42IDQ3LjcgMjcuMSA1NiAyNy4xIDU2Wk03Mi45IDU2QzgyLjMgNTYgOTIgNDcuNyA5MiAzN0M4NC40IDQ3LjcgNzIuOSA1NiA3Mi45IDU2WiIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik01MCA1OUM3MCA1OSA4NCA0NSA4NCAyNUM4NCAxMCA3MCAwIDUwIDBzLTM0IDEwLTM0IDI1QzMwIDQ1IDQ0IDU5IDUwIDU5WiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==';
+                        // 朋友圈头像如果为空，也显示灰色背景
+                        momentsProfileAvatar.style.display = 'none';
+                        momentsProfileAvatar.src = '';
+                        const parent = momentsProfileAvatar.parentElement;
+                        if (parent) parent.style.backgroundColor = '#f0f0f2';
                     }
                 }
                 
@@ -8666,7 +8673,10 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         document.getElementById('add-identity-nickname').value = '';
                         document.getElementById('add-identity-wechatid').value = '';
                         document.getElementById('add-identity-persona').value = '';
-                        document.getElementById('add-identity-avatar-img').src = GREY_AVATAR;
+                        
+                        const previewImg = document.getElementById('add-identity-avatar-img');
+                        previewImg.src = '';
+                        previewImg.style.display = 'none';
                         
                         modal.classList.add('active');
                     }
@@ -8693,6 +8703,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             addIdentityAvatarImg.src = event.target.result;
+                            addIdentityAvatarImg.style.display = 'block';
                         };
                         reader.readAsDataURL(file);
                     }
@@ -8751,16 +8762,21 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
                 const currentId = localStorage.getItem('currentAccountId') || 'default';
 
-                accountList.innerHTML = accounts.map(acc => `
-                    <div class="wechat-account-item ${acc.id === currentId ? 'active' : ''}" data-id="${acc.id}">
-                        <img src="${acc.avatar}" class="account-avatar">
-                        <div class="account-info">
-                            <div class="account-name">${acc.nickname}</div>
-                            <div class="account-status">${acc.id === currentId ? '当前使用' : '点击切换'}</div>
+                accountList.innerHTML = accounts.map(acc => {
+                    const hasAvatar = acc.avatar && acc.avatar !== '' && acc.avatar !== GREY_AVATAR;
+                    return `
+                        <div class="wechat-account-item ${acc.id === currentId ? 'active' : ''}" data-id="${acc.id}">
+                            <div class="account-avatar-container" style="width: 72px; height: 72px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                ${hasAvatar ? `<img src="${acc.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : ''}
+                            </div>
+                            <div class="account-info">
+                                <div class="account-name">${acc.nickname}</div>
+                                <div class="account-status">${acc.id === currentId ? '当前使用' : '点击切换'}</div>
+                            </div>
+                            <div class="account-check"><i class="fas fa-check"></i></div>
                         </div>
-                        <div class="account-check"><i class="fas fa-check"></i></div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 // 绑定切换点击
                 accountList.querySelectorAll('.wechat-account-item').forEach(item => {
