@@ -4725,19 +4725,16 @@
                     // 3. 核心优化：针对移动端大幅降低渲染压力
                     const canvas = await html2canvas(targetElement, {
                         // 降低倍率：移动端 1.2 倍足以保持清晰且速度极快
-                        scale: isIOS ? 1.2 : 1.5, 
+                        scale: isIOS ? 1 : 1.2, 
                         useCORS: true,
-                        allowTaint: false,
+                        allowTaint: true, // 允许跨域图片渲染
                         backgroundColor: '#000',
-                        logging: false,
-                        // 移除动画耗时参数
-                        imageTimeout: 1500, 
+                        logging: true, // 开启日志方便排查
+                        imageTimeout: 5000, // 增加图片加载等待时间
                         removeContainer: true,
-                        // 开启硬件加速提示
                         cache: true,
                         ignoreElements: (element) => {
                             if (!element || !element.tagName) return false;
-                            // 忽略极其耗费渲染资源的元素（如模糊滤镜遮罩层，如果可能）
                             return element.id === 'assistive-touch'
                                 || element.id === 'assistive-touch-menu'
                                 || element.tagName === 'IFRAME';
