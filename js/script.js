@@ -4718,13 +4718,13 @@
 
                     // 3. 核心优化：针对移动端大幅降低渲染压力
                     const canvas = await html2canvas(targetElement, {
-                        // 降低倍率：移动端 1.2 倍足以保持清晰且速度极快
+                        // 降低倍率：移动端 1.0 - 1.2 倍足以保持清晰且稳定性高
                         scale: isIOS ? 1 : 1.2, 
                         useCORS: true,
-                        allowTaint: true, // 允许跨域图片渲染
+                        allowTaint: false, // 严禁 allowTaint: true，否则 toDataURL 会报安全错误导致截图失败
                         backgroundColor: '#000',
-                        logging: true, // 开启日志方便排查
-                        imageTimeout: 5000, // 增加图片加载等待时间
+                        logging: false, 
+                        imageTimeout: 10000, // 增加图片加载等待时间到 10s
                         removeContainer: true,
                         cache: true,
                         ignoreElements: (element) => {
@@ -4735,7 +4735,18 @@
                         }
                     });
 
-                    let screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.85); // 改用 JPEG 进一步提速
+                    let screenshotDataUrl = '';
+                    try {
+                        // 优先使用 JPEG 压缩以减少内存占用和提高保存速度
+                        screenshotDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    } catch (e) {
+                        console.warn('JPEG 导出失败，尝试 PNG:', e);
+                        screenshotDataUrl = canvas.toDataURL('image/png');
+                    }
+
+                    if (!screenshotDataUrl || screenshotDataUrl === 'data:,') {
+                        throw new Error('生成的图片数据为空');
+                    }
 
                     await savePhotoToDB(screenshotDataUrl);
                     
