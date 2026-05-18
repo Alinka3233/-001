@@ -10781,7 +10781,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 if (memories.length === 0) {
                     listContainer.innerHTML = `
                         <div class="memory-empty" style="background: #fff; border-radius: 12px; padding: 30px 20px; border: 1px dashed #ddd;">
-                            <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;"></div>
+                            <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; opacity: 0.8; letter-spacing: 2px; color: #007AFF;">M͓̽e͓̽m͓̽o͓̽r͓̽y͓̽</div>
                             暂无长期记忆<br>
                             <span style="font-size: 12px; opacity: 0.7; margin-top: 8px; display: block;">您可以在上方手动输入，或等待 AI 在对话中自动生成。</span>
                         </div>
