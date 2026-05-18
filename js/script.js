@@ -5337,7 +5337,7 @@
                 const profileName = document.querySelector('.wechat-profile-name');
                 const profileDesc = document.querySelector('.wechat-profile-desc');
                 const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
-                const profileAvatarIcon = document.getElementById('wechat-profile-avatar-icon');
+                const profileAvatarContainer = document.getElementById('wechat-avatar-container');
                 // 朋友圈顶部封面头像
                 const momentsProfileAvatar = document.getElementById('moments-profile-avatar');
                 
@@ -5352,14 +5352,12 @@
                 const avatarUrl = wechatState.profile.avatar || GREY_AVATAR;
                 
                 // 更新个人资料头像
-                if (profileAvatarImg && profileAvatarIcon) {
+                if (profileAvatarImg) {
                     if (avatarUrl && avatarUrl !== '') {
                         profileAvatarImg.src = avatarUrl;
                         profileAvatarImg.style.display = 'block';
-                        profileAvatarIcon.style.display = 'none';
                     } else {
                         profileAvatarImg.style.display = 'none';
-                        profileAvatarIcon.style.display = 'block';
                     }
                 }
                 
@@ -10084,11 +10082,11 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                         if (wechatState.profile.avatar) {
                             editAvatarImg.src = wechatState.profile.avatar;
                             editAvatarImg.style.display = 'block';
-                            editAvatarIcon.style.display = 'none';
+                            if (editAvatarIcon) editAvatarIcon.style.display = 'none';
                         } else {
-                            editAvatarImg.src = '';
-                            editAvatarImg.style.display = 'none';
-                            editAvatarIcon.style.display = 'block';
+                            editAvatarImg.src = GREY_AVATAR;
+                            editAvatarImg.style.display = 'block';
+                            if (editAvatarIcon) editAvatarIcon.style.display = 'none';
                         }
                         
                         // 重置头像更新标志
@@ -10223,7 +10221,6 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const avatarContainer = document.getElementById('wechat-avatar-container');
                 const avatarInput = document.getElementById('wechat-avatar-input');
                 const avatarImg = document.getElementById('wechat-profile-avatar-img');
-                const avatarIcon = document.getElementById('wechat-profile-avatar-icon');
                 
                 if (avatarContainer) {
                     avatarContainer.addEventListener('click', () => {
@@ -10243,7 +10240,6 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                                 // 直接设置本地图片数据
                                 avatarImg.src = localImageData;
                                 avatarImg.style.display = 'block';
-                                avatarIcon.style.display = 'none';
                                 
                                 // 更新wechatState并保存到IndexedDB
                                 wechatState.profile.avatar = localImageData;
