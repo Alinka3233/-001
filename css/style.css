@@ -45,38 +45,42 @@
 
         @import url('https://fonts.loli.net/css2?family=Inter:wght@200;400;500;600;700;800&display=swap');
 
-        html {
-            background-color: #000;
-            overscroll-behavior: none;
-            margin: 0;
-            padding: 0;
+        html, body {
             width: 100%;
             height: 100%;
-        }
-
-        html, body {
-            width: 100vw;
-            height: 100vh;
             height: 100dvh;
             height: calc(var(--vh, 1vh) * 100);
-            min-height: -webkit-fill-available;
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #000; 
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative;
             overscroll-behavior: none;
             -webkit-user-select: none; 
             user-select: none;
             -webkit-touch-callout: none; 
-            touch-action: none;
-            /* 强制消除由于某些浏览器缩放导致的边缘缝隙 */
-            image-rendering: -webkit-optimize-contrast;
-            -webkit-font-smoothing: antialiased;
+            touch-action: manipulation; 
+        }
+
+        #phone-ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            height: calc(var(--vh, 1vh) * 100);
+            flex: 1;
+            margin: 0;
+            padding: 0;
+            min-height: 0; 
+            overflow: hidden;
+            background-color: transparent;
+            transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing);
         }
         
         /* 仅重置最外层元素的内外边距，不使用 !important，不干扰内层样式 */
@@ -280,37 +284,12 @@
             line-height: 1.1;
         }
 
-        #phone-ui-container {
-            position: fixed !important; /* 改为 fixed 以获得最稳定的视口覆盖 */
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            display: flex;
-            flex-direction: column;
-            width: 100vw !important; /* 使用 vw/vh 确保完全填充 */
-            height: 100vh !important;
-            height: 100dvh !important;
-            height: calc(var(--vh, 1vh) * 100) !important;
-            flex: 1;
-            margin: 0 !important;
-            padding: 0 !important;
-            min-height: 0; 
-            overflow: hidden;
-            background-color: #000; /* 容器背景设为黑色 */
-            transition: transform 0.5s var(--spring-easing), opacity 0.5s var(--spring-easing);
-            padding-top: env(safe-area-inset-top, 0); /* 适配刘海屏 */
-            padding-bottom: env(safe-area-inset-bottom, 0);
-        }
-
         .wallpaper {
             position: absolute;
-            top: -2px; /* 稍微溢出以消除亚像素边缘白线 */
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            width: calc(100% + 4px);
-            height: calc(100% + 4px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: #000;
             background-image: var(--wallpaper-url);
             background-size: cover;
@@ -6003,14 +5982,16 @@
 
         .wechat-message {
             display: flex;
-            align-items: flex-start; /* 改为顶部对齐，更符合微信习惯 */
+            align-items: flex-start;
             margin-bottom: 16px;
             max-width: 88%;
             animation: fadeIn 0.3s;
+            position: relative;
         }
 
         .wechat-message.ai {
             align-self: flex-start;
+            flex-direction: row;
         }
 
         .wechat-message.user {
@@ -6046,28 +6027,12 @@
             display: block;
         }
 
-        /* 昵称样式 */
-        .wechat-msg-nickname {
-            font-size: 12px;
-            color: #8e8e93;
-            margin-bottom: 4px;
-            margin-left: 4px; /* 稍微拉开一点 */
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .wechat-message.user .wechat-msg-nickname {
-            display: none;
-        }
-
         /* 消息内容包装器 */
         .wechat-msg-content-wrapper {
             display: flex;
             flex-direction: column;
             min-width: 0;
-            max-width: calc(100% - 60px); /* 减去头像和边距的空间 */
+            max-width: calc(100% - 54px); /* 留出头像空间 */
         }
 
         .wechat-message.ai .wechat-msg-content-wrapper {
@@ -6078,8 +6043,24 @@
             align-items: flex-end;
         }
 
+        /* 昵称样式 */
+        .wechat-msg-nickname {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-bottom: 4px;
+            margin-left: 4px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .wechat-message.user .wechat-msg-nickname {
+            display: none;
+        }
+
         .wechat-message-bubble {
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 6px;
             line-height: 1.5;
             font-size: 16px;
@@ -6087,7 +6068,8 @@
             word-break: break-word;
             min-height: 40px;
             box-sizing: border-box;
-            display: inline-block;
+            display: block;
+            width: fit-content;
             max-width: 100%;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
@@ -6096,14 +6078,14 @@
             background: #ffffff;
             color: #000;
             margin-left: 2px;
-            border: 0.5px solid rgba(0, 0, 0, 0.05); /* 增加极细边框提升质感 */
+            border: 0.5px solid rgba(0, 0, 0, 0.05);
         }
 
         .wechat-message.ai .wechat-message-bubble::before {
             content: '';
             position: absolute;
             left: -6px;
-            top: 14px; /* 三角形移至上方 */
+            top: 14px;
             width: 0;
             height: 0;
             border-top: 5px solid transparent;
@@ -6121,12 +6103,23 @@
             content: '';
             position: absolute;
             right: -6px;
-            top: 14px; /* 三角形移至上方 */
+            top: 14px;
             width: 0;
             height: 0;
             border-top: 5px solid transparent;
             border-bottom: 5px solid transparent;
             border-left: 6px solid #95ec69;
+        }
+
+        .wechat-message-bubble.no-bg {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .wechat-message-bubble.no-bg::before {
+            display: none !important;
         }
 
         .wechat-message.ai .wechat-message-bubble.no-bg::before,
