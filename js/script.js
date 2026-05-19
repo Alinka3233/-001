@@ -1,8 +1,7 @@
 // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
         window.onerror = function(msg, url, line, col, error) {
             console.error('System Error:', msg, 'at', line, ':', col);
-            // 如果检测到严重错误，尝试自动恢复（如清理缓存并重载）
-            if (msg.toLowerCase().indexOf('script error') > -1) {
+            if (msg && msg.toLowerCase().indexOf('script error') > -1) {
                 console.warn('跨域脚本错误，请检查资源引用');
             }
             return false;
@@ -32,51 +31,7 @@
                     window.scrollTo(0, 1);
                 }
             }, { once: true });
-
-        // --- 全局稳定性增强：防止各种不可预见的异常导致应用崩溃 ---
-        (function() {
-            // 1. 捕获全局未处理异常
-            window.addEventListener('error', function(e) {
-                console.error('全局捕获异常:', e.error || e.message);
-                // 阻止默认的控制台报错和停止执行行为
-                // e.preventDefault();
-            });
-
-            window.addEventListener('unhandledrejection', function(e) {
-                console.error('全局捕获 Promise 异常:', e.reason);
-                // e.preventDefault();
-            });
-
-            // 2. 安全重写 localStorage 的核心方法，防止隐私模式或超限报错 (QuotaExceededError) 导致后续 JS 中断
-            const originalSetItem = Storage.prototype.setItem;
-            const originalGetItem = Storage.prototype.getItem;
-            const originalRemoveItem = Storage.prototype.removeItem;
-
-            Storage.prototype.setItem = function(key, value) {
-                try {
-                    originalSetItem.call(this, key, value);
-                } catch (error) {
-                    console.warn('localStorage 存储失败 (可能超出 5MB 限制或处于隐私模式):', error);
-                }
-            };
-
-            Storage.prototype.getItem = function(key) {
-                try {
-                    return originalGetItem.call(this, key);
-                } catch (error) {
-                    console.warn('localStorage 读取失败:', error);
-                    return null;
-                }
-            };
-
-            Storage.prototype.removeItem = function(key) {
-                try {
-                    originalRemoveItem.call(this, key);
-                } catch (error) {
-                    console.warn('localStorage 删除失败:', error);
-                }
-            };
-        })();
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (window.__EternOS_DOM_Initialized__) {
@@ -604,6 +559,9 @@
 
             // 滑动手势检测
             document.addEventListener('touchstart', (e) => {
+                // 如果点击的是 app-page 内部，不触发全局下滑手势（防止干扰应用内滚动）
+                if (e.target.closest('.app-page')) return;
+
                 if (e.touches.length === 1) {
                     startY = e.touches[0].clientY;
                     isDragging = true;
@@ -639,21 +597,6 @@
                 airplane: false,
                 cellular: true
             };
-
-            // 手电筒功能
-            document.getElementById('cc-flashlight').addEventListener('click', () => {
-                controlStates.flashlight = !controlStates.flashlight;
-                const flashlightBtn = document.getElementById('cc-flashlight');
-                const icon = flashlightBtn.querySelector('i');
-                
-                if (controlStates.flashlight) {
-                    icon.style.color = '#FFD700';
-                    document.body.style.backgroundColor = 'rgba(255, 251, 204, 0.8)';
-                } else {
-                    icon.style.color = '';
-                    document.body.style.backgroundColor = '';
-                }
-            });
 
             // 相机功能
             document.getElementById('cc-camera').addEventListener('click', () => {
@@ -1014,7 +957,7 @@
                 };
 
                 window.openCharMemoryEditor = function(charId) {
-                    const char = wechatState.characters.find(c => c.id === charId);
+                    const char = wechatState.characters.find(c => c.id == charId);
                     if (!char) return;
                     currentCharIdForMemory = charId;
                     
@@ -1040,7 +983,7 @@
                 };
 
                 window.renderCharMemoryEditorContent = function(charId) {
-                    const char = wechatState.characters.find(c => c.id === charId);
+                    const char = wechatState.characters.find(c => c.id == charId);
                     const container = document.getElementById('char-memory-editor-content');
                     if (!char || !container) return;
 
@@ -1089,7 +1032,7 @@
                 };
 
                 window.addSingleCharMemory = async function(charId) {
-                    const char = wechatState.characters.find(c => c.id === charId);
+                    const char = wechatState.characters.find(c => c.id == charId);
                     const input = document.getElementById(`char-memory-input-${charId}`);
                     const newMemory = input.value.trim();
                     
@@ -1136,7 +1079,7 @@
                 };
 
                 window.saveEditCharMemory = async function(charId, index) {
-                    const char = wechatState.characters.find(c => c.id === charId);
+                    const char = wechatState.characters.find(c => c.id == charId);
                     const inputEl = document.getElementById(`mem-input-${charId}-${index}`);
                     
                     if (char && inputEl && Array.isArray(char.memory) && index >= 0 && index < char.memory.length) {
@@ -1156,7 +1099,7 @@
 
                 window.deleteSingleCharMemory = async function(charId, index) {
                     if (confirm('确定要删除这条记忆吗？')) {
-                        const char = wechatState.characters.find(c => c.id === charId);
+                        const char = wechatState.characters.find(c => c.id == charId);
                         if (char) {
                             if (!Array.isArray(char.memory)) {
                                 if (typeof char.memory === 'string' && char.memory.trim() !== '') {
@@ -1360,29 +1303,6 @@
                 }
                 updateCCButtons();
             });
-
-            // 亮度和音量滑块事件处理 (旧逻辑已在上方重构为自定义触摸滑块，此处移除冲突声明并清理失效代码)
-            const brightnessInput = document.getElementById('cc-brightness');
-            const volumeInput = document.getElementById('cc-volume');
-
-            // 按钮状态已由上方 updateCCButtons 统一管理，此处旧逻辑会导致报错，故注销
-            /*
-            if (brightnessInput && brightnessFill) {
-                brightnessInput.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    brightnessFill.style.width = `${val}%`;
-                    document.body.style.filter = `brightness(${0.5 + (val / 100) * 0.5})`;
-                });
-            }
-
-            if (volumeInput && volumeFill) {
-                volumeInput.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    volumeFill.style.width = `${val}%`;
-                    console.log('音量已调整为:', val);
-                });
-            }
-            */
 
             // 初始化按钮状态
             updateCCButtons();
@@ -1854,100 +1774,58 @@
 
             // 查看照片
             function viewPhoto(photoData) {
-                const modal = document.createElement('div');
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.width = '100%';
-                modal.style.height = '100%';
-                modal.style.background = 'rgba(0, 0, 0, 0.9)';
-                modal.style.zIndex = '10000';
-                modal.style.display = 'flex';
-                modal.style.alignItems = 'center';
-                modal.style.justifyContent = 'center';
-                modal.style.padding = '20px';
-                modal.style.boxSizing = 'border-box';
+                window.previewImage(photoData);
+            }
+
+            // 全局图片预览函数
+            window.previewImage = function(imageData) {
+                if (!imageData) return;
+                
+                const existing = document.querySelector('.image-viewer-overlay');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.className = 'image-viewer-overlay';
+                overlay.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: #000; z-index: 100000; display: flex;
+                    align-items: center; justify-content: center;
+                    animation: fadeIn 0.2s; touch-action: none;
+                `;
                 
                 const img = document.createElement('img');
-                img.src = photoData;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '80%';
-                img.style.objectFit = 'contain';
+                img.src = imageData;
+                img.style.cssText = `
+                    max-width: 100%; max-height: 100%;
+                    object-fit: contain; transition: transform 0.3s ease;
+                `;
                 
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                closeBtn.style.position = 'absolute';
-                closeBtn.style.top = '20px';
-                closeBtn.style.right = '20px';
-                closeBtn.style.width = '40px';
-                closeBtn.style.height = '40px';
-                closeBtn.style.border = 'none';
-                closeBtn.style.borderRadius = '50%';
-                closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-                closeBtn.style.color = '#fff';
-                closeBtn.style.fontSize = '20px';
-                closeBtn.style.display = 'flex';
-                closeBtn.style.alignItems = 'center';
-                closeBtn.style.justifyContent = 'center';
-                closeBtn.style.cursor = 'pointer';
-                closeBtn.style.transition = 'all 0.3s ease';
-                
-                closeBtn.addEventListener('mouseenter', () => {
-                    closeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-                });
-                
-                closeBtn.addEventListener('mouseleave', () => {
-                    closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-                });
-                
-                closeBtn.addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-                
-                // 下载按钮
-                const downloadBtn = document.createElement('button');
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
-                downloadBtn.style.position = 'absolute';
-                downloadBtn.style.bottom = '20px';
-                downloadBtn.style.left = '50%';
-                downloadBtn.style.transform = 'translateX(-50%)';
-                downloadBtn.style.width = '50px';
-                downloadBtn.style.height = '50px';
-                downloadBtn.style.border = 'none';
-                downloadBtn.style.borderRadius = '50%';
-                downloadBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-                downloadBtn.style.color = '#fff';
-                downloadBtn.style.fontSize = '20px';
-                downloadBtn.style.display = 'flex';
-                downloadBtn.style.alignItems = 'center';
-                downloadBtn.style.justifyContent = 'center';
-                downloadBtn.style.cursor = 'pointer';
-                downloadBtn.style.transition = 'all 0.3s ease';
-                
-                downloadBtn.addEventListener('mouseenter', () => {
-                    downloadBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-                });
-                
-                downloadBtn.addEventListener('mouseleave', () => {
-                    downloadBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-                });
+                let scale = 1;
+                overlay.onclick = () => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 200);
+                };
 
-                downloadBtn.addEventListener('click', () => {
-                    savePhotoToLocal(photoData);
-                });
-                
-                // 点击模态框背景关闭
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                    }
-                });
-                
-                modal.appendChild(img);
-                modal.appendChild(closeBtn);
-                modal.appendChild(downloadBtn);
-                document.body.appendChild(modal);
-            }
+                img.onclick = (e) => {
+                    e.stopPropagation();
+                    scale = scale === 1 ? 2 : 1;
+                    img.style.transform = `scale(${scale})`;
+                    img.style.cursor = scale === 1 ? 'zoom-in' : 'zoom-out';
+                };
+
+                const closeBtn = document.createElement('div');
+                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                closeBtn.style.cssText = `
+                    position: absolute; top: 40px; right: 20px;
+                    width: 40px; height: 40px; background: rgba(255,255,255,0.2);
+                    color: #fff; border-radius: 50%; display: flex;
+                    align-items: center; justify-content: center; font-size: 20px;
+                `;
+
+                overlay.appendChild(img);
+                overlay.appendChild(closeBtn);
+                document.body.appendChild(overlay);
+            };
 
             // 保存照片到本地
             function savePhotoToLocal(photoData) {
@@ -4721,8 +4599,11 @@
                         allowTaint: false,
                         backgroundColor: '#000',
                         logging: false,
-                        imageTimeout: 15000, // 增加到 15s
+                        imageTimeout: 15000,
                         removeContainer: true,
+                        foreignObjectRendering: false, // 禁用以提高稳定性
+                        width: targetElement.offsetWidth,
+                        height: targetElement.offsetHeight,
                         // 关键优化：在克隆的 DOM 中移除所有导致失败的复杂样式
                         onclone: (clonedDoc) => {
                             const elements = clonedDoc.getElementsByTagName('*');
@@ -5195,31 +5076,32 @@
             }
             
             // 保存微信数据到IndexedDB
+            let saveWechatDataTimeout = null;
             async function saveWechatData() {
-                try {
-                    const dataToSave = {
-                        characters: wechatState.characters,
-                        profile: wechatState.profile,
-                        moments: wechatState.moments,
-                        momentsCover: wechatState.momentsCover,
-                        settings: wechatState.settings,
-                        groups: wechatState.groups || []
-                    };
-                    
-                    // 计算数据大小
-                    const dataString = JSON.stringify(dataToSave);
-                    const dataSize = new Blob([dataString]).size;
-                    console.log('微信数据大小:', (dataSize / 1024 / 1024).toFixed(2), 'MB');
-                    
-                    // 保存到IndexedDB
-                    await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, 'wechatAppState');
-                    console.log('微信数据保存成功');
-                } catch (error) {
-                    console.error('保存微信数据失败:', error);
-                    console.error('错误类型:', error.name);
-                    console.error('错误信息:', error.message);
-                    // 不抛出异常，避免中断事件处理
-                }
+                if (saveWechatDataTimeout) clearTimeout(saveWechatDataTimeout);
+                
+                return new Promise((resolve) => {
+                    saveWechatDataTimeout = setTimeout(async () => {
+                        try {
+                            const dataToSave = {
+                                characters: wechatState.characters,
+                                profile: wechatState.profile,
+                                moments: wechatState.moments,
+                                momentsCover: wechatState.momentsCover,
+                                settings: wechatState.settings,
+                                groups: wechatState.groups || []
+                            };
+                            
+                            // 保存到IndexedDB
+                            await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, 'wechatAppState');
+                            console.log('微信数据保存成功 (已防抖)');
+                            resolve(true);
+                        } catch (error) {
+                            console.error('保存微信数据失败:', error);
+                            resolve(false);
+                        }
+                    }, 500); // 500ms 防抖
+                });
             }
 
             // 更新朋友圈背景图片
@@ -5382,6 +5264,34 @@
             }
             
             // 渲染个人资料到页面
+            // 渲染头像的通用函数，解决“图片裂开”问题
+            function renderAvatarHtml(url, className = '') {
+                const hasAvatar = url && url !== '' && url !== GREY_AVATAR;
+                // 为不同类型的头像提供默认背景色
+                let defaultBg = '#f0f0f2';
+                if (className.includes('contact')) defaultBg = '#f0f0f2';
+                if (className.includes('chat')) defaultBg = '#fff';
+                
+                // 判断是否是群组头像占位符
+                const isGroup = className.includes('group');
+                const placeholderIcon = isGroup ? 'fas fa-users' : 'fas fa-user';
+
+                if (hasAvatar) {
+                    return `
+                        <div class="${className}-wrapper avatar-wrapper" style="position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background-color: ${defaultBg};">
+                            <img src="${url}" class="${className}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="${className} avatar-placeholder" style="display:none; position: absolute; top:0; left:0; width: 100%; height: 100%; background-color: ${defaultBg}; align-items: center; justify-content: center; color: #c7c7cc; border-radius: inherit;">
+                                <i class="${placeholderIcon}"></i>
+                            </div>
+                        </div>`;
+                } else {
+                    return `
+                        <div class="${className} avatar-placeholder" style="background-color: ${defaultBg}; display: flex; align-items: center; justify-content: center; color: #c7c7cc; width: 100%; height: 100%; border-radius: inherit;">
+                            <i class="${placeholderIcon}" style="font-size: 0.5em;"></i>
+                        </div>`;
+                }
+            }
+
             function renderWechatProfile() {
                 const profileName = document.querySelector('.wechat-profile-name');
                 const profileDesc = document.querySelector('.wechat-profile-desc');
@@ -5400,30 +5310,15 @@
                 
                 const avatarUrl = wechatState.profile.avatar;
                 
-                // 更新个人资料头像：只有在有真实头像且不是默认灰色占位符时才显示 <img>
-                if (profileAvatarImg) {
-                    if (avatarUrl && avatarUrl !== '' && avatarUrl !== GREY_AVATAR) {
-                        profileAvatarImg.src = avatarUrl;
-                        profileAvatarImg.style.display = 'block';
-                    } else {
-                        // 关键：如果没有头像，必须彻底隐藏 img 标签并清空 src，防止浏览器显示“图片裂开”图标
-                        profileAvatarImg.style.display = 'none';
-                        profileAvatarImg.src = ''; 
-                    }
+                // 更新个人资料头像
+                if (profileAvatarContainer) {
+                    profileAvatarContainer.innerHTML = renderAvatarHtml(avatarUrl, 'wechat-profile-avatar');
                 }
                 
                 // 更新朋友圈顶部封面头像
-                if (momentsProfileAvatar) {
-                    if (avatarUrl && avatarUrl !== '' && avatarUrl !== GREY_AVATAR) {
-                        momentsProfileAvatar.src = avatarUrl;
-                        momentsProfileAvatar.style.display = 'block';
-                    } else {
-                        // 朋友圈头像如果为空，也显示灰色背景
-                        momentsProfileAvatar.style.display = 'none';
-                        momentsProfileAvatar.src = '';
-                        const parent = momentsProfileAvatar.parentElement;
-                        if (parent) parent.style.backgroundColor = '#f0f0f2';
-                    }
+                const momentsAvatarContainer = document.querySelector('.moments-profile-avatar-container');
+                if (momentsAvatarContainer) {
+                    momentsAvatarContainer.innerHTML = renderAvatarHtml(avatarUrl, 'moments-profile-avatar');
                 }
                 
                 const momentsProfileName = document.getElementById('moments-profile-name');
@@ -5462,7 +5357,9 @@
                     return `
                         <div class="wechat-chat-item" data-id="${item.id}" data-type="${item.type}" ${isPinned ? 'data-pinned="true"' : ''}>
                             <div class="wechat-chat-item-content">
-                                <img src="${avatar}" class="wechat-chat-avatar">
+                                <div class="wechat-chat-avatar-container">
+                                    ${renderAvatarHtml(avatar, 'wechat-chat-avatar')}
+                                </div>
                                 <div class="wechat-chat-content">
                                     <div class="wechat-chat-item-header">
                                         <span class="wechat-chat-name">${name}${isPinned ? ' <i class="fas fa-thumbtack" style="font-size: 12px; color: #8e8e93;"></i>' : ''}</span>
@@ -5679,8 +5576,10 @@
                         : '';
 
                     div.innerHTML = `
-                        <img src="${avatarUrl}" class="wechat-message-avatar">
-                        <div class="wechat-msg-content-wrapper" style="display: flex; flex-direction: column;">
+                        <div class="wechat-message-avatar-container">
+                            ${renderAvatarHtml(avatarUrl, 'wechat-message-avatar')}
+                        </div>
+                        <div class="wechat-msg-content-wrapper">
                             ${nicknameHtml}
                             <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''}" style="${bubbleStyle}">${finalContent}</div>
                         </div>
@@ -5704,7 +5603,7 @@
             function removeWechatTyping() {
                 // 恢复顶部的名字显示
                 if (wechatState.activeCharacterId) {
-                    const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                    const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                     if (char) {
                         const nameEl = document.getElementById('wechat-current-name');
                         if (nameEl) {
@@ -5793,27 +5692,21 @@
                     saveWechatData();
                     
                     // 发送当前段落 (只在当前聊天活跃时渲染)
-                    if (wechatState.activeCharacterId === char.id) {
+                    if (wechatState.activeCharacterId == char.id) {
                         addWechatMessage(segment, 'ai', char.avatar);
                     }
                     
-                    // 刷新联系人列表显示最新消息
-                    renderWechatList();
-                    
                     // 检查是否需要显示全局通知弹窗
-                    // 1. 不在微信内 (app-open 类不在 app-wechat 上)
-                    // 2. 在微信内，但不在聊天界面，或者在其他人的聊天界面
                     const wechatApp = document.getElementById('app-wechat');
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
                     
-                    if (!isWechatOpen || (!isChatViewOpen || wechatState.activeCharacterId !== char.id)) {
+                    // 只有在不在当前聊天窗口时才显示通知
+                    const isCurrentlyInThisChat = isWechatOpen && isChatViewOpen && wechatState.activeCharacterId == char.id;
+
+                    if (!isCurrentlyInThisChat) {
                         showGlobalNotification(char.name, segment, char.avatar, () => {
-                            // 点击通知后打开微信和对应聊天
-                            if (!isWechatOpen) {
-                                openApp('wechat');
-                            }
-                            // 如果已经在微信内但没打开聊天框，或者在别人的聊天框，强制打开这个人的聊天框
+                            if (!isWechatOpen) openApp('wechat');
                             openWechatChat(char.id, 'single');
                         });
                     }
@@ -5833,8 +5726,9 @@
                     }
                 }
                 
+                renderWechatList();
                 char.isTyping = false;
-                return segments; // 返回数组而不是合并的文本
+                return segments;
             }
 
             // 读取其他应用的数据
@@ -6126,14 +6020,14 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             
                             const transferContent = `
                                 <div class="wechat-transfer" data-id="${transferId}" data-amount="${amount.toFixed(2)}" data-sender="ai">
-                                    <div class="transfer-info">
+                                    <div class="transfer-main">
                                         <div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div>
                                         <div class="transfer-text">
                                             <div class="transfer-amount">¥${amount.toFixed(2)}</div>
                                             <div class="transfer-status">微信转账</div>
                                         </div>
                                     </div>
-                                    ${remark ? `<div class="transfer-remark">${remark}</div>` : ''}
+                                    <div class="transfer-footer">微信支付</div>
                                 </div>
                             `;
                             
@@ -6219,7 +6113,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     members: [...selectedMemberIds],
                     chatHistory: [],
                     pinned: false,
-                    avatar: 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png'
+                    avatar: '' // 设为空，使用默认的群组占位符
                 };
 
                 if (!wechatState.groups) wechatState.groups = [];
@@ -6259,7 +6153,9 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     const members = wechatState.characters.filter(c => group.members.includes(c.id));
                     grid.innerHTML = members.map(m => `
                         <div class="group-member-item">
-                            <img src="${m.avatar}" class="group-member-avatar">
+                            <div class="group-member-avatar-container" style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden;">
+                                ${renderAvatarHtml(m.avatar, 'group-member-avatar')}
+                            </div>
                             <div class="group-member-name">${m.name}</div>
                         </div>
                     `).join('') + `
@@ -6349,21 +6245,26 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
             }
 
             async function processGroupAIMessage(group, newMessages) {
-                // 群聊中，随机选择 1-2 个成员回复，或者轮流回复
+                // 群聊中，随机选择成员回复，或者轮流回复
                 const members = wechatState.characters.filter(c => group.members.includes(c.id));
                 if (members.length === 0) return;
 
-                // 简单的群聊 AI 逻辑：让群内所有 AI 依次看到这条消息并决定是否回复
-                // 这里我们简化为让群内每个 AI 都有概率回复
-                for (const member of members) {
+                // 简单的群聊 AI 逻辑：让群内成员有概率回复
+                // 每次用户发送消息，随机决定 1-2 个 AI 角色可能参与讨论
+                const maxRepliers = Math.min(2, members.length);
+                const shuffledMembers = members.sort(() => 0.5 - Math.random());
+                const potentialRepliers = shuffledMembers.slice(0, maxRepliers);
+
+                for (const member of potentialRepliers) {
                     // 模拟思考时间
-                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+                    const delay = 1500 + Math.random() * 3000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     
                     // 获取群聊上下文的回复
                     let reply = await getGroupAIResponse(member, group, newMessages);
                     
                     if (reply && reply.trim() !== '' && !reply.includes('不回复')) {
-                        // 发送消息，群聊中显示昵称
+                        // 发送消息
                         await sendGroupMessageBySentences(reply, member, group);
                     }
                 }
@@ -6387,16 +6288,19 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                     
                     if (msg.role === 'user') {
                         return { role: 'user', content: `[用户]: ${content}` };
-                    } else {
+                    } else if (msg.role === 'ai') {
                         // 寻找发送该消息的角色
-                        const sender = wechatState.characters.find(c => c.avatar === msg.avatar);
-                        return { role: 'assistant', content: `[${sender ? sender.name : '未知'}]: ${content}` };
+                        const senderName = msg.nickname || (wechatState.characters.find(c => c.avatar === msg.avatar)?.name) || '其他成员';
+                        return { role: 'assistant', content: `[${senderName}]: ${content}` };
+                    } else {
+                        return { role: 'system', content: content };
                     }
                 });
                 
                 messages.push(...history);
 
                 try {
+                    const model = getWechatModel();
                     const response = await fetch(wechatState.settings.apiUrl, {
                         method: 'POST',
                         headers: {
@@ -6404,7 +6308,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             'Authorization': `Bearer ${wechatState.settings.apiKey}`
                         },
                         body: JSON.stringify({
-                            model: wechatState.settings.model,
+                            model: model,
                             messages: messages,
                             temperature: 0.8
                         })
@@ -6446,25 +6350,54 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             }
 
             async function sendGroupMessageBySentences(text, member, group) {
-                const sentences = text.split(/[\n。！？!?]/).filter(s => s.trim() !== '');
+                // 使用与单聊一致的智能分段方式
+                const regex = /([^。！？.!?…\n]+[。！？.!?…\n]+)/g;
+                let segments = text.match(regex);
                 
-                for (const sentence of sentences) {
+                if (!segments || segments.length === 0) {
+                    segments = [text];
+                } else {
+                    const joinedSegments = segments.join('');
+                    if (joinedSegments.length < text.length) {
+                        segments.push(text.substring(joinedSegments.length));
+                    }
+                }
+                
+                segments = segments.map(s => s.trim()).filter(s => s.length > 0);
+                
+                for (const segment of segments) {
                     // 模拟打字
-                    const typingTime = Math.min(sentence.length * 200, 3000);
+                    const typingTime = Math.min(segment.length * 150, 2000);
                     await new Promise(resolve => setTimeout(resolve, typingTime));
                     
                     // 添加消息到界面
-                    addWechatMessage(sentence, 'ai', member.avatar, member.name);
+                    if (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group') {
+                        addWechatMessage(segment, 'ai', member.avatar, member.name);
+                    }
+
                     group.chatHistory.push({ 
                         role: 'ai', 
-                        content: sentence, 
+                        content: segment, 
                         avatar: member.avatar,
                         nickname: member.name 
                     });
                     
                     saveWechatData();
-                    renderWechatList();
+                    
+                    // 群聊通知逻辑：不在当前群聊界面时显示通知
+                    const wechatApp = document.getElementById('app-wechat');
+                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
+                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
+                    const isCurrentlyInThisGroup = isWechatOpen && isChatViewOpen && wechatState.activeChatId == group.id && wechatState.activeChatType === 'group';
+
+                    if (!isCurrentlyInThisGroup) {
+                        showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
+                            if (!isWechatOpen) openApp('wechat');
+                            openWechatChat(group.id, 'group');
+                        });
+                    }
                 }
+                renderWechatList();
             }
 
             async function processWechatAIMessage(char, newMessages) {
@@ -7660,7 +7593,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
                 // 打开设置（长按聊天头像）
                 if (e.target.id === 'wechat-current-avatar') {
-                    const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                    const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                     if (char) {
                         showWechatCharacterModal(char);
                     }
@@ -7773,7 +7706,9 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 contactsList.innerHTML = wechatState.characters.map(char => {
                     return `
                         <div class="wechat-contact-item" data-char-id="${char.id}">
-                            <div class="wechat-contact-avatar" style="background-image: url('${char.avatar}'); background-size: cover; background-position: center;"></div>
+                            <div class="wechat-contact-avatar-container">
+                                ${renderAvatarHtml(char.avatar, 'wechat-contact-avatar')}
+                            </div>
                             <div class="wechat-contact-info">
                                 <div class="wechat-contact-name">${char.name}</div>
                                 <div class="wechat-contact-status">${char.persona.substring(0, 20)}${char.persona.length > 20 ? '...' : ''}</div>
@@ -7788,7 +7723,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     item.addEventListener('click', (e) => {
                         if (!e.target.closest('.wechat-contact-delete')) {
                             const charId = parseInt(item.dataset.charId);
-                            const char = wechatState.characters.find(c => c.id === charId);
+                            const char = wechatState.characters.find(c => c.id == charId);
                             if (char) {
                                 showWechatCharacterModal(char);
                             }
@@ -8023,12 +7958,9 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 }
                 
                 momentsList.innerHTML = wechatState.moments.map(moment => {
-                    const avatarHtml = moment.avatar ? 
-                        `<img src="${moment.avatar}" class="moments-user-avatar" />` :
-                        (moment.userId === 'currentUser' ? 
-                            `<img src="${wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png'}" class="moments-user-avatar" />` : 
-                            `<div class="moments-user-avatar"><i class="fas fa-user"></i></div>`
-                        );
+                    const momentAvatar = moment.avatar || (moment.userId === 'currentUser' ? wechatState.profile.avatar : '');
+                    const avatarHtml = `<div class="moments-user-avatar-container">${renderAvatarHtml(momentAvatar, 'moments-user-avatar')}</div>`;
+                    
                     return `
                         <div class="moments-item" data-moment-id="${moment.id}">
                             <div class="moments-item-header">
@@ -8256,7 +8188,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 if (moment.userId.startsWith('char_') && userId === 'currentUser') {
                     const charIdStr = moment.userId.replace('char_', '');
                     const charId = Number(charIdStr);
-                    const char = wechatState.characters.find(c => c.id === charId);
+                    const char = wechatState.characters.find(c => c.id == charId);
                     
                     if (char) {
                         // 触发角色思考并可能回复
@@ -8480,8 +8412,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             let selectedVideo = null;
             let selectedLocation = null;
             
-            // 图片预览功能
-            function previewImage(file, base64Url) {
+            // 图片预览功能 (朋友圈发布预览)
+            function renderMomentsMediaPreview(file, base64Url) {
                 const previewDiv = document.createElement('div');
                 previewDiv.style.position = 'relative';
                 previewDiv.style.marginRight = '10px';
@@ -8573,7 +8505,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                             reader.onload = (e) => {
                                 const base64Url = e.target.result;
                                 selectedImages.push({ file, url: base64Url });
-                                previewImage(file, base64Url);
+                                renderMomentsMediaPreview(file, base64Url);
                             };
                             reader.readAsDataURL(file);
                         } else {
@@ -9297,7 +9229,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             // 转账功能
             function openTransferModal() {
                 const modal = document.getElementById('wechat-transfer-modal');
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                 if (modal && char) {
                     modal.classList.add('active');
                     document.getElementById('transfer-target-avatar').src = char.avatar;
@@ -9337,18 +9269,18 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 closeTransferModal();
                 
                 // 添加转账消息到聊天记录
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                 if (char) {
                     const tfId = 'tf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                     const transferContent = `<div class="wechat-transfer" data-id="${tfId}" data-amount="${amount.toFixed(2)}" data-sender="user">
-                        <div class="transfer-info">
+                        <div class="transfer-main">
                             <div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div>
                             <div class="transfer-text">
                                 <div class="transfer-amount">¥${amount.toFixed(2)}</div>
                                 <div class="transfer-status">转账给${char.name}</div>
                             </div>
                         </div>
-                        ${remark ? `<div class="transfer-remark">${remark}</div>` : ''}
+                        <div class="transfer-footer">微信支付</div>
                     </div>`;
                     addWechatMessage(transferContent, 'user', char.avatar);
                     char.chatHistory.push({ role: 'user', content: transferContent });
@@ -9430,7 +9362,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 closeRedpacketModal();
                 
                 // 添加红包消息到聊天记录
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                 if (char) {
                     const rpId = 'rp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                     // 使用 1:1 还原的红包 HTML
@@ -9468,7 +9400,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         saveWechatData();
 
                         // 仅当用户停留在当前聊天界面时，更新 DOM
-                        if (wechatState.activeCharacterId === char.id) {
+                        if (wechatState.activeCharacterId == char.id) {
                             const rpElements = document.querySelectorAll(`.wechat-redpacket[data-id="${rpId}"]`);
                             rpElements.forEach(rp => {
                                 rp.dataset.opened = 'true';
@@ -9495,12 +9427,12 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                                 const combinedMessages = [...char.pendingUserMessages];
                                 char.pendingUserMessages = [];
                                 char.isTyping = true;
-                                if (wechatState.activeCharacterId === char.id) showWechatTyping(char);
+                                if (wechatState.activeCharacterId == char.id) showWechatTyping(char);
                                 processWechatAIMessage(char, combinedMessages);
                             }, delayTime);
                         } else {
                             char.isTyping = true;
-                            if (wechatState.activeCharacterId === char.id) showWechatTyping(char);
+                            if (wechatState.activeCharacterId == char.id) showWechatTyping(char);
                             processWechatAIMessage(char, [fakeText]);
                         }
                     }, 2000); // 发出后 2 秒被模拟领取
@@ -9516,7 +9448,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 const amount = rp.dataset.amount;
                 const msg = rp.dataset.msg;
                 const sender = rp.dataset.sender || 'user';
-                const char = wechatState.characters.find(c => c.id === wechatState.activeCharacterId);
+                const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                 
                 if (!char) return;
                 
@@ -9834,6 +9766,9 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     return "[用户发送了一张图片]";
                 }
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+
                 try {
                     const response = await fetch(visionApiUrl, {
                         method: 'POST',
@@ -9853,8 +9788,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                                 }
                             ],
                             max_tokens: 300
-                        })
+                        }),
+                        signal: controller.signal
                     });
+
+                    clearTimeout(timeoutId);
 
                     if (response.ok) {
                         const data = await response.json();
@@ -9864,7 +9802,12 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         }
                     }
                 } catch (error) {
-                    console.error('图片识别失败:', error);
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        console.error('Vision API 请求超时');
+                    } else {
+                        console.error('图片识别失败:', error);
+                    }
                 }
                 return "[用户发送了一张图片]";
             }
@@ -11973,4 +11916,4 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
         }
 
         // 在 DOM 加载完成后初始化适配
-        } // 结束全局初始化 else 块
+        initIOSAdaptation();
