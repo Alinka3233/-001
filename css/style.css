@@ -4182,6 +4182,25 @@
             transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, filter 0.3s ease;
         }
 
+        .wechat-contact-avatar-container {
+            width: 50px;
+            height: 50px;
+            margin-right: 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f2;
+        }
+
+        .wechat-contact-avatar-container .wechat-contact-avatar {
+            width: 100%;
+            height: 100%;
+            margin-right: 0;
+        }
+
 
 
         .wechat-contact-info {
@@ -4380,6 +4399,20 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+        }
+
+        .wechat-profile-avatar-display {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wechat-profile-avatar-display .avatar-placeholder i {
+            font-size: 28px;
         }
 
 
@@ -4857,15 +4890,29 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
         }
 
-        img.moments-avatar {
+        .moments-profile-avatar-container {
             width: 64px; /* 缩小头像尺寸 */
             height: 64px;
             border-radius: 50%; /* 修改为圆形 */
-            object-fit: cover;
             background: #fff;
             margin-bottom: -24px; /* 同步调整底部边距 */
             border: 2px solid #fff; /* 减小边框厚度 */
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .moments-profile-avatar-container .moments-profile-avatar-media,
+        .moments-profile-avatar-container .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .moments-profile-avatar-container .avatar-placeholder i {
+            font-size: 24px;
         }
         
         .wechat-moments-list {
@@ -4902,6 +4949,18 @@
             box-shadow: 0 4px 10px rgba(184, 157, 109, 0.15);
             border: 1.5px solid #fff; /* 增加白边 */
             object-fit: cover;
+        }
+
+        .moments-user-avatar-container {
+            width: 52px;
+            height: 52px;
+            margin-right: 14px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .moments-user-name {
@@ -5876,6 +5935,33 @@
             border-radius: 4px;
             object-fit: cover;
             margin-right: 12px;
+        }
+
+        .wechat-chat-avatar-container {
+            width: 48px;
+            height: 48px;
+            margin-right: 12px;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f2;
+        }
+
+        .wechat-chat-avatar-container .wechat-chat-avatar {
+            width: 100%;
+            height: 100%;
+            margin-right: 0;
+        }
+
+        .avatar-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .wechat-chat-content {

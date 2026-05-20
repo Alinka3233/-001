@@ -5292,12 +5292,15 @@
                 }
             }
 
+            function renderAvatarInto(container, url, className = '') {
+                if (!container) return;
+                container.innerHTML = renderAvatarHtml(url, className);
+            }
+
             function renderWechatProfile() {
                 const profileName = document.querySelector('.wechat-profile-name');
                 const profileDesc = document.querySelector('.wechat-profile-desc');
-                const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
-                const profileAvatarContainer = document.getElementById('wechat-avatar-container');
-                // 朋友圈顶部封面头像
+                const profileAvatarDisplay = document.getElementById('wechat-profile-avatar-display');
                 const momentsProfileAvatar = document.getElementById('moments-profile-avatar');
                 
                 if (profileName) {
@@ -5311,15 +5314,10 @@
                 const avatarUrl = wechatState.profile.avatar;
                 
                 // 更新个人资料头像
-                if (profileAvatarContainer) {
-                    profileAvatarContainer.innerHTML = renderAvatarHtml(avatarUrl, 'wechat-profile-avatar');
-                }
+                renderAvatarInto(profileAvatarDisplay, avatarUrl, 'wechat-profile-avatar-media');
                 
                 // 更新朋友圈顶部封面头像
-                const momentsAvatarContainer = document.querySelector('.moments-profile-avatar-container');
-                if (momentsAvatarContainer) {
-                    momentsAvatarContainer.innerHTML = renderAvatarHtml(avatarUrl, 'moments-profile-avatar');
-                }
+                renderAvatarInto(momentsProfileAvatar, avatarUrl, 'moments-profile-avatar-media');
                 
                 const momentsProfileName = document.getElementById('moments-profile-name');
                 if (momentsProfileName) {
@@ -5512,8 +5510,8 @@
                 renderWechatList();
             }
 
-            // 绑定返回按钮
-            document.getElementById('wechat-back-btn')?.addEventListener('click', closeWechatChat);
+            // 绑定聊天页返回按钮，避免与头部返回按钮的选择器冲突
+            document.getElementById('wechat-chat-back-btn')?.addEventListener('click', closeWechatChat);
 
             function renderWechatMessages(target) {
                 const messageList = document.getElementById('wechat-messages');
@@ -7470,7 +7468,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             // Wechat事件监听
             document.addEventListener('click', (e) => {
                 // 处理所有微信相关的返回按钮
-                const backBtn = e.target.closest('#wechat-back-btn');
+                const backBtn = e.target.closest('#wechat-header-back-btn, #wechat-chat-back-btn');
                 if (backBtn) {
                     // 如果是在朋友圈标签页，返回到聊天标签页
                     const momentsTab = document.getElementById('wechat-moments-tab');
@@ -7637,7 +7635,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     // 获取底部导航栏
                     const wechatNav = document.querySelector('.wechat-nav');
-                    const wechatHeaderBackBtn = document.querySelector('.wechat-header .wechat-header-btn#wechat-back-btn');
+                    const wechatHeaderBackBtn = document.getElementById('wechat-header-back-btn');
                     
                     // 如果进入朋友圈，隐藏底部导航栏，显示返回按钮
                     if (tabName === 'moments') {
@@ -7948,14 +7946,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 if (!momentsList) return;
                 
                 // 更新朋友圈顶部封面头像
-                if (momentsProfileAvatar) {
-                    const avatarUrl = wechatState.profile.avatar || '';
-                    if (avatarUrl) {
-                        momentsProfileAvatar.src = avatarUrl;
-                    } else {
-                        momentsProfileAvatar.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAgMjBDMjcuOSAyMCAxMCAzNy45IDEwIDYwcyAxNy45IDQwIDQwIDQwIDQwLTE3LjkgNDA0MC00ME01MCAyMEMyNy45IDIwIDEwIDM3LjkgMTAgNjBzMTcuOSA0MCA0MCA0MCA0MC0xNy45IDQwLTQwTTEwIDYwQzEwIDM3LjkgMjcuOSAyMCA1MCAyME02MCAzMEM2MCAxOC45IDQ5LjEgOCAzNyA4QzI0LjkgOCAxNCAxOC45IDE0IDMwQzE0IDQxLjEgMjQuOSA1MiAzNyA1MkMyNC45IDUyIDE0IDQxLjEgMTQgMzBDMTQgMTguOSAyNC45IDggMzcgOEM0OS4xIDggNjAgMTguOSA2MCAzMFoiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNNTAgNTJjLTYuNiAwLTEyLTUuNC0xMi0xMnMxMi02LjYgMTItMTIgMTIgMTIgMTIgNS40IDEyIDEyUzU2LjYgNTIgNTAgNTJaIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI3LjEgNTZDMTYuMyA1NiA4IDQ3LjcgOCAzN0MxNS42IDQ3LjcgMjcuMSA1NiAyNy4xIDU2Wk03Mi45IDU2QzgyLjMgNTYgOTIgNDcuNyA5MiAzN0M4NC40IDQ3LjcgNzIuOSA1NiA3Mi45IDU2WiIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik01MCA1OUM3MCA1OSA4NCA0NSA4NCAyNUM4NCAxMCA3MCAwIDUwIDBzLTM0IDEwLTM0IDI1QzMwIDQ1IDQ0IDU5IDUwIDU5WiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==';
-                    }
-                }
+                renderAvatarInto(momentsProfileAvatar, wechatState.profile.avatar || '', 'moments-profile-avatar-media');
                 
                 momentsList.innerHTML = wechatState.moments.map(moment => {
                     const momentAvatar = moment.avatar || (moment.userId === 'currentUser' ? wechatState.profile.avatar : '');
@@ -10470,8 +10461,6 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 
                 const profileName = document.querySelector('.wechat-profile-name');
                 const profileDesc = document.querySelector('.wechat-profile-desc');
-                const profileAvatarImg = document.getElementById('wechat-profile-avatar-img');
-                const profileAvatarIcon = document.getElementById('wechat-profile-avatar-icon');
                 
                 // 点击个人资料区域打开编辑模态框
                 if (profileContainer) {
@@ -10633,7 +10622,6 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             function bindAvatarEvents() {
                 const avatarContainer = document.getElementById('wechat-avatar-container');
                 const avatarInput = document.getElementById('wechat-avatar-input');
-                const avatarImg = document.getElementById('wechat-profile-avatar-img');
                 
                 if (avatarContainer) {
                     avatarContainer.addEventListener('click', () => {
@@ -10650,19 +10638,12 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                             const reader = new FileReader();
                             reader.onload = (event) => {
                                 const localImageData = event.target.result;
-                                // 直接设置本地图片数据
-                                avatarImg.src = localImageData;
-                                avatarImg.style.display = 'block';
-                                
+
                                 // 更新wechatState并保存到IndexedDB
                                 wechatState.profile.avatar = localImageData;
                                 saveWechatData();
-                                
-                                // 同时更新朋友圈头像
-                                const momentsProfileAvatar = document.getElementById('moments-profile-avatar');
-                                if (momentsProfileAvatar) {
-                                    momentsProfileAvatar.src = localImageData;
-                                }
+                                renderWechatProfile();
+                                renderWechatMoments();
                             };
                             reader.readAsDataURL(file);
                         }
