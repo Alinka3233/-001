@@ -5329,20 +5329,24 @@
                 const listView = document.getElementById('wechat-list-view');
                 if (!listView) return;
 
-                const now = new Date();
-                const timeString = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-
                 // 合并角色和群组列表
                 const chatList = [
                     ...wechatState.characters.map(c => ({ ...c, type: 'single' })),
                     ...(wechatState.groups || []).map(g => ({ ...g, type: 'group' }))
                 ];
 
-                // 排序：置顶的在前，然后按最后一条消息时间（这里简化为保持原有排序或按最后消息，目前主要处理显示）
+                // 排序：置顶的在前，然后按最后一条消息时间
                 chatList.sort((a, b) => {
                     if (a.pinned && !b.pinned) return -1;
                     if (!a.pinned && b.pinned) return 1;
-                    return 0;
+                    
+                    // 获取最后一条消息的时间戳
+                    const lastMsgA = a.chatHistory[a.chatHistory.length - 1];
+                    const lastMsgB = b.chatHistory[b.chatHistory.length - 1];
+                    const timeA = lastMsgA ? (lastMsgA.timestamp || 0) : 0;
+                    const timeB = lastMsgB ? (lastMsgB.timestamp || 0) : 0;
+                    
+                    return timeB - timeA; // 最新消息在前
                 });
 
                 listView.innerHTML = chatList.map(item => {
@@ -5351,6 +5355,23 @@
                     const isPinned = item.pinned || false;
                     const avatar = item.type === 'group' ? (item.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_group.png') : item.avatar;
                     const name = item.type === 'group' ? `${item.name}(${item.members.length})` : item.name;
+
+                    // 格式化最后一条消息的时间
+                    let timeDisplay = '';
+                    if (lastMessage && lastMessage.timestamp) {
+                        const msgDate = new Date(lastMessage.timestamp);
+                        const nowDate = new Date();
+                        if (msgDate.toDateString() === nowDate.toDateString()) {
+                            // 今天的消息，显示小时:分钟
+                            timeDisplay = `${msgDate.getHours()}:${String(msgDate.getMinutes()).padStart(2, '0')}`;
+                        } else {
+                            // 昨天的消息或更早，显示月/日
+                            timeDisplay = `${msgDate.getMonth() + 1}/${msgDate.getDate()}`;
+                        }
+                    } else {
+                        const now = new Date();
+                        timeDisplay = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    }
 
                     return `
                         <div class="wechat-chat-item" data-id="${item.id}" data-type="${item.type}" ${isPinned ? 'data-pinned="true"' : ''}>
@@ -5361,7 +5382,7 @@
                                 <div class="wechat-chat-content">
                                     <div class="wechat-chat-item-header">
                                         <span class="wechat-chat-name">${name}${isPinned ? ' <i class="fas fa-thumbtack" style="font-size: 12px; color: #8e8e93;"></i>' : ''}</span>
-                                        <span class="wechat-chat-time">${timeString}</span>
+                                        <span class="wechat-chat-time">${timeDisplay}</span>
                                     </div>
                                     <div class="wechat-chat-preview">${previewText}</div>
                                 </div>
@@ -5448,11 +5469,16 @@
                 const char = wechatState.characters[charIndex];
                 char.pinned = !char.pinned;
 
-                // 重新排序，置顶的角色放在前面
+                // 重新排序，置顶的角色放在前面，然后按最后一条消息时间
                 wechatState.characters.sort((a, b) => {
                     if (a.pinned && !b.pinned) return -1;
                     if (!a.pinned && b.pinned) return 1;
-                    return 0;
+                    
+                    const lastMsgA = a.chatHistory[a.chatHistory.length - 1];
+                    const lastMsgB = b.chatHistory[b.chatHistory.length - 1];
+                    const timeA = lastMsgA ? (lastMsgA.timestamp || 0) : 0;
+                    const timeB = lastMsgB ? (lastMsgB.timestamp || 0) : 0;
+                    return timeB - timeA;
                 });
 
                 // 保存数据
@@ -5686,7 +5712,7 @@
                     const segment = segments[i];
                     
                     // 记录到历史中，这样重新加载时就不会合并成一句话了
-                    char.chatHistory.push({ role: 'assistant', content: segment });
+                    char.chatHistory.push({ role: 'assistant', content: segment, timestamp: Date.now() });
                     saveWechatData();
                     
                     // 发送当前段落 (只在当前聊天活跃时渲染)
@@ -5994,7 +6020,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             if (wechatState.activeCharacterId === char.id) {
                                 addWechatMessage(redpacketContent, 'ai', char.avatar);
                             }
-                            char.chatHistory.push({ role: 'ai', content: redpacketContent });
+                            char.chatHistory.push({ role: 'ai', content: redpacketContent, timestamp: Date.now() });
                             saveWechatData();
                             
                             console.log(`AI角色 ${char.name} 发送了红包: ${amount}`);
@@ -6033,7 +6059,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             if (wechatState.activeCharacterId === char.id) {
                                 addWechatMessage(transferContent, 'ai', char.avatar);
                             }
-                            char.chatHistory.push({ role: 'ai', content: transferContent });
+                            char.chatHistory.push({ role: 'ai', content: transferContent, timestamp: Date.now() });
                             saveWechatData();
                             
                             console.log(`AI角色 ${char.name} 发送了转账: ${amount}`);
@@ -6205,7 +6231,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
                 // 添加用户消息到界面和历史
                 addWechatMessage(text, 'user', wechatState.profile.avatar);
-                target.chatHistory.push({ role: 'user', content: text });
+                target.chatHistory.push({ role: 'user', content: text, timestamp: Date.now() });
                 saveWechatData();
                 input.value = '';
                 
@@ -6377,7 +6403,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         role: 'ai', 
                         content: segment, 
                         avatar: member.avatar,
-                        nickname: member.name 
+                        nickname: member.name,
+                        timestamp: Date.now()
                     });
                     
                     saveWechatData();
@@ -7699,9 +7726,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 if (!contactsList) return;
                 
                 console.log('渲染通讯录，角色数量:', wechatState.characters.length);
-                console.log('角色列表:', wechatState.characters);
                 
-                contactsList.innerHTML = wechatState.characters.map(char => {
+                // 按名字字母顺序排序
+                const sortedCharacters = [...wechatState.characters].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+                
+                contactsList.innerHTML = sortedCharacters.map(char => {
                     return `
                         <div class="wechat-contact-item" data-char-id="${char.id}">
                             <div class="wechat-contact-avatar-container">
@@ -9274,7 +9303,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         <div class="transfer-footer">微信支付</div>
                     </div>`;
                     addWechatMessage(transferContent, 'user', char.avatar);
-                    char.chatHistory.push({ role: 'user', content: transferContent });
+                    char.chatHistory.push({ role: 'user', content: transferContent, timestamp: Date.now() });
                     saveWechatData();
 
                     // 模拟对方领取转账
@@ -9291,7 +9320,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         }
 
                         const systemMsg = `"${char.name}"已确认收钱`;
-                        char.chatHistory.push({ role: 'system', content: systemMsg });
+                        char.chatHistory.push({ role: 'system', content: systemMsg, timestamp: Date.now() });
                         saveWechatData();
 
                         // 更新 UI
@@ -9370,7 +9399,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         </div>
                     `;
                     addWechatMessage(redpacketContent, 'user', char.avatar);
-                    char.chatHistory.push({ role: 'user', content: redpacketContent });
+                    char.chatHistory.push({ role: 'user', content: redpacketContent, timestamp: Date.now() });
                     saveWechatData();
 
                     // 模拟对方领取红包并触发AI回复
@@ -9387,7 +9416,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         }
 
                         const systemMsg = `"${char.name}"领取了你的红包`;
-                        char.chatHistory.push({ role: 'system', content: systemMsg });
+                        char.chatHistory.push({ role: 'system', content: systemMsg, timestamp: Date.now() });
                         saveWechatData();
 
                         // 仅当用户停留在当前聊天界面时，更新 DOM
@@ -9831,7 +9860,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     target.chatHistory.push({ 
                         role: 'user', 
                         content: imageHtml, 
-                        visionDescription: visionDescription 
+                        visionDescription: visionDescription,
+                        timestamp: Date.now()
                     });
                     saveWechatData();
 
@@ -10269,7 +10299,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 target.chatHistory.push({ 
                     role: 'user', 
                     content: photoContent,
-                    visionDescription: visionDescription
+                    visionDescription: visionDescription,
+                    timestamp: Date.now()
                 });
                 saveWechatData();
 
