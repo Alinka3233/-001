@@ -7917,7 +7917,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     renderWechatContacts();
                     renderWechatList();
                     // 如果当前正在聊天的是被删除的联系人，返回聊天列表
-                    if (wechatState.activeCharacterId === charId) {
+                    const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                    if (currentId === String(charId)) {
                         closeWechatChat();
                     }
                 }
@@ -9576,7 +9577,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         saveWechatData();
 
                         // 更新 UI
-                        if (wechatState.activeCharacterId === char.id) {
+                        const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                        if (currentId === String(char.id)) {
                             const tfElements = document.querySelectorAll(`.wechat-transfer[data-id="${tfId}"]`);
                             tfElements.forEach(tf => {
                                 tf.dataset.opened = 'true';
@@ -9672,7 +9674,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         saveWechatData();
 
                         // 仅当用户停留在当前聊天界面时，更新 DOM
-                        if (wechatState.activeCharacterId == char.id) {
+                        const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                        if (currentId === String(char.id)) {
                             const rpElements = document.querySelectorAll(`.wechat-redpacket[data-id="${rpId}"]`);
                             rpElements.forEach(rp => {
                                 rp.dataset.opened = 'true';
@@ -9685,7 +9688,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
                         // 触发AI回复
                         const fakeText = `[发来了一个微信红包] 金额: ${amount.toFixed(2)}元，留言: ${msg}`;
-                        const delayTimeVal = parseInt(localStorage.getItem('wechatDelayReplyTime') || '3');
+                        const delayTimeSetting = localStorage.getItem('wechatDelayReplyTime');
+                        const delayTimeVal = delayTimeSetting !== null ? parseInt(delayTimeSetting) : 3;
                         const isDelayEnabled = delayTimeVal > 0;
                         
                         if (isDelayEnabled) {
@@ -9699,12 +9703,12 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                                 const combinedMessages = [...char.pendingUserMessages];
                                 char.pendingUserMessages = [];
                                 char.isTyping = true;
-                                if (wechatState.activeCharacterId == char.id) showWechatTyping(char);
+                                if (String(wechatState.activeChatId || wechatState.activeCharacterId || '') === String(char.id)) showWechatTyping(char);
                                 processWechatAIMessage(char, combinedMessages);
                             }, delayTime);
                         } else {
                             char.isTyping = true;
-                            if (wechatState.activeCharacterId == char.id) showWechatTyping(char);
+                            if (String(wechatState.activeChatId || wechatState.activeCharacterId || '') === String(char.id)) showWechatTyping(char);
                             processWechatAIMessage(char, [fakeText]);
                         }
                     }, 2000); // 发出后 2 秒被模拟领取
