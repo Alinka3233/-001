@@ -6013,7 +6013,7 @@
 
         .wechat-chat-view {
             display: none;
-            flex-direction: column;
+            flex-direction: column !important;
             position: absolute;
             top: 0;
             left: 0;
@@ -6021,6 +6021,43 @@
             height: 100%;
             background: #ededed; /* 修改为微信标准的聊天背景色 */
             z-index: 105; /* 确保覆盖在所有其他微信元素之上 */
+        }
+        
+        /* 确保元素顺序正确 */
+        .wechat-chat-view > .wechat-chat-header {
+            order: 1 !important;
+        }
+        
+        .wechat-chat-view > .wechat-message-list {
+            order: 2 !important;
+        }
+        
+        .wechat-chat-view > .wechat-input-area {
+            order: 3 !important;
+        }
+        
+        .wechat-chat-view > .wechat-plus-panel {
+            order: 4 !important;
+        }
+        
+        /* iOS Standalone 模式特别优化 */
+        .ios-standalone .wechat-chat-view {
+            flex-direction: column !important;
+        }
+        
+        .ios-standalone .wechat-chat-header {
+            position: relative !important;
+            top: auto !important;
+            bottom: auto !important;
+            order: 1 !important;
+        }
+        
+        .ios-standalone .wechat-message-list {
+            order: 2 !important;
+        }
+        
+        .ios-standalone .wechat-input-area {
+            order: 3 !important;
         }
 
         .wechat-chat-view.active {
@@ -6035,13 +6072,12 @@
             align-items: center;
             justify-content: center;
             background: #ededed; /* 修改为微信标准的头部背景色 */
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
-            height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
+            min-height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
             box-sizing: border-box;
             z-index: 102;
+            flex-shrink: 0;
         }
 
         .wechat-back-btn {
@@ -6052,9 +6088,7 @@
             cursor: pointer;
             padding: 0 10px 0 0;
             position: absolute;
-            left: 15px; /* 固定在左侧 */
-            bottom: 0; /* 贴底对齐，避免受 safe-area 影响 */
-            height: 48px; /* 固定高度与文字区域对齐 */
+            left: 15px;
             display: flex;
             align-items: center;
         }
@@ -6064,12 +6098,7 @@
             align-items: center;
             justify-content: center;
             flex: 1;
-            height: 48px; /* 固定高度 */
-            position: absolute;
-            bottom: 0; /* 贴底对齐 */
-            left: 0;
-            width: 100%;
-            pointer-events: none; /* 让点击穿透，不影响返回按钮 */
+            pointer-events: none;
         }
 
         .wechat-chat-avatar-small {
@@ -6087,7 +6116,6 @@
         .wechat-message-list {
             flex: 1;
             padding: 10px 8px; /* 减小左右边距，让头像更贴近边缘 */
-            padding-top: calc(54px + env(safe-area-inset-top, 20px) + 10px);
             padding-bottom: 20px;
             overflow-y: auto;
             display: flex;
