@@ -5625,13 +5625,27 @@
                 let finalContent = isHtml ? content : escapeHtml(content.trim());
                 if (!isHtml && typeof marked !== 'undefined') {
                     // 配置 marked
+                    const renderer = new marked.Renderer();
+                    // 只有在内容包含多行或明显 markdown 符号时才使用 <p>
+                    const isMultiline = content.includes('\n');
+                    
+                    renderer.paragraph = function(text) {
+                        return isMultiline ? `<p>${text}</p>` : text;
+                    };
+                    
                     marked.setOptions({
+                        renderer: renderer,
                         breaks: true,
                         gfm: true,
                         headerIds: false,
                         mangle: false
                     });
+                    
                     finalContent = marked.parse(content.trim()).trim();
+                    // 彻底移除 marked 可能在末尾添加的换行符
+                    if (finalContent.endsWith('\n')) {
+                        finalContent = finalContent.slice(0, -1);
+                    }
                 }
 
                 // 将 assistant 映射为 ai 以便使用现有 CSS

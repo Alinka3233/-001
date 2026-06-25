@@ -6202,15 +6202,14 @@
         .wechat-message-bubble {
             padding: 8px 12px;
             border-radius: 4px;
-            line-height: 1.45;
+            line-height: 1.4;
             font-size: 16px;
             position: relative;
             word-break: break-word;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            display: block;
             width: fit-content;
             max-width: 100%;
             text-align: left;
@@ -6221,7 +6220,6 @@
 
         .wechat-message-bubble.markdown-content {
             white-space: normal;
-            display: block; /* Markdown 模式恢复块级布局以支持段落 */
         }
 
         /* Markdown 内容样式适配 - 移除冗余间隙 */
@@ -6243,6 +6241,9 @@
         /* 确保气泡内最后一个元素没有底部间距 */
         .wechat-message-bubble > *:last-child {
             margin-bottom: 0 !important;
+        }
+        .wechat-message-bubble > p:only-child {
+            display: inline;
         }
         .wechat-message-bubble code {
             background: rgba(0, 0, 0, 0.05);
