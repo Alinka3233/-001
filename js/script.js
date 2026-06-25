@@ -5680,7 +5680,17 @@
                 }
 
                 messageList.appendChild(div);
+                
+                // 立即滚动
                 messageList.scrollTop = messageList.scrollHeight;
+                
+                // 延迟再次滚动，确保 Markdown 渲染后的高度也被计算在内
+                setTimeout(() => {
+                    messageList.scrollTop = messageList.scrollHeight;
+                }, 50);
+                setTimeout(() => {
+                    messageList.scrollTop = messageList.scrollHeight;
+                }, 200);
             }
 
             function showWechatTyping(char) {
@@ -5784,24 +5794,31 @@
                     char.chatHistory.push({ role: 'assistant', content: segment, timestamp: Date.now() });
                     saveWechatData();
                     
-                    // 发送当前段落
-                    const wechatApp = document.getElementById('app-wechat');
-                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
-                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    const isCurrentChat = isChatViewOpen && (wechatState.activeCharacterId == char.id);
-                    const isVisible = isWechatOpen && isCurrentChat;
+                    // 判断是否需要实时渲染消息
+                    const chatView = document.getElementById('wechat-chat-view');
+                    const isChatViewActive = chatView && chatView.classList.contains('active');
+                    const isTargetActive = String(wechatState.activeChatId) === String(char.id);
 
-                    // 如果当前就在该对话页面且应用处于激活状态，则直接渲染消息
-                    if (isVisible) {
-                        addWechatMessage(segment, 'ai', char.avatar);
-                    }
-                    
-                    // 如果应用没打开，或者不在当前对话页面，则显示通知
-                    if (!isVisible) {
-                        showGlobalNotification(char.name, segment, char.avatar, () => {
-                            if (!isWechatOpen) openApp('wechat');
-                            openWechatChat(char.id, 'single');
-                        });
+                    // 如果当前就在该对话页面，则直接渲染消息
+                    if (isChatViewActive && isTargetActive) {
+                        try {
+                            addWechatMessage(segment, 'ai', char.avatar);
+                        } catch (e) {
+                            console.error('渲染AI消息失败:', e);
+                        }
+                    } else {
+                        // 如果不在当前对话页面，则尝试显示全局通知
+                        try {
+                            const wechatApp = document.getElementById('app-wechat');
+                            const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
+                            
+                            showGlobalNotification(char.name, segment, char.avatar, () => {
+                                if (!isWechatOpen) openApp('wechat');
+                                openWechatChat(char.id, 'single');
+                            });
+                        } catch (e) {
+                            console.error('显示通知失败:', e);
+                        }
                     }
                     
                     // 如果不是最后一段，添加打字指示器并等待
@@ -6478,15 +6495,19 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     const typingTime = Math.min(segment.length * 150, 2000);
                     await new Promise(resolve => setTimeout(resolve, typingTime));
                     
-                    // 添加消息到界面
-                    const wechatApp = document.getElementById('app-wechat');
-                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
-                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    const isCurrentGroupChat = isChatViewOpen && (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group');
-                    const isVisible = isWechatOpen && isCurrentGroupChat;
+                    // 判断是否需要实时渲染消息
+                    const chatView = document.getElementById('wechat-chat-view');
+                    const isChatViewActive = chatView && chatView.classList.contains('active');
+                    const isGroupActive = isChatViewActive && 
+                                         (wechatState.activeChatType === 'group') && 
+                                         (String(wechatState.activeChatId) === String(group.id));
 
-                    if (isVisible) {
-                        addWechatMessage(segment, 'ai', member.avatar, member.name);
+                    if (isGroupActive) {
+                        try {
+                            addWechatMessage(segment, 'ai', member.avatar, member.name);
+                        } catch (e) {
+                            console.error('渲染群聊消息失败:', e);
+                        }
                     }
 
                     group.chatHistory.push({ 
@@ -6499,12 +6520,19 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     saveWechatData();
                     
-                    // 如果应用没打开，或者不在当前群聊页面，则显示通知
-                    if (!isVisible) {
-                        showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
-                            if (!isWechatOpen) openApp('wechat');
-                            openWechatChat(group.id, 'group');
-                        });
+                    // 如果不在当前群聊页面，则显示全局通知
+                    if (!isGroupActive) {
+                        try {
+                            const wechatApp = document.getElementById('app-wechat');
+                            const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
+
+                            showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
+                                if (!isWechatOpen) openApp('wechat');
+                                openWechatChat(group.id, 'group');
+                            });
+                        } catch (e) {
+                            console.error('显示群聊通知失败:', e);
+                        }
                     }
                 }
                 renderWechatList();
