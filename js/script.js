@@ -9153,41 +9153,50 @@ ${statusInfluence || '用户当前无特定状态'}`;
             const accountCancelBtn = document.getElementById('wechat-account-cancel-btn');
 
             if (switchAccountBtn) {
-                switchAccountBtn.addEventListener('click', () => {
+                switchAccountBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 确保显示
                     accountView.style.display = 'flex';
-                    setTimeout(() => {
-                        accountView.classList.add('active');
-                    }, 10);
+                    
+                    // 强制重绘
+                    accountView.offsetHeight;
+                    
+                    accountView.classList.add('active');
                     renderAccountList();
                 });
             }
 
             if (accountBack) {
-                accountBack.addEventListener('click', () => {
+                accountBack.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     accountView.classList.remove('active');
                     setTimeout(() => {
                         accountView.style.display = 'none';
-                    }, 400);
+                    }, 300);
                 });
             }
 
             if (accountCancelBtn) {
-                accountCancelBtn.addEventListener('click', () => {
+                accountCancelBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     accountView.classList.remove('active');
                     setTimeout(() => {
                         accountView.style.display = 'none';
-                    }, 400);
+                    }, 300);
                 });
             }
 
             // 点击遮罩层关闭
             if (accountView) {
                 accountView.addEventListener('click', (e) => {
+                    // 只有点击遮罩层本身（wechat-account-view）才关闭
                     if (e.target === accountView) {
                         accountView.classList.remove('active');
                         setTimeout(() => {
                             accountView.style.display = 'none';
-                        }, 400);
+                        }, 300);
                     }
                 });
             }

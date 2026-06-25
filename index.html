@@ -1797,27 +1797,6 @@
                 </div>
             </div>
             
-            <!-- 切换账号/人设界面 -->
-            <div class="wechat-account-view" id="wechat-account-view" style="display: none;">
-                <div class="wechat-account-container">
-                    <div class="wechat-account-header">
-                        <button class="wechat-account-back" id="wechat-account-back"><i class="fas fa-chevron-left"></i></button>
-                        <h1>身份与人设管理</h1>
-                        <div style="width: 32px;"></div>
-                    </div>
-                    <div class="wechat-account-content">
-                        <div class="wechat-account-list" id="wechat-account-list">
-                            <!-- 账号列表将在此动态渲染 -->
-                        </div>
-                        <div class="wechat-account-add" id="wechat-account-add">
-                            <div class="add-icon"><i class="fas fa-plus"></i></div>
-                            <span>创建新身份 (新用户人设)</span>
-                        </div>
-                        <button class="wechat-account-cancel-btn" id="wechat-account-cancel-btn">取消</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- 状态选择界面 -->
             <div class="wechat-status-view" id="wechat-status-view" style="display: none;">
                 <div class="wechat-status-header">
@@ -2216,6 +2195,27 @@
             </div>
             <div class="wechat-modal-footer">
                 <button id="wechat-save-character">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 切换账号/人设界面 (全局悬浮窗) -->
+    <div class="wechat-account-view" id="wechat-account-view" style="display: none;">
+        <div class="wechat-account-container">
+            <div class="wechat-account-header">
+                <button class="wechat-account-back" id="wechat-account-back"><i class="fas fa-chevron-left"></i></button>
+                <h1>身份与人设管理</h1>
+                <div style="width: 32px;"></div>
+            </div>
+            <div class="wechat-account-content">
+                <div class="wechat-account-list" id="wechat-account-list">
+                    <!-- 账号列表将在此动态渲染 -->
+                </div>
+                <div class="wechat-account-add" id="wechat-account-add">
+                    <div class="add-icon"><i class="fas fa-plus"></i></div>
+                    <span>创建新身份 (新用户人设)</span>
+                </div>
+                <button class="wechat-account-cancel-btn" id="wechat-account-cancel-btn">取消</button>
             </div>
         </div>
     </div>
