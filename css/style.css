@@ -5279,18 +5279,35 @@
             backdrop-filter: blur(10px);
         }
 
-        .scan-back-btn, .scan-switch-btn {
+        .scan-back-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+
+        .scan-switch-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
             cursor: pointer;
             padding: 8px 12px;
             border-radius: 8px;
             transition: background-color 0.2s;
         }
 
-        .scan-back-btn:hover, .scan-switch-btn:hover {
+        .scan-back-btn:active {
+            opacity: 0.5;
+        }
+
+        .scan-switch-btn:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
 
@@ -5628,16 +5645,18 @@
         .wallet-back-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             color: #000;
             cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: background-color 0.2s;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
         }
 
-        .wallet-back-btn:hover {
-            background-color: #f0f0f0;
+        .wallet-back-btn:active {
+            opacity: 0.5;
         }
 
         .wallet-header h1 {
@@ -6083,14 +6102,21 @@
         .wechat-back-btn {
             background: none;
             border: none;
-            font-size: 26px;
+            font-size: 20px; /* 调整为更接近微信的大小 */
             color: var(--text-color);
             cursor: pointer;
-            padding: 0 10px 0 0;
+            padding: 10px; /* 增大点击区域 */
             position: absolute;
-            left: 15px;
+            left: 5px; /* 调整位置 */
             display: flex;
             align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        .wechat-back-btn:active {
+            opacity: 0.5;
         }
 
         .wechat-chat-info {
