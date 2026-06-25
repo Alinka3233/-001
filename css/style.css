@@ -6107,18 +6107,7 @@
 
         .wechat-message.user {
             justify-content: flex-end;
-            flex-direction: row;
-        }
-
-        .wechat-message.user .wechat-message-avatar-container {
-            order: 2;
-            margin-left: 12px;
-            margin-right: 0;
-        }
-
-        .wechat-message.user .wechat-msg-content-wrapper {
-            order: 1;
-            align-items: flex-end;
+            flex-direction: row-reverse;
         }
 
         /* 头像容器 */
