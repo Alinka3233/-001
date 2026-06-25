@@ -5620,19 +5620,7 @@
                 // 判断是否是特殊 HTML 内容（如红包、转账、图片）
                 const trimmedContent = content.trim();
                 const isHtml = trimmedContent.startsWith('<div') || trimmedContent.startsWith('<img');
-                
-                let finalContent;
-                if (isHtml) {
-                    finalContent = content;
-                } else {
-                    // 使用 marked 解析 Markdown，如果 marked 未加载则降级使用文本处理
-                    if (typeof marked !== 'undefined') {
-                        finalContent = marked.parse(content);
-                    } else {
-                        // 降级：处理换行并转义 HTML
-                        finalContent = escapeHtml(content).replace(/\n/g, '<br>');
-                    }
-                }
+                const finalContent = isHtml ? content : escapeHtml(content);
 
                 // 将 assistant 映射为 ai 以便使用现有 CSS
                 const displayRole = role === 'assistant' ? 'ai' : role;
@@ -5745,88 +5733,73 @@
                 }, 3000);
             }
 
-            /**
-             * 统一的消息分发处理器
-             * 处理分段、打字模拟、通知、历史记录保存
-             */
-            async function dispatchWechatMessage({ content, role, target, type = 'single', sender = null }) {
-                const isAI = role === 'ai' || role === 'assistant';
-                const displayRole = isAI ? 'ai' : 'user';
+            // 分句发送消息，模拟真人对话
+            async function sendWechatMessageBySentences(text, char) {
+                // 使用更智能的分段方式，保留原有的标点符号
+                // 匹配段落或长句结尾的标点（如句号、叹号、问号、省略号），并且保留这些标点
+                const regex = /([^。！？.!?…]+[。！？.!?…]+)/g;
+                let segments = text.match(regex);
                 
-                // 1. 智能分段 (仅对 AI 生效，模拟真人多次发送)
-                let segments = [content];
-                if (isAI) {
-                    const regex = /([^。！？.!?…\n]+[。！？.!?…\n]+)/g;
-                    const matches = content.match(regex);
-                    if (matches && matches.length > 0) {
-                        segments = matches.map(s => s.trim()).filter(s => s.length > 0);
-                        const joined = segments.join('');
-                        if (joined.length < content.length) {
-                            const remain = content.substring(joined.length).trim();
-                            if (remain) segments.push(remain);
-                        }
+                // 如果没有匹配到长句标点，或者文本很短，就整体作为一段
+                if (!segments || segments.length === 0) {
+                    segments = [text];
+                } else {
+                    // 处理末尾没有标点的残留文本
+                    const joinedSegments = segments.join('');
+                    if (joinedSegments.length < text.length) {
+                        segments.push(text.substring(joinedSegments.length));
                     }
                 }
-
-                // 2. 逐段发送处理
+                
+                // 过滤掉空白段落
+                segments = segments.map(s => s.trim()).filter(s => s.length > 0);
+                
+                // 逐段发送
                 for (let i = 0; i < segments.length; i++) {
                     const segment = segments[i];
-                    const timestamp = Date.now();
                     
-                    // 模拟打字延迟 (AI 逻辑)
-                    if (isAI && i > 0) {
-                        target.isTyping = true;
-                        if (wechatState.activeChatId == target.id) showWechatTyping(target);
-                        const delay = Math.min(segment.length * 100, 2000);
-                        await new Promise(r => setTimeout(r, delay));
-                    }
-
-                    // 记录历史
-                    const historyItem = { 
-                        role: isAI ? 'assistant' : 'user', 
-                        content: segment, 
-                        timestamp 
-                    };
-                    if (type === 'group' && sender) {
-                        historyItem.avatar = sender.avatar;
-                        historyItem.nickname = sender.name;
-                    }
-                    target.chatHistory.push(historyItem);
+                    // 记录到历史中，这样重新加载时就不会合并成一句话了
+                    char.chatHistory.push({ role: 'assistant', content: segment, timestamp: Date.now() });
                     saveWechatData();
-
-                    // 渲染界面
-                    const isCurrentChat = wechatState.activeChatId == target.id && wechatState.activeChatType === type;
-                    if (isCurrentChat) {
-                        const avatar = isAI ? (sender ? sender.avatar : target.avatar) : wechatState.profile.avatar;
-                        const nickname = isAI ? (sender ? sender.name : target.name) : null;
-                        addWechatMessage(segment, displayRole, avatar, nickname);
+                    
+                    // 发送当前段落 (只在当前聊天活跃时渲染)
+                    if (wechatState.activeCharacterId == char.id) {
+                        addWechatMessage(segment, 'ai', char.avatar);
                     }
-
-                    // 全局通知
+                    
+                    // 检查是否需要显示全局通知弹窗
                     const wechatApp = document.getElementById('app-wechat');
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    if (!(isWechatOpen && isChatViewOpen && isCurrentChat)) {
-                        const notifyTitle = type === 'group' ? `${target.name} - ${sender.name}` : target.name;
-                        const notifyAvatar = isAI ? (sender ? sender.avatar : target.avatar) : wechatState.profile.avatar;
-                        showGlobalNotification(notifyTitle, segment, notifyAvatar, () => {
+                    
+                    // 只有在不在当前聊天窗口时才显示通知
+                    const isCurrentlyInThisChat = isWechatOpen && isChatViewOpen && wechatState.activeCharacterId == char.id;
+
+                    if (!isCurrentlyInThisChat) {
+                        showGlobalNotification(char.name, segment, char.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
-                            openWechatChat(target.id, type);
+                            openWechatChat(char.id, 'single');
                         });
+                    }
+                    
+                    // 如果不是最后一段，添加打字指示器并等待
+                    if (i < segments.length - 1) {
+                        char.isTyping = true;
+                        if (wechatState.activeCharacterId === char.id) {
+                            showWechatTyping(char);
+                        }
+                        // 等待时间根据段落长度和随机因素决定，模拟真人打字停顿
+                        const waitTime = Math.max(800, segment.length * 40 + Math.random() * 800);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        if (wechatState.activeCharacterId === char.id) {
+                            removeWechatTyping();
+                        }
                     }
                 }
                 
-                if (isAI) {
-                    target.isTyping = false;
-                    removeWechatTyping();
-                }
                 renderWechatList();
+                char.isTyping = false;
                 return segments;
-            }
-
-            // 分句发送消息，模拟真人对话 (保留旧函数名作为 dispatch 的包装)
-            async function sendWechatMessageBySentences(text, char) {
-                return await dispatchWechatMessage({ content: text, role: 'ai', target: char, type: 'single' });
             }
 
             // 读取其他应用的数据
@@ -6448,7 +6421,55 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             }
 
             async function sendGroupMessageBySentences(text, member, group) {
-                return await dispatchWechatMessage({ content: text, role: 'ai', target: group, type: 'group', sender: member });
+                // 使用与单聊一致的智能分段方式
+                const regex = /([^。！？.!?…\n]+[。！？.!?…\n]+)/g;
+                let segments = text.match(regex);
+                
+                if (!segments || segments.length === 0) {
+                    segments = [text];
+                } else {
+                    const joinedSegments = segments.join('');
+                    if (joinedSegments.length < text.length) {
+                        segments.push(text.substring(joinedSegments.length));
+                    }
+                }
+                
+                segments = segments.map(s => s.trim()).filter(s => s.length > 0);
+                
+                for (const segment of segments) {
+                    // 模拟打字
+                    const typingTime = Math.min(segment.length * 150, 2000);
+                    await new Promise(resolve => setTimeout(resolve, typingTime));
+                    
+                    // 添加消息到界面
+                    if (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group') {
+                        addWechatMessage(segment, 'ai', member.avatar, member.name);
+                    }
+
+                    group.chatHistory.push({ 
+                        role: 'ai', 
+                        content: segment, 
+                        avatar: member.avatar,
+                        nickname: member.name,
+                        timestamp: Date.now()
+                    });
+                    
+                    saveWechatData();
+                    
+                    // 群聊通知逻辑：不在当前群聊界面时显示通知
+                    const wechatApp = document.getElementById('app-wechat');
+                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
+                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
+                    const isCurrentlyInThisGroup = isWechatOpen && isChatViewOpen && wechatState.activeChatId == group.id && wechatState.activeChatType === 'group';
+
+                    if (!isCurrentlyInThisGroup) {
+                        showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
+                            if (!isWechatOpen) openApp('wechat');
+                            openWechatChat(group.id, 'group');
+                        });
+                    }
+                }
+                renderWechatList();
             }
 
             async function processWechatAIMessage(char, newMessages) {
@@ -7653,34 +7674,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
 
 
-            // 微信输入框自动高度与键盘事件处理
-            function initWechatInputHandlers() {
-                const input = document.getElementById('wechat-input');
-                if (!input) return;
-
-                // 自动调整高度
-                input.addEventListener('input', function() {
-                    this.style.height = '36px';
-                    this.style.height = (this.scrollHeight) + 'px';
-                });
-
-                // 回车发送，Shift+回车换行
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        if (!e.shiftKey) {
-                            e.preventDefault();
-                            sendWechatMessage();
-                            this.style.height = '36px'; // 发送后重置高度
-                        }
-                    }
-                });
-            }
-
-            // 在合适的地方初始化
-            setTimeout(initWechatInputHandlers, 500);
-
-            // 原有的全局 keydown 监听需要移除或修改，避免冲突
-            // 搜索并修改原有的 document.addEventListener('keydown', ...id === 'wechat-input')
+            document.addEventListener('keydown', (e) => {
+                if (e.target.id === 'wechat-input' && e.key === 'Enter') {
+                    sendWechatMessage();
+                }
+            });
 
             // 为微信"我的"页面中的"设置"菜单项添加点击事件
             document.addEventListener('click', (e) => {
