@@ -6181,7 +6181,6 @@
             word-break: break-word;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
-            min-height: 40px;
             box-sizing: border-box;
             display: block;
             width: fit-content;
@@ -6227,7 +6226,7 @@
             background: #ffffff;
             color: #000;
             margin-left: 2px;
-            margin-top: 1px;
+            margin-top: 0;
             border: 0.5px solid rgba(0, 0, 0, 0.08);
         }
 
@@ -6241,14 +6240,14 @@
             border-top: 5px solid transparent;
             border-bottom: 5px solid transparent;
             border-right: 6px solid #ffffff;
-            filter: drop-shadow(-1px 0 0 rgba(0, 0, 0, 0.05)); /* 给小三角也加上极淡边框 */
+            filter: drop-shadow(-1px 0 0 rgba(0, 0, 0, 0.05));
         }
 
         .wechat-message.user .wechat-message-bubble {
             background: #95ec69;
             color: #000;
             margin-right: 2px;
-            margin-top: 1px;
+            margin-top: 0;
             border: none;
         }
 
