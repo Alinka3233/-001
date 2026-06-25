@@ -5791,10 +5791,10 @@
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
                     
-                    // 只有在不在当前聊天窗口时才显示通知
-                    const isCurrentlyInThisChat = isWechatOpen && isChatViewOpen && wechatState.activeCharacterId == char.id;
+                    // 只有在不在当前聊天界面（不论是单聊还是群聊）时才显示通知
+                    const isCurrentlyInAnyChat = isWechatOpen && isChatViewOpen;
 
-                    if (!isCurrentlyInThisChat) {
+                    if (!isCurrentlyInAnyChat) {
                         showGlobalNotification(char.name, segment, char.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(char.id, 'single');
@@ -6486,13 +6486,13 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     saveWechatData();
                     
-                    // 群聊通知逻辑：不在当前群聊界面时显示通知
+                    // 群聊通知逻辑：不在当前聊天界面（不论是单聊还是群聊）时显示通知
                     const wechatApp = document.getElementById('app-wechat');
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    const isCurrentlyInThisGroup = isWechatOpen && isChatViewOpen && wechatState.activeChatId == group.id && wechatState.activeChatType === 'group';
+                    const isCurrentlyInAnyChat = isWechatOpen && isChatViewOpen;
 
-                    if (!isCurrentlyInThisGroup) {
+                    if (!isCurrentlyInAnyChat) {
                         showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(group.id, 'group');
