@@ -5694,7 +5694,8 @@
             }
 
             function showWechatTyping(char) {
-                if (String(wechatState.activeCharacterId) !== String(char.id)) return;
+                const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                if (currentId !== String(char.id)) return;
                 
                 // 将顶部的名字替换为“对方正在输入...”
                 const nameEl = document.getElementById('wechat-current-name');
@@ -5705,12 +5706,19 @@
 
             function removeWechatTyping() {
                 // 恢复顶部的名字显示
-                if (wechatState.activeCharacterId) {
-                    const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
-                    if (char) {
+                const currentId = wechatState.activeChatId || wechatState.activeCharacterId;
+                if (currentId) {
+                    let target;
+                    if (wechatState.activeChatType === 'group') {
+                        target = (wechatState.groups || []).find(g => String(g.id) === String(currentId));
+                    } else {
+                        target = wechatState.characters.find(c => String(c.id) === String(currentId));
+                    }
+                    
+                    if (target) {
                         const nameEl = document.getElementById('wechat-current-name');
                         if (nameEl) {
-                            nameEl.textContent = char.name;
+                            nameEl.textContent = target.name || target.nickname;
                         }
                     }
                 }
@@ -5797,7 +5805,8 @@
                     // 判断是否需要实时渲染消息
                     const chatView = document.getElementById('wechat-chat-view');
                     const isChatViewActive = chatView && chatView.classList.contains('active');
-                    const isTargetActive = String(wechatState.activeChatId) === String(char.id);
+                    const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                    const isTargetActive = currentId === String(char.id) && currentId !== '';
 
                     // 如果当前就在该对话页面，则直接渲染消息
                     if (isChatViewActive && isTargetActive) {
@@ -5824,13 +5833,13 @@
                     // 如果不是最后一段，添加打字指示器并等待
                     if (i < segments.length - 1) {
                         char.isTyping = true;
-                        if (String(wechatState.activeCharacterId) === String(char.id)) {
+                        if (String(wechatState.activeChatId || wechatState.activeCharacterId || '') === String(char.id)) {
                             showWechatTyping(char);
                         }
                         // 等待时间根据段落长度和随机因素决定，模拟真人打字停顿
                         const waitTime = Math.max(800, segment.length * 40 + Math.random() * 800);
                         await new Promise(resolve => setTimeout(resolve, waitTime));
-                        if (String(wechatState.activeCharacterId) === String(char.id)) {
+                        if (String(wechatState.activeChatId || wechatState.activeCharacterId || '') === String(char.id)) {
                             removeWechatTyping();
                         }
                     }
@@ -6341,7 +6350,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
 
                 if (chatType === 'single') {
                     // 检查是否启用了延迟回复
-                    const delayTimeVal = parseInt(localStorage.getItem('wechatDelayReplyTime') || '3');
+                    const delayTimeSetting = localStorage.getItem('wechatDelayReplyTime');
+                    const delayTimeVal = delayTimeSetting !== null ? parseInt(delayTimeSetting) : 3;
                     const isDelayEnabled = delayTimeVal > 0;
                     
                     if (isDelayEnabled) {
@@ -6355,12 +6365,16 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             const combinedMessages = [...target.pendingUserMessages];
                             target.pendingUserMessages = [];
                             target.isTyping = true;
-                            if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                            
+                            const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                            if (currentId === String(target.id)) showWechatTyping(target);
+                            
                             processWechatAIMessage(target, combinedMessages);
                         }, delayTime);
                     } else {
                         target.isTyping = true;
-                        if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                        const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                        if (currentId === String(target.id)) showWechatTyping(target);
                         processWechatAIMessage(target, [text]);
                     }
                 } else {
@@ -6498,9 +6512,10 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     // 判断是否需要实时渲染消息
                     const chatView = document.getElementById('wechat-chat-view');
                     const isChatViewActive = chatView && chatView.classList.contains('active');
+                    const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
                     const isGroupActive = isChatViewActive && 
                                          (wechatState.activeChatType === 'group') && 
-                                         (String(wechatState.activeChatId) === String(group.id));
+                                         (currentId === String(group.id)) && (currentId !== '');
 
                     if (isGroupActive) {
                         try {
@@ -6552,7 +6567,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
                 // 获取AI回复
                 let reply = await getWechatAIResponse(char, includesWeather);
-                if (String(wechatState.activeCharacterId) === String(char.id)) {
+                const currentId = String(wechatState.activeChatId || wechatState.activeCharacterId || '');
+                if (currentId === String(char.id)) {
                     removeWechatTyping();
                 }
 
