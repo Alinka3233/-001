@@ -16,14 +16,71 @@
             // 将全局常量移至此处，确保 fetchLocalCityForClock 等外部函数也能访问
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
 
-            // iOS 100vh 修复逻辑 & 全屏交互优化
-            const setVH = () => {
-                let vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            // --- 全局视图适配与响应式处理 ---
+            const AppAdapter = {
+                isMobile: () => window.innerWidth <= 768,
+                isIOS: () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+                
+                // 核心：处理移动端浏览器 100vh 包含工具栏的问题
+                setViewportHeight: () => {
+                    let vh = window.innerHeight * 0.01;
+                    document.documentElement.style.setProperty('--vh', `${vh}px`);
+                },
+                
+                // 监听缩放与旋转
+                init: function() {
+                    this.setViewportHeight();
+                    window.addEventListener('resize', this.debounce(() => {
+                        this.setViewportHeight();
+                        this.adaptModals();
+                        this.adaptLayouts();
+                    }, 150));
+                    
+                    window.addEventListener('orientationchange', () => {
+                        setTimeout(() => {
+                            this.setViewportHeight();
+                            this.adaptModals();
+                        }, 200);
+                    });
+                },
+                
+                // 防抖处理
+                debounce: function(func, wait) {
+                    let timeout;
+                    return function() {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, arguments), wait);
+                    };
+                },
+
+                // 动态适配所有弹窗
+                adaptModals: function() {
+                    const modals = document.querySelectorAll('.clock-modal-overlay, .wechat-modal, .app-page, .wechat-edit-profile-modal, .wechat-chat-view');
+                    const isMobile = this.isMobile();
+                    
+                    modals.forEach(modal => {
+                        if (isMobile) {
+                            modal.classList.add('is-mobile');
+                            modal.classList.remove('is-desktop');
+                        } else {
+                            modal.classList.add('is-desktop');
+                            modal.classList.remove('is-mobile');
+                        }
+                    });
+                },
+
+                // 适配特定的布局组件
+                adaptLayouts: function() {
+                    // 如果有特定的 JS 计算布局，可以在这里触发
+                    if (typeof renderAppStore === 'function' && activeApp === 'appstore') {
+                        renderAppStore();
+                    }
+                }
             };
-            setVH();
-            window.addEventListener('resize', setVH);
-            window.addEventListener('orientationchange', setVH);
+
+            // 立即初始化
+            AppAdapter.init();
+            window.setVH = () => AppAdapter.setViewportHeight();
             
             // 首次触摸尝试隐藏地址栏 (部分安卓/旧版浏览器有效)
             window.addEventListener('touchstart', () => {
@@ -368,29 +425,30 @@
 
                 gridSortable = new Sortable(gridEl, {
                     group: 'apps',
-                    animation: 200, // 稍微增加动画时长，让位置交换更平滑
+                    animation: 200, 
                     disabled: true,
+                    delay: 150, // 移动端延迟触发拖拽，防止滚动干扰
+                    delayOnTouchOnly: true,
                     easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
                     filter: '.widget',
                     preventOnFilter: false,
                     ghostClass: 'sortable-ghost',
                     dragClass: 'sortable-drag',
-                    forceFallback: true, // 保持开启以确保移动端一致性
+                    forceFallback: true, 
                     fallbackClass: 'sortable-fallback',
                     fallbackOnBody: true,
-                    fallbackTolerance: 5, // 增加容差，防止误触发拖拽
-                    swapThreshold: 0.65, // 提高交换阈值，让拖动更稳定
+                    fallbackTolerance: 8, // 增加容差
+                    swapThreshold: 0.65, 
                     invertedSwapThreshold: 0.65,
                     scroll: true,
-                    scrollSensitivity: 80, // 提高滚动灵敏度
+                    scrollSensitivity: 100,
                     bubbleScroll: true,
                     onAdd: function (evt) {
-                        // 当图标从 Dock 拖入网格时，默认排到最后面
                         const gridEl = document.querySelector('.apps-grid');
                         gridEl.appendChild(evt.item);
                         saveAppLayout();
                     },
-                    onEnd: saveAppLayout, // 拖拽结束保存布局
+                    onEnd: saveAppLayout,
                     onMove: function (evt) {
                         if (evt.dragged.classList.contains('widget') && evt.to === dockEl) {
                             return false;
@@ -610,7 +668,7 @@
                 controlCenter.classList.remove('active');
             });
 
-            // 亮度调节功能 (自定义触摸滑块 - 极致性能优化版)
+            // 亮度调节功能 (统一 PointerEvents 适配多端)
             const brightnessContainer = document.getElementById('brightness-slider-container');
             const brightnessFill = document.getElementById('cc-brightness-fill');
             const brightnessOverlay = document.getElementById('brightness-overlay');
@@ -619,53 +677,46 @@
                 let currentBrightness = localStorage.getItem('screenBrightness') || '100';
                 let rafId = null;
                 let storageTimeout = null;
+                let isPointerDown = false;
                 
                 updateBrightness(currentBrightness);
 
                 const handleBrightnessInput = (e) => {
                     const rect = brightnessContainer.getBoundingClientRect();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                     const x = clientX - rect.left;
                     let percentage = (x / rect.width) * 100;
                     percentage = Math.max(0, Math.min(100, percentage));
                     
-                    // 使用 requestAnimationFrame 确保在浏览器渲染帧内更新 UI，解决卡顿
                     if (rafId) cancelAnimationFrame(rafId);
                     rafId = requestAnimationFrame(() => {
                         updateBrightness(percentage);
                     });
 
-                    // 对 localStorage 写入进行防抖，减少同步 IO 阻塞
                     if (storageTimeout) clearTimeout(storageTimeout);
                     storageTimeout = setTimeout(() => {
                         localStorage.setItem('screenBrightness', percentage.toFixed(0));
                     }, 100);
                 };
 
-                // 触摸事件 (非被动，因为需要 preventDefault)
-                brightnessContainer.addEventListener('touchstart', (e) => {
-                    handleBrightnessInput(e);
-                    e.preventDefault();
-                }, { passive: false });
-
-                brightnessContainer.addEventListener('touchmove', (e) => {
-                    handleBrightnessInput(e);
-                    e.preventDefault();
-                }, { passive: false });
-
-                // 鼠标事件
-                let isMouseDown = false;
-                brightnessContainer.addEventListener('mousedown', (e) => {
-                    isMouseDown = true;
+                // 使用 PointerEvents 统一处理鼠标和触摸
+                brightnessContainer.addEventListener('pointerdown', (e) => {
+                    isPointerDown = true;
+                    brightnessContainer.setPointerCapture(e.pointerId);
                     handleBrightnessInput(e);
                 });
 
-                document.addEventListener('mousemove', (e) => {
-                    if (isMouseDown) handleBrightnessInput(e);
+                brightnessContainer.addEventListener('pointermove', (e) => {
+                    if (isPointerDown) handleBrightnessInput(e);
                 });
 
-                document.addEventListener('mouseup', () => {
-                    isMouseDown = false;
+                brightnessContainer.addEventListener('pointerup', (e) => {
+                    isPointerDown = false;
+                    brightnessContainer.releasePointerCapture(e.pointerId);
+                });
+                
+                brightnessContainer.addEventListener('pointercancel', () => {
+                    isPointerDown = false;
                 });
             }
 
@@ -677,7 +728,7 @@
                 }
             }
 
-            // 音量调节功能 (自定义触摸滑块 - 极致性能优化版)
+            // 音量调节功能 (统一 PointerEvents 适配多端)
             const volumeContainer = document.getElementById('volume-slider-container');
             const volumeFill = document.getElementById('cc-volume-fill');
 
@@ -685,12 +736,13 @@
                 let currentVolume = localStorage.getItem('systemVolume') || '50';
                 let volumeRafId = null;
                 let volumeStorageTimeout = null;
+                let isVolumePointerDown = false;
 
                 if (volumeFill) volumeFill.style.width = `${currentVolume}%`;
 
                 const handleVolumeInput = (e) => {
                     const rect = volumeContainer.getBoundingClientRect();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                     const x = clientX - rect.left;
                     let percentage = (x / rect.width) * 100;
                     percentage = Math.max(0, Math.min(100, percentage));
@@ -706,28 +758,23 @@
                     }, 100);
                 };
 
-                volumeContainer.addEventListener('touchstart', (e) => {
-                    handleVolumeInput(e);
-                    e.preventDefault();
-                }, { passive: false });
-
-                volumeContainer.addEventListener('touchmove', (e) => {
-                    handleVolumeInput(e);
-                    e.preventDefault();
-                }, { passive: false });
-
-                let isVolumeMouseDown = false;
-                volumeContainer.addEventListener('mousedown', (e) => {
-                    isVolumeMouseDown = true;
+                volumeContainer.addEventListener('pointerdown', (e) => {
+                    isVolumePointerDown = true;
+                    volumeContainer.setPointerCapture(e.pointerId);
                     handleVolumeInput(e);
                 });
 
-                document.addEventListener('mousemove', (e) => {
-                    if (isVolumeMouseDown) handleVolumeInput(e);
+                volumeContainer.addEventListener('pointermove', (e) => {
+                    if (isVolumePointerDown) handleVolumeInput(e);
                 });
 
-                document.addEventListener('mouseup', () => {
-                    isVolumeMouseDown = false;
+                volumeContainer.addEventListener('pointerup', (e) => {
+                    isVolumePointerDown = false;
+                    volumeContainer.releasePointerCapture(e.pointerId);
+                });
+
+                volumeContainer.addEventListener('pointercancel', () => {
+                    isVolumePointerDown = false;
                 });
             }
 
@@ -9063,30 +9110,77 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
                 const currentId = localStorage.getItem('currentAccountId') || 'default';
 
-                accountList.innerHTML = accounts.map(acc => {
-                    const hasAvatar = acc.avatar && acc.avatar !== '' && acc.avatar !== GREY_AVATAR;
-                    return `
-                        <div class="wechat-account-item ${acc.id === currentId ? 'active' : ''}" data-id="${acc.id}">
-                            <div class="account-avatar-container" style="width: 72px; height: 72px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                ${hasAvatar ? `<img src="${acc.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : ''}
+                let html = `
+                    <div class="account-section-title">我的身份</div>
+                    ${accounts.map(acc => {
+                        const hasAvatar = acc.avatar && acc.avatar !== '' && acc.avatar !== GREY_AVATAR;
+                        return `
+                            <div class="wechat-account-item ${acc.id === currentId ? 'active' : ''}" data-id="${acc.id}" data-type="user">
+                                <div class="account-avatar-container" style="width: 72px; height: 72px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    ${hasAvatar ? `<img src="${acc.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : ''}
+                                </div>
+                                <div class="account-info">
+                                    <div class="account-name">${acc.nickname}</div>
+                                    <div class="account-status">${acc.id === currentId ? '当前使用' : '点击切换'}</div>
+                                </div>
+                                <div class="account-check"><i class="fas fa-check"></i></div>
                             </div>
-                            <div class="account-info">
-                                <div class="account-name">${acc.nickname}</div>
-                                <div class="account-status">${acc.id === currentId ? '当前使用' : '点击切换'}</div>
-                            </div>
-                            <div class="account-check"><i class="fas fa-check"></i></div>
+                        `;
+                    }).join('')}
+                `;
+
+                // 加入查岗部分（角色账号）
+                if (wechatState.characters && wechatState.characters.length > 0) {
+                    html += `
+                        <div class="account-section-title" style="margin-top: 24px;">查岗 (切换到角色视角)</div>
+                        <div class="account-character-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 0 10px;">
+                            ${wechatState.characters.map(char => {
+                                return `
+                                    <div class="wechat-character-account-item" data-id="${char.id}" style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                        <div class="account-avatar-container" style="width: 60px; height: 60px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                            <img src="${char.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                        </div>
+                                        <div class="account-name" style="font-size: 12px; color: #333; text-align: center; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${char.name}</div>
+                                        <div style="font-size: 10px; color: #07c160; margin-top: 2px;">查岗</div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     `;
-                }).join('');
+                }
+
+                accountList.innerHTML = html;
 
                 // 绑定切换点击
                 accountList.querySelectorAll('.wechat-account-item').forEach(item => {
-                    item.addEventListener('click', () => {
+                    item.addEventListener('click', async () => {
                         const id = item.dataset.id;
                         if (id === currentId) return;
                         
                         const targetAcc = accounts.find(a => a.id === id);
                         if (targetAcc) {
+                            // 如果当前正处于查岗模式（即存在用户转换的角色），需要恢复
+                            let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
+                            if (userCharIndex !== -1) {
+                                // 将当前的“角色身份”恢复回角色列表
+                                const currentAsChar = {
+                                    id: 'char_' + Date.now(),
+                                    name: wechatState.profile.nickname,
+                                    avatar: wechatState.profile.avatar,
+                                    wechatid: wechatState.profile.wechatid,
+                                    persona: wechatState.profile.persona,
+                                    chatHistory: [], // 或者是之前的历史，这里简化
+                                    pinned: false
+                                };
+                                
+                                // 尝试找回原本的角色历史（如果可能）
+                                // 这里逻辑可以更复杂，目前先简单恢复
+                                wechatState.characters.push(currentAsChar);
+                                
+                                // 移除转换出的用户角色
+                                wechatState.characters.splice(userCharIndex, 1);
+                            }
+
                             // 切换逻辑
                             wechatState.profile.nickname = targetAcc.nickname;
                             wechatState.profile.avatar = targetAcc.avatar;
@@ -9094,10 +9188,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                             wechatState.profile.persona = targetAcc.persona || '';
                             localStorage.setItem('currentAccountId', id);
                             
-                            // 更新 UI (直接调用统一的渲染函数)
+                            // 更新 UI
+                            await saveWechatData();
                             renderWechatProfile();
-
-                            saveWechatData();
+                            renderWechatList();
+                            renderWechatContacts();
                             renderAccountList();
                             
                             setTimeout(() => {
@@ -9105,6 +9200,72 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                                 setTimeout(() => {
                                     accountView.style.display = 'none';
                                     alert(`已成功切换到账号: ${targetAcc.nickname}`);
+                                }, 400);
+                            }, 300);
+                        }
+                    });
+                });
+
+                // 绑定查岗点击
+                accountList.querySelectorAll('.wechat-character-account-item').forEach(item => {
+                    item.addEventListener('click', async () => {
+                        const charId = item.dataset.id;
+                        const character = wechatState.characters.find(c => c.id == charId);
+                        if (!character) return;
+
+                        if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份与该角色互换。`)) {
+                            // 查岗逻辑：身份互换
+                            const oldProfile = {
+                                nickname: wechatState.profile.nickname,
+                                avatar: wechatState.profile.avatar,
+                                wechatid: wechatState.profile.wechatid,
+                                persona: wechatState.profile.persona
+                            };
+
+                            // 1. 将当前用户保存为一个新角色（或更新现有角色，如果之前互换过）
+                            // 寻找是否已经存在一个代表“我”的角色
+                            let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
+                            if (userCharIndex !== -1) {
+                                wechatState.characters[userCharIndex].name = oldProfile.nickname;
+                                wechatState.characters[userCharIndex].avatar = oldProfile.avatar;
+                                wechatState.characters[userCharIndex].persona = oldProfile.persona;
+                            } else {
+                                // 创建一个新角色代表用户
+                                const newUserChar = {
+                                    id: 'user_char_' + Date.now(),
+                                    name: oldProfile.nickname || '我',
+                                    avatar: oldProfile.avatar || GREY_AVATAR,
+                                    persona: oldProfile.persona || '一个普通的用户',
+                                    chatHistory: character.chatHistory.map(m => ({
+                                        ...m,
+                                        role: m.role === 'user' ? 'assistant' : (m.role === 'assistant' ? 'user' : m.role)
+                                    })),
+                                    isUserIdentity: true // 标记这是用户身份转换的角色
+                                };
+                                wechatState.characters.push(newUserChar);
+                            }
+
+                            // 2. 将目标角色的信息设置到 profile
+                            wechatState.profile.nickname = character.name;
+                            wechatState.profile.avatar = character.avatar;
+                            wechatState.profile.wechatid = character.wechatid || ('wxid_' + character.id);
+                            wechatState.profile.persona = character.persona || '';
+
+                            // 3. 从角色列表中移除该角色
+                            wechatState.characters = wechatState.characters.filter(c => c.id != charId);
+
+                            // 4. 保存并更新 UI
+                            await saveWechatData();
+                            renderWechatProfile();
+                            renderWechatList();
+                            renderWechatContacts();
+                            renderAccountList();
+
+                            setTimeout(() => {
+                                accountView.classList.remove('active');
+                                setTimeout(() => {
+                                    accountView.style.display = 'none';
+                                    alert(`查岗模式已开启！您现在正在使用 "${character.name}" 的账号。`);
                                 }, 400);
                             }, 300);
                         }
@@ -11363,6 +11524,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             }
 
             modal.style.display = 'flex';
+            AppAdapter.adaptModals(); // 确保弹窗适配当前屏幕尺寸
             setTimeout(() => modal.classList.add('active'), 10);
         };
 
@@ -11388,6 +11550,17 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
             }
             minuteWheel.innerHTML = minuteHtml;
 
+            // 动态计算滚动偏移量，适配响应式高度
+            const getItemHeight = (wheel) => {
+                const item = wheel.querySelector('.wheel-item');
+                return item ? item.offsetHeight : 44;
+            };
+
+            const getPaddingTop = (wheel) => {
+                const style = window.getComputedStyle(wheel);
+                return parseInt(style.paddingTop) || 78;
+            };
+
             // 滚动到当前时间
             setTimeout(() => {
                 scrollToValue(hourWheel, currentH);
@@ -11397,18 +11570,15 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
             // 监听滚动事件
             [hourWheel, minuteWheel].forEach(wheel => {
-                // 实时监听滚动，更新高亮效果，增强反馈感
                 wheel.addEventListener('scroll', () => {
                     updateActiveItem(wheel);
                 }, { passive: true });
 
-                // 滚动停止后更新最终数值
-                wheel.addEventListener('scroll', debounce(() => {
+                wheel.addEventListener('scroll', AppAdapter.debounce(() => {
                     updateActiveItem(wheel);
                     updateAlarmTimeValue();
                 }, 100));
 
-                // 点击项自动滚动到中心
                 wheel.addEventListener('click', (e) => {
                     const item = e.target.closest('.wheel-item');
                     if (item) {
@@ -11417,27 +11587,30 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     }
                 });
             });
-        }
 
-        function scrollToValue(wheel, value) {
-            const item = wheel.querySelector(`.wheel-item[data-value="${value}"]`);
-            if (item) {
-                wheel.scrollTop = item.offsetTop - 78; // 78 is padding-top
-                updateActiveItem(wheel);
-            }
-        }
-
-        function updateActiveItem(wheel) {
-            const items = wheel.querySelectorAll('.wheel-item');
-            const index = Math.round(wheel.scrollTop / 44);
-            
-            items.forEach((item, i) => {
-                if (i === index) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
+            function scrollToValue(wheel, value) {
+                const item = wheel.querySelector(`.wheel-item[data-value="${value}"]`);
+                if (item) {
+                    const itemHeight = getItemHeight(wheel);
+                    const paddingTop = getPaddingTop(wheel);
+                    wheel.scrollTop = item.offsetTop - paddingTop;
+                    updateActiveItem(wheel);
                 }
-            });
+            }
+
+            function updateActiveItem(wheel) {
+                const items = wheel.querySelectorAll('.wheel-item');
+                const itemHeight = getItemHeight(wheel);
+                const index = Math.round(wheel.scrollTop / itemHeight);
+                
+                items.forEach((item, i) => {
+                    if (i === index) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
         }
 
         function updateAlarmTimeValue() {
@@ -11910,20 +12083,26 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
         function initIOSAdaptation() {
             // 1. 防止橡皮筋效果露底，但允许特定区域滚动
             document.addEventListener('touchmove', function(e) {
-                // 优化：使用 closest 检查更具体
-                const scrollable = e.target.closest('.app-content, .apps-grid-container, .wechat-chat-list, .wechat-container, .wechat-tab, .wechat-modal-body, .notes-container, .notes-editor-content, #app-appstore, .assistive-touch');
-                if (scrollable) {
-                    return; 
-                }
+                // 优化：使用数组存储选择器，更易维护
+                const scrollableSelectors = [
+                    '.app-content', '.apps-grid-container', '.wechat-chat-list', 
+                    '.wechat-container', '.wechat-tab', '.wechat-modal-body', 
+                    '.notes-container', '.notes-editor-content', '#app-appstore', 
+                    '.assistive-touch', '.wechat-messages', '.wechat-chat-view-content'
+                ];
+                
+                const isScrollable = scrollableSelectors.some(selector => e.target.closest(selector));
+                if (isScrollable) return; 
+                
                 if (e.cancelable) e.preventDefault();
             }, { passive: false });
 
             // 2. 处理 iOS Web App 模式
-            if (window.navigator.standalone) {
+            if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
                 document.body.classList.add('ios-standalone');
             }
             
-            // 3. 优化高频点击
+            // 3. 优化触摸反馈
             document.addEventListener('touchstart', function() {}, { passive: true });
         }
 

@@ -2692,6 +2692,22 @@
             font-style: italic;
         }
 
+        /* 账号切换样式扩展 */
+        .account-section-title {
+            font-size: 14px;
+            color: #888;
+            margin: 15px 15px 10px;
+            font-weight: 500;
+        }
+
+        .wechat-character-account-item {
+            transition: transform 0.2s;
+        }
+
+        .wechat-character-account-item:active {
+            transform: scale(0.95);
+        }
+
         /* 群聊相关样式 */
         .wechat-create-group-item {
             display: flex;
