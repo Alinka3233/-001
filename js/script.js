@@ -5622,7 +5622,7 @@
                 const isHtml = trimmedContent.startsWith('<div') || trimmedContent.startsWith('<img');
 
                 // 使用 marked 解析 Markdown 内容 (如果可用)
-                let finalContent = isHtml ? content : escapeHtml(content);
+                let finalContent = isHtml ? content : escapeHtml(content.trim());
                 if (!isHtml && typeof marked !== 'undefined') {
                     // 配置 marked
                     marked.setOptions({
@@ -5641,11 +5641,7 @@
                 if (displayRole === 'system') {
                     div.className = 'wechat-message';
                     div.style.alignSelf = 'center';
-                    div.innerHTML = `
-                        <div class="wechat-message-bubble" style="background: rgba(255, 255, 255, 0.8); color: var(--secondary-text-color); font-size: 12px; padding: 6px 12px; border-radius: 12px;">
-                            ${finalContent}
-                        </div>
-                    `;
+                    div.innerHTML = `<div class="wechat-message-bubble" style="background: rgba(255, 255, 255, 0.8); color: var(--secondary-text-color); font-size: 12px; padding: 6px 12px; border-radius: 12px;">${finalContent}</div>`;
                 } else {
                     div.className = `wechat-message ${displayRole}`;
                     const avatarUrl = displayRole === 'ai' ? avatar : (wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png');
@@ -5660,17 +5656,8 @@
                         : '';
 
                     // 构建消息 HTML
-                    const avatarHtml = `
-                        <div class="wechat-message-avatar-container">
-                            ${renderAvatarHtml(avatarUrl, 'wechat-message-avatar')}
-                        </div>
-                    `;
-                    const contentHtml = `
-                        <div class="wechat-msg-content-wrapper">
-                            ${nicknameHtml}
-                            <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''} ${isMarkdown ? 'markdown-content' : ''}" style="${bubbleStyle}">${finalContent}</div>
-                        </div>
-                    `;
+                    const avatarHtml = `<div class="wechat-message-avatar-container">${renderAvatarHtml(avatarUrl, 'wechat-message-avatar')}</div>`;
+                    const contentHtml = `<div class="wechat-msg-content-wrapper">${nicknameHtml}<div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''} ${isMarkdown ? 'markdown-content' : ''}" style="${bubbleStyle}">${finalContent}</div></div>`;
 
                     // 根据角色决定排列顺序：AI 在左（头像+内容），用户在右（内容+头像）
                     if (displayRole === 'ai') {

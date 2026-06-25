@@ -6200,25 +6200,28 @@
         }
 
         .wechat-message-bubble {
-            padding: 9px 12px;
+            padding: 8px 12px;
             border-radius: 4px;
-            line-height: 1.5;
+            line-height: 1.45;
             font-size: 16px;
             position: relative;
             word-break: break-word;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
             box-sizing: border-box;
-            display: block;
+            display: flex;
+            flex-direction: column;
             width: fit-content;
             max-width: 100%;
             text-align: left;
             box-shadow: none;
             letter-spacing: 0;
+            overflow: hidden;
         }
 
         .wechat-message-bubble.markdown-content {
             white-space: normal;
+            display: block; /* Markdown 模式恢复块级布局以支持段落 */
         }
 
         /* Markdown 内容样式适配 - 移除冗余间隙 */
