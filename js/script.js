@@ -4742,7 +4742,9 @@
                     nickname: '',
                     wechatid: '',
                     avatar: '',
-                    persona: ''
+                    persona: '',
+                    status: '',
+                    statusIcon: ''
                 },
                 moments: [],
                 momentsCover: '',
@@ -4836,6 +4838,7 @@
                     initWechatEditProfile();
                     initMomentsCoverUpload();
                     startWechatBackgroundTasks();
+                    setupWechatStatusEvents();
                 } catch (error) {
                     console.error('初始化微信界面出错:', error);
                     // 出错时使用默认数据
@@ -4849,6 +4852,7 @@
                     initWechatEditProfile();
                     initMomentsCoverUpload();
                     startWechatBackgroundTasks();
+                    setupWechatStatusEvents();
                 }
             }
 
@@ -5370,6 +5374,62 @@
                 if (momentsProfileName) {
                     momentsProfileName.textContent = wechatState.profile.nickname;
                 }
+
+                // 更新状态显示
+                const statusItem = document.querySelector('.status-item');
+                if (statusItem) {
+                    if (wechatState.profile.status) {
+                        statusItem.classList.add('active');
+                        const iconClass = wechatState.profile.statusIcon || 'fa-smile';
+                        statusItem.innerHTML = `<i class="fas ${iconClass}"></i> <span>${wechatState.profile.status}</span>`;
+                    } else {
+                        statusItem.classList.remove('active');
+                        statusItem.innerHTML = `<i class="fas fa-plus-circle"></i> <span>状态</span>`;
+                    }
+                }
+             }
+
+            function setupWechatStatusEvents() {
+                const statusArea = document.querySelector('.wechat-profile-status');
+                const statusView = document.getElementById('wechat-status-view');
+                const statusBack = document.getElementById('wechat-status-back');
+                const statusClear = document.getElementById('wechat-status-clear');
+                const statusItems = document.querySelectorAll('.status-select-item');
+
+                if (statusArea) {
+                    statusArea.onclick = () => {
+                        statusView.style.display = 'flex';
+                    };
+                }
+
+                if (statusBack) {
+                    statusBack.onclick = () => {
+                        statusView.style.display = 'none';
+                    };
+                }
+
+                statusItems.forEach(item => {
+                    item.onclick = () => {
+                        const status = item.getAttribute('data-status');
+                        const icon = item.getAttribute('data-icon');
+                        setWechatStatus(status, icon);
+                        statusView.style.display = 'none';
+                    };
+                });
+
+                if (statusClear) {
+                    statusClear.onclick = () => {
+                        setWechatStatus('', '');
+                        statusView.style.display = 'none';
+                    };
+                }
+            }
+
+            function setWechatStatus(status, icon) {
+                wechatState.profile.status = status;
+                wechatState.profile.statusIcon = icon;
+                renderWechatProfile();
+                saveWechatData();
             }
 
             function renderWechatList() {
