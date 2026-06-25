@@ -4604,6 +4604,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .wechat-status-grid {
@@ -5516,6 +5517,7 @@
             padding: 0 24px 24px;
             max-height: 65vh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 恢复 iOS 原生滚动感 */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }

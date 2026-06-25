@@ -12313,7 +12313,8 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     '.wechat-container', '.wechat-tab', '.wechat-modal-body', 
                     '.notes-container', '.notes-editor-content', '#app-appstore', 
                     '.assistive-touch', '.wechat-messages', '.wechat-chat-view-content',
-                    '.wechat-message-list', '#wechat-messages'
+                    '.wechat-message-list', '#wechat-messages', '.wechat-account-content',
+                    '.wechat-status-content'
                 ];
                 
                 const isScrollable = scrollableSelectors.some(selector => e.target.closest(selector));
