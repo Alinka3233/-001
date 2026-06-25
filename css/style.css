@@ -6097,18 +6097,18 @@
 
         .wechat-message {
             display: flex;
-            align-items: flex-start; /* 改为顶部对齐，更符合微信习惯 */
+            align-items: flex-start;
             margin-bottom: 16px;
-            max-width: 88%;
+            width: 100%; /* 确保消息行占满宽度，防止气泡被压缩 */
             animation: fadeIn 0.3s;
         }
 
         .wechat-message.ai {
-            align-self: flex-start;
+            justify-content: flex-start;
         }
 
         .wechat-message.user {
-            align-self: flex-end;
+            justify-content: flex-end;
             flex-direction: row-reverse;
         }
 
@@ -6161,7 +6161,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            max-width: calc(100% - 60px); /* 减去头像和边距的空间 */
+            max-width: calc(100% - 100px); /* 留出足够的空间给头像和另一侧的空白 */
         }
 
         .wechat-message.ai .wechat-msg-content-wrapper {
@@ -6176,14 +6176,15 @@
             padding: 10px 12px;
             border-radius: 8px;
             line-height: 1.55;
-            font-size: 15.5px; /* 稍微减小字号，更显精致 */
+            font-size: 15.5px;
             position: relative;
-            word-break: break-word; /* 优先使用 break-word */
-            overflow-wrap: anywhere; /* 确保长字符串强制换行 */
+            word-break: break-word;
+            overflow-wrap: anywhere;
             white-space: pre-wrap;
             min-height: 38px;
             box-sizing: border-box;
-            display: inline-block;
+            display: block; /* 改为 block 配合 fit-content */
+            width: fit-content; /* 关键：根据内容自动撑开宽度 */
             max-width: 100%;
             text-align: left;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -6193,6 +6194,8 @@
         /* Markdown 内容样式适配 */
         .wechat-message-bubble p {
             margin: 0;
+            width: 100%;
+            word-wrap: break-word;
         }
         .wechat-message-bubble p:not(:last-child) {
             margin-bottom: 8px;
