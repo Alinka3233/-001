@@ -5624,17 +5624,7 @@
                 // 使用 marked 解析 Markdown 内容 (如果可用)
                 let finalContent = isHtml ? content : escapeHtml(content.trim());
                 if (!isHtml && typeof marked !== 'undefined') {
-                    // 配置 marked
-                    const renderer = new marked.Renderer();
-                    // 只有在内容包含多行或明显 markdown 符号时才使用 <p>
-                    const isMultiline = content.includes('\n');
-                    
-                    renderer.paragraph = function(text) {
-                        return isMultiline ? `<p>${text}</p>` : text;
-                    };
-                    
                     marked.setOptions({
-                        renderer: renderer,
                         breaks: true,
                         gfm: true,
                         headerIds: false,
@@ -5642,9 +5632,14 @@
                     });
                     
                     finalContent = marked.parse(content.trim()).trim();
-                    // 彻底移除 marked 可能在末尾添加的换行符
-                    if (finalContent.endsWith('\n')) {
-                        finalContent = finalContent.slice(0, -1);
+                    
+                    // 彻底修复：如果是单行内容被包裹在 <p> 中，去除 <p> 标签以消除多余间距
+                    if (finalContent.startsWith('<p>') && finalContent.endsWith('</p>')) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = finalContent;
+                        if (tempDiv.childNodes.length === 1 && tempDiv.firstChild.nodeName === 'P') {
+                            finalContent = tempDiv.firstChild.innerHTML;
+                        }
                     }
                 }
 
@@ -12126,7 +12121,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     '.wechat-container', '.wechat-tab', '.wechat-modal-body', 
                     '.notes-container', '.notes-editor-content', '#app-appstore', 
                     '.assistive-touch', '.wechat-messages', '.wechat-chat-view-content',
-                    '.wechat-message-list'
+                    '.wechat-message-list', '#wechat-messages'
                 ];
                 
                 const isScrollable = scrollableSelectors.some(selector => e.target.closest(selector));
