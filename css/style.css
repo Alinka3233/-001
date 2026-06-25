@@ -6161,7 +6161,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            max-width: calc(100% - 100px); /* 留出足够的空间给头像和另一侧的空白 */
+            max-width: calc(100% - 82px); /* 42px头像 + 12px间距 + 约28px另一侧留白 */
         }
 
         .wechat-message.ai .wechat-msg-content-wrapper {
@@ -6173,36 +6173,36 @@
         }
 
         .wechat-message-bubble {
-            padding: 10px 12px;
-            border-radius: 8px;
-            line-height: 1.55;
-            font-size: 15.5px;
+            padding: 9px 12px;
+            border-radius: 4px;
+            line-height: 1.5;
+            font-size: 16px;
             position: relative;
             word-break: break-word;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
-            min-height: 38px;
+            min-height: 40px;
             box-sizing: border-box;
-            display: block; /* 改为 block 配合 fit-content */
-            width: fit-content; /* 关键：根据内容自动撑开宽度 */
+            display: block;
+            width: fit-content;
             max-width: 100%;
             text-align: left;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            letter-spacing: 0.2px;
+            box-shadow: none;
+            letter-spacing: 0;
         }
 
-        /* Markdown 内容样式适配 */
+        /* Markdown 内容样式适配 - 移除冗余间隙 */
         .wechat-message-bubble p {
-            margin: 0;
+            margin: 0 !important;
             width: 100%;
             word-wrap: break-word;
         }
-        .wechat-message-bubble p:not(:last-child) {
-            margin-bottom: 8px;
+        .wechat-message-bubble p + p {
+            margin-top: 4px !important; /* 仅在段落间保留极小间隙 */
         }
         .wechat-message-bubble ul, .wechat-message-bubble ol {
             padding-left: 20px;
-            margin: 8px 0;
+            margin: 4px 0;
         }
         .wechat-message-bubble code {
             background: rgba(0, 0, 0, 0.05);
@@ -6227,39 +6227,41 @@
             background: #ffffff;
             color: #000;
             margin-left: 2px;
-            margin-top: 2px; /* 稍微下移，与头像顶端错开 */
-            border: 0.5px solid rgba(0, 0, 0, 0.05); /* 增加极细边框提升质感 */
+            margin-top: 1px;
+            border: 0.5px solid rgba(0, 0, 0, 0.08);
         }
 
         .wechat-message.ai .wechat-message-bubble::before {
             content: '';
             position: absolute;
             left: -6px;
-            top: 14px; /* 三角形移至上方 */
+            top: 14px;
             width: 0;
             height: 0;
             border-top: 5px solid transparent;
             border-bottom: 5px solid transparent;
             border-right: 6px solid #ffffff;
+            filter: drop-shadow(-1px 0 0 rgba(0, 0, 0, 0.05)); /* 给小三角也加上极淡边框 */
         }
 
         .wechat-message.user .wechat-message-bubble {
             background: #95ec69;
             color: #000;
             margin-right: 2px;
-            margin-top: 2px; /* 稍微下移，与头像顶端错开 */
+            margin-top: 1px;
+            border: none;
         }
 
         .wechat-message.user .wechat-message-bubble code,
         .wechat-message.user .wechat-message-bubble pre {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.08);
         }
 
         .wechat-message.user .wechat-message-bubble::before {
             content: '';
             position: absolute;
             right: -6px;
-            top: 14px; /* 三角形移至上方 */
+            top: 14px;
             width: 0;
             height: 0;
             border-top: 5px solid transparent;
