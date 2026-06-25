@@ -5620,7 +5620,19 @@
                 // 判断是否是特殊 HTML 内容（如红包、转账、图片）
                 const trimmedContent = content.trim();
                 const isHtml = trimmedContent.startsWith('<div') || trimmedContent.startsWith('<img');
-                const finalContent = isHtml ? content : escapeHtml(content);
+                
+                let finalContent;
+                if (isHtml) {
+                    finalContent = content;
+                } else {
+                    // 使用 marked 解析 Markdown，如果 marked 未加载则降级使用文本处理
+                    if (typeof marked !== 'undefined') {
+                        finalContent = marked.parse(content);
+                    } else {
+                        // 降级：处理换行并转义 HTML
+                        finalContent = escapeHtml(content).replace(/\n/g, '<br>');
+                    }
+                }
 
                 // 将 assistant 映射为 ai 以便使用现有 CSS
                 const displayRole = role === 'assistant' ? 'ai' : role;
@@ -7674,11 +7686,34 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
 
 
-            document.addEventListener('keydown', (e) => {
-                if (e.target.id === 'wechat-input' && e.key === 'Enter') {
-                    sendWechatMessage();
-                }
-            });
+            // 微信输入框自动高度与键盘事件处理
+            function initWechatInputHandlers() {
+                const input = document.getElementById('wechat-input');
+                if (!input) return;
+
+                // 自动调整高度
+                input.addEventListener('input', function() {
+                    this.style.height = '36px';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+
+                // 回车发送，Shift+回车换行
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        if (!e.shiftKey) {
+                            e.preventDefault();
+                            sendWechatMessage();
+                            this.style.height = '36px'; // 发送后重置高度
+                        }
+                    }
+                });
+            }
+
+            // 在合适的地方初始化
+            setTimeout(initWechatInputHandlers, 500);
+
+            // 原有的全局 keydown 监听需要移除或修改，避免冲突
+            // 搜索并修改原有的 document.addEventListener('keydown', ...id === 'wechat-input')
 
             // 为微信"我的"页面中的"设置"菜单项添加点击事件
             document.addEventListener('click', (e) => {

@@ -6190,6 +6190,36 @@
             letter-spacing: 0.2px;
         }
 
+        /* Markdown 内容样式适配 */
+        .wechat-message-bubble p {
+            margin: 0;
+        }
+        .wechat-message-bubble p:not(:last-child) {
+            margin-bottom: 8px;
+        }
+        .wechat-message-bubble ul, .wechat-message-bubble ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .wechat-message-bubble code {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Consolas, monospace;
+            font-size: 0.9em;
+        }
+        .wechat-message-bubble pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .wechat-message-bubble pre code {
+            background: none;
+            padding: 0;
+        }
+
         .wechat-message.ai .wechat-message-bubble {
             background: #ffffff;
             color: #000;
@@ -6215,6 +6245,11 @@
             color: #000;
             margin-right: 2px;
             margin-top: 2px; /* 稍微下移，与头像顶端错开 */
+        }
+
+        .wechat-message.user .wechat-message-bubble code,
+        .wechat-message.user .wechat-message-bubble pre {
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .wechat-message.user .wechat-message-bubble::before {
@@ -6367,9 +6402,9 @@
 
         .wechat-input {
             flex: 1;
-            min-width: 0; /* 允许在 Flex 布局中收缩 */
+            min-width: 0;
             min-height: 36px;
-            max-height: 100px;
+            max-height: 120px;
             padding: 8px 12px;
             margin: 0 4px;
             border: none;
@@ -6380,8 +6415,9 @@
             color: #1d1d1f;
             resize: none;
             line-height: 1.4;
-            display: flex;
-            align-items: center;
+            display: block; /* textarea 应使用 block */
+            overflow-y: auto;
+            transition: height 0.1s ease;
         }
 
         .wechat-input:focus {
