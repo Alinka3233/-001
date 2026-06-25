@@ -5535,8 +5535,9 @@
             }
 
             function openWechatChat(id, type = 'single') {
-                wechatState.activeChatId = id;
-                wechatState.activeCharacterId = id; // 同步 ID，解决消息渲染判断问题
+                const chatId = String(id); // 统一转为字符串，确保比较一致性
+                wechatState.activeChatId = chatId;
+                wechatState.activeCharacterId = chatId; 
                 wechatState.activeChatType = type;
                 
                 let target;
@@ -5683,7 +5684,7 @@
             }
 
             function showWechatTyping(char) {
-                if (wechatState.activeCharacterId !== char.id) return;
+                if (String(wechatState.activeCharacterId) !== String(char.id)) return;
                 
                 // 将顶部的名字替换为“对方正在输入...”
                 const nameEl = document.getElementById('wechat-current-name');
@@ -5788,14 +5789,15 @@
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
                     const isCurrentChat = isChatViewOpen && (wechatState.activeCharacterId == char.id);
+                    const isVisible = isWechatOpen && isCurrentChat;
 
-                    // 如果当前就在该对话页面，则直接渲染消息
-                    if (isCurrentChat) {
+                    // 如果当前就在该对话页面且应用处于激活状态，则直接渲染消息
+                    if (isVisible) {
                         addWechatMessage(segment, 'ai', char.avatar);
                     }
                     
-                    // 只有在不在当前对话页面时才显示通知
-                    if (!isCurrentChat) {
+                    // 如果应用没打开，或者不在当前对话页面，则显示通知
+                    if (!isVisible) {
                         showGlobalNotification(char.name, segment, char.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(char.id, 'single');
@@ -5805,13 +5807,13 @@
                     // 如果不是最后一段，添加打字指示器并等待
                     if (i < segments.length - 1) {
                         char.isTyping = true;
-                        if (wechatState.activeCharacterId === char.id) {
+                        if (String(wechatState.activeCharacterId) === String(char.id)) {
                             showWechatTyping(char);
                         }
                         // 等待时间根据段落长度和随机因素决定，模拟真人打字停顿
                         const waitTime = Math.max(800, segment.length * 40 + Math.random() * 800);
                         await new Promise(resolve => setTimeout(resolve, waitTime));
-                        if (wechatState.activeCharacterId === char.id) {
+                        if (String(wechatState.activeCharacterId) === String(char.id)) {
                             removeWechatTyping();
                         }
                     }
@@ -6011,7 +6013,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             if (typeof loadNotes === 'function') loadNotes();
                             
                             // 在对话中展示提示词
-                            if (wechatState.activeCharacterId === char.id) {
+                            if (String(wechatState.activeCharacterId) === String(char.id)) {
                                 addWechatMessage(`已为你记录备忘录：${originalContent.substring(0, 20)}${originalContent.length > 20 ? '...' : ''}`, 'system', char.avatar);
                             }
                             
@@ -6047,7 +6049,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             if (typeof renderWechatMoments === 'function') renderWechatMoments();
                             
                             // 在对话中展示提示词
-                            if (wechatState.activeCharacterId === char.id) {
+                            if (String(wechatState.activeCharacterId) === String(char.id)) {
                                 addWechatMessage(`已为你发布朋友圈：${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`, 'system', char.avatar);
                             }
                             
@@ -6084,7 +6086,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             `;
                             
                             // 直接插入红包消息到聊天记录中
-                            if (wechatState.activeCharacterId === char.id) {
+                            if (String(wechatState.activeCharacterId) === String(char.id)) {
                                 addWechatMessage(redpacketContent, 'ai', char.avatar);
                             }
                             char.chatHistory.push({ role: 'ai', content: redpacketContent, timestamp: Date.now() });
@@ -6123,7 +6125,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             `;
                             
                             // 直接插入转账消息到聊天记录中
-                            if (wechatState.activeCharacterId === char.id) {
+                            if (String(wechatState.activeCharacterId) === String(char.id)) {
                                 addWechatMessage(transferContent, 'ai', char.avatar);
                             }
                             char.chatHistory.push({ role: 'ai', content: transferContent, timestamp: Date.now() });
@@ -6307,7 +6309,11 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 if (!target) return;
 
                 // 添加用户消息到界面和历史
-                addWechatMessage(text, 'user', wechatState.profile.avatar);
+                if (chatType === 'group') {
+                    addWechatMessage(text, 'user', wechatState.profile.avatar, wechatState.profile.nickname || '我');
+                } else {
+                    addWechatMessage(text, 'user', wechatState.profile.avatar);
+                }
                 target.chatHistory.push({ role: 'user', content: text, timestamp: Date.now() });
                 saveWechatData();
                 input.value = '';
@@ -6477,8 +6483,9 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
                     const isCurrentGroupChat = isChatViewOpen && (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group');
+                    const isVisible = isWechatOpen && isCurrentGroupChat;
 
-                    if (isCurrentGroupChat) {
+                    if (isVisible) {
                         addWechatMessage(segment, 'ai', member.avatar, member.name);
                     }
 
@@ -6492,8 +6499,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     saveWechatData();
                     
-                    // 只有在不在当前群聊对话页面时才显示通知
-                    if (!isCurrentGroupChat) {
+                    // 如果应用没打开，或者不在当前群聊页面，则显示通知
+                    if (!isVisible) {
                         showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(group.id, 'group');
@@ -6517,7 +6524,7 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
                 // 获取AI回复
                 let reply = await getWechatAIResponse(char, includesWeather);
-                if (wechatState.activeCharacterId === char.id) {
+                if (String(wechatState.activeCharacterId) === String(char.id)) {
                     removeWechatTyping();
                 }
 
@@ -6836,7 +6843,11 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                 if (wechatState.isSummarizing || !wechatState.settings.apiKey) return;
 
                 wechatState.isSummarizing = true;
-                addWechatMessage('（正在整理记忆...）', 'system', char.avatar);
+                
+                // 仅在当前对话窗口打开时显示系统提示
+                if (String(wechatState.activeCharacterId) === String(char.id)) {
+                    addWechatMessage('（正在整理记忆...）', 'system', char.avatar);
+                }
 
                 const recentHistory = char.chatHistory.slice(-wechatState.MEMORY_UPDATE_THRESHOLD * 2);
                 const prompt = buildMemorySummarizePrompt(char, recentHistory);
