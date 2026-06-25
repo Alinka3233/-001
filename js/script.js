@@ -9418,6 +9418,22 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         const character = wechatState.characters.find(c => c.id == charId);
                         if (!character) return;
 
+                        // AI 随机拒绝逻辑 (30% 概率拒绝)
+                        const refusalChance = 0.3;
+                        if (Math.random() < refusalChance) {
+                            const refusalMessages = [
+                                "（系统提示：对方人设警觉性较高，拒绝了您的查岗请求）",
+                                `${character.name}：你在干嘛？为什么想登我的账号？`,
+                                `${character.name}：别闹，我这边正忙着呢，不方便给你看。`,
+                                `${character.name}：这是我的私密空间，请尊重一下哦～`,
+                                "（系统提示：切换失败，对方正处于敏感对话中，无法顶号）",
+                                `${character.name}：你是不是在怀疑我什么？为什么要查我？`
+                            ];
+                            const randomRefusal = refusalMessages[Math.floor(Math.random() * refusalMessages.length)];
+                            alert(randomRefusal);
+                            return;
+                        }
+
                         if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份与该角色互换。`)) {
                             // 查岗逻辑：身份互换
                             const oldProfile = {

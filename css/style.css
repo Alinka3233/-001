@@ -5425,7 +5425,7 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* 切换账号界面样式 - 悬浮窗版 (Floating Modal) */
+        /* 切换账号界面样式 - 悬浮窗版 (Premium Floating Modal) */
         .wechat-account-view {
             position: fixed; /* 改为 fixed，确保相对于视口定位 */
             top: 0;
@@ -5437,7 +5437,7 @@
             display: none; /* 由 JS 控制切换 */
             align-items: center; /* 居中 */
             justify-content: center; /* 居中 */
-            transition: background-color 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
             backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(0px);
             padding: 20px;
@@ -5446,28 +5446,31 @@
 
         .wechat-account-view.active {
             display: flex;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
 
         .wechat-account-container {
-            width: 90%;
-            max-width: 340px;
-            background-color: #fff;
-            border-radius: 28px;
+            width: 95%;
+            max-width: 360px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 32px;
             overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            transform: scale(0.8);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+            transform: translateY(30px) scale(0.95);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
             display: flex;
             flex-direction: column;
-            pointer-events: auto; /* 确保点击有效 */
+            pointer-events: auto;
         }
 
         .wechat-account-view.active .wechat-account-container {
-            transform: scale(1);
+            transform: translateY(0) scale(1);
             opacity: 1;
         }
 
@@ -5475,88 +5478,98 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 20px;
-            background-color: #fff;
-            border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+            padding: 24px 24px 16px;
+            background: transparent;
             position: relative;
         }
 
         .wechat-account-back {
-            background: #f2f2f7;
+            background: rgba(0, 0, 0, 0.04);
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            font-size: 14px;
+            font-size: 12px;
             color: #333;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .wechat-account-back:active {
-            background-color: #e5e5ea;
+            background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(0.9);
         }
 
         .wechat-account-header h1 {
             margin: 0;
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 700;
             color: #000;
+            letter-spacing: -0.5px;
         }
 
         .wechat-account-content {
-            background-color: #fff; /* 改为白色背景更高级 */
-            padding: 20px;
-            max-height: 60vh; /* 使用视口高度限制 */
+            background: transparent;
+            padding: 0 24px 24px;
+            max-height: 65vh;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
-        .wechat-account-view.active .wechat-account-content {
-            transform: none;
+        .wechat-account-content::-webkit-scrollbar {
+            display: none;
         }
 
         .wechat-account-list {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .wechat-account-item {
-            background: #f8f8f8;
-            border-radius: 18px;
-            padding: 18px 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             position: relative;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1.5px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
         .wechat-account-item:active {
-            transform: scale(0.95);
-            background-color: #f0f0f0;
+            transform: scale(0.94);
+            background-color: rgba(255, 255, 255, 0.9);
         }
 
         .wechat-account-item.active {
-            background: #f0fdf4;
+            background: #fff;
             border-color: #07C160;
+            box-shadow: 0 10px 25px rgba(7, 193, 96, 0.12);
         }
 
         .account-avatar-container {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            margin-bottom: 10px;
+            width: 68px;
+            height: 68px;
+            border-radius: 22px; /* 方圆风格 */
+            margin-bottom: 12px;
             overflow: hidden;
             border: 2px solid #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .wechat-account-item.active .account-avatar-container {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(7, 193, 96, 0.15);
         }
 
         .account-avatar-container img {
@@ -5566,10 +5579,10 @@
         }
 
         .account-name {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: #1d1d1f;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -5577,19 +5590,19 @@
         }
 
         .account-status {
-            font-size: 11px;
+            font-size: 10px;
             color: #8e8e93;
+            font-weight: 500;
         }
 
         .wechat-account-item.active .account-status {
             color: #07C160;
-            font-weight: 600;
         }
 
         .account-check {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 10px;
+            right: 10px;
             background: #07C160;
             color: #fff;
             width: 18px;
@@ -5599,6 +5612,12 @@
             align-items: center;
             justify-content: center;
             font-size: 9px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
 
         .wechat-account-item.active .account-check {
@@ -5606,107 +5625,129 @@
         }
 
         .wechat-account-add {
-            background: #f8f8f8;
-            border: 1.5px dashed #ccc;
-            border-radius: 18px;
-            padding: 15px;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1.5px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .wechat-account-add:active {
-            background-color: #f0f0f0;
+            background-color: rgba(0, 0, 0, 0.06);
+            transform: scale(0.98);
         }
 
         .wechat-account-add .add-icon {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             background-color: #fff;
-            border-radius: 50%;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             color: #07C160;
-            margin-bottom: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
         .wechat-account-add span {
             font-size: 12px;
             font-weight: 600;
-            color: #666;
+            color: #333;
         }
 
         .wechat-account-cancel-btn {
             width: 100%;
-            padding: 14px;
-            background: #f2f2f7;
+            padding: 16px;
+            background: #000;
             border: none;
-            border-radius: 14px;
+            border-radius: 20px;
             font-size: 16px;
-            font-weight: 600;
-            color: #FF3B30;
+            font-weight: 700;
+            color: #fff;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .wechat-account-cancel-btn:active {
-            background-color: #e5e5ea;
+            transform: scale(0.97);
+            opacity: 0.9;
         }
 
         /* 查岗列表样式 */
         .account-section-title {
-            font-size: 12px;
-            color: #999;
-            margin: 15px 0 10px 5px;
-            font-weight: 600;
+            font-size: 11px;
+            color: rgba(0, 0, 0, 0.3);
+            margin: 20px 0 12px 4px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .account-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .account-character-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
+            margin-bottom: 24px;
         }
 
         .wechat-character-account-item {
-            background: #f8f8f8;
-            border-radius: 15px;
-            padding: 12px 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 14px 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.02);
         }
 
         .wechat-character-account-item:active {
-            background-color: #f0f0f0;
-            transform: scale(0.95);
+            background-color: #fff;
+            transform: scale(0.92);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
         }
 
         .account-avatar-container.char-avatar {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 6px;
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
         }
 
         .account-name.char-name {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
             color: #333;
+            margin-bottom: 2px;
         }
 
         .char-tag {
             font-size: 9px;
             color: #07C160;
-            font-weight: 700;
+            font-weight: 800;
+            background: #f0fdf4;
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         .scan-header h1 {
