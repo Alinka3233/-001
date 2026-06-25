@@ -5631,11 +5631,12 @@
                         headerIds: false,
                         mangle: false
                     });
-                    finalContent = marked.parse(content);
+                    finalContent = marked.parse(content.trim()).trim();
                 }
 
                 // 将 assistant 映射为 ai 以便使用现有 CSS
                 const displayRole = role === 'assistant' ? 'ai' : role;
+                const isMarkdown = !isHtml && typeof marked !== 'undefined';
 
                 if (displayRole === 'system') {
                     div.className = 'wechat-message';
@@ -5667,7 +5668,7 @@
                     const contentHtml = `
                         <div class="wechat-msg-content-wrapper">
                             ${nicknameHtml}
-                            <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''}" style="${bubbleStyle}">${finalContent}</div>
+                            <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''} ${isMarkdown ? 'markdown-content' : ''}" style="${bubbleStyle}">${finalContent}</div>
                         </div>
                     `;
 

@@ -6217,6 +6217,10 @@
             letter-spacing: 0;
         }
 
+        .wechat-message-bubble.markdown-content {
+            white-space: normal;
+        }
+
         /* Markdown 内容样式适配 - 移除冗余间隙 */
         .wechat-message-bubble p {
             margin: 0 !important;
@@ -6228,7 +6232,14 @@
         }
         .wechat-message-bubble ul, .wechat-message-bubble ol {
             padding-left: 20px;
-            margin: 4px 0;
+            margin: 4px 0 0 0; /* 仅保留顶部间距 */
+        }
+        .wechat-message-bubble ul:first-child, .wechat-message-bubble ol:first-child {
+            margin-top: 0;
+        }
+        /* 确保气泡内最后一个元素没有底部间距 */
+        .wechat-message-bubble > *:last-child {
+            margin-bottom: 0 !important;
         }
         .wechat-message-bubble code {
             background: rgba(0, 0, 0, 0.05);
@@ -6242,7 +6253,10 @@
             padding: 10px;
             border-radius: 6px;
             overflow-x: auto;
-            margin: 8px 0;
+            margin: 8px 0 0 0; /* 仅保留顶部间距 */
+        }
+        .wechat-message-bubble pre:first-child {
+            margin-top: 0;
         }
         .wechat-message-bubble pre code {
             background: none;
