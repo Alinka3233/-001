@@ -5536,6 +5536,7 @@
 
             function openWechatChat(id, type = 'single') {
                 wechatState.activeChatId = id;
+                wechatState.activeCharacterId = id; // 同步 ID，解决消息渲染判断问题
                 wechatState.activeChatType = type;
                 
                 let target;
@@ -5568,6 +5569,7 @@
                 document.getElementById('wechat-list-view').style.display = 'block';
                 document.getElementById('wechat-chat-view').classList.remove('active');
                 wechatState.activeChatId = null;
+                wechatState.activeCharacterId = null;
                 wechatState.activeChatType = 'single';
                 wechatState.conversationTurns = 0;
                 
@@ -5781,20 +5783,19 @@
                     char.chatHistory.push({ role: 'assistant', content: segment, timestamp: Date.now() });
                     saveWechatData();
                     
-                    // 发送当前段落 (只在当前聊天活跃时渲染)
-                    if (wechatState.activeCharacterId == char.id) {
-                        addWechatMessage(segment, 'ai', char.avatar);
-                    }
-                    
-                    // 检查是否需要显示全局通知弹窗
+                    // 发送当前段落
                     const wechatApp = document.getElementById('app-wechat');
                     const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
                     const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    
-                    // 只有在不在当前聊天界面（不论是单聊还是群聊）时才显示通知
-                    const isCurrentlyInAnyChat = isWechatOpen && isChatViewOpen;
+                    const isCurrentChat = isChatViewOpen && (wechatState.activeCharacterId == char.id);
 
-                    if (!isCurrentlyInAnyChat) {
+                    // 如果当前就在该对话页面，则直接渲染消息
+                    if (isCurrentChat) {
+                        addWechatMessage(segment, 'ai', char.avatar);
+                    }
+                    
+                    // 只有在不在当前对话页面时才显示通知
+                    if (!isCurrentChat) {
                         showGlobalNotification(char.name, segment, char.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(char.id, 'single');
@@ -6472,7 +6473,12 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     await new Promise(resolve => setTimeout(resolve, typingTime));
                     
                     // 添加消息到界面
-                    if (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group') {
+                    const wechatApp = document.getElementById('app-wechat');
+                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
+                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
+                    const isCurrentGroupChat = isChatViewOpen && (wechatState.activeChatId == group.id && wechatState.activeChatType === 'group');
+
+                    if (isCurrentGroupChat) {
                         addWechatMessage(segment, 'ai', member.avatar, member.name);
                     }
 
@@ -6486,13 +6492,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     
                     saveWechatData();
                     
-                    // 群聊通知逻辑：不在当前聊天界面（不论是单聊还是群聊）时显示通知
-                    const wechatApp = document.getElementById('app-wechat');
-                    const isWechatOpen = wechatApp && wechatApp.classList.contains('active');
-                    const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
-                    const isCurrentlyInAnyChat = isWechatOpen && isChatViewOpen;
-
-                    if (!isCurrentlyInAnyChat) {
+                    // 只有在不在当前群聊对话页面时才显示通知
+                    if (!isCurrentGroupChat) {
                         showGlobalNotification(`${group.name} - ${member.name}`, segment, member.avatar, () => {
                             if (!isWechatOpen) openApp('wechat');
                             openWechatChat(group.id, 'group');
@@ -6814,14 +6815,17 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                         
                         console.log(`[后台任务] ${char.name} 自动发布了朋友圈`);
                         
-                        // 显示通知弹窗
-                        showGlobalNotification(char.name, `[新朋友圈] ${momentContent}`, char.avatar, () => {
-                            openApp('wechat');
-                            const momentsTabBtn = document.querySelector('.wechat-nav-item[data-tab="moments"]');
-                            if (momentsTabBtn) {
-                                momentsTabBtn.click();
-                            }
-                        });
+                        // 显示通知弹窗 (仅在非聊天界面时显示)
+                        const isChatViewOpen = document.getElementById('wechat-chat-view').classList.contains('active');
+                        if (!isChatViewOpen) {
+                            showGlobalNotification(char.name, `[新朋友圈] ${momentContent}`, char.avatar, () => {
+                                openApp('wechat');
+                                const momentsTabBtn = document.querySelector('.wechat-nav-item[data-tab="moments"]');
+                                if (momentsTabBtn) {
+                                    momentsTabBtn.click();
+                                }
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error('自动发朋友圈错误:', error);
