@@ -6202,7 +6202,7 @@
         .wechat-message-bubble {
             padding: 8px 12px;
             border-radius: 4px;
-            line-height: 1.4;
+            line-height: 1.45;
             font-size: 16px;
             position: relative;
             word-break: break-word;
@@ -6222,26 +6222,30 @@
             white-space: normal;
         }
 
-        /* Markdown 内容样式适配 - 移除冗余间隙 */
-        .wechat-message-bubble p {
+        /* 彻底消除气泡内所有可能导致空白的间隙 */
+        .wechat-message-bubble p, 
+        .wechat-message-bubble ul, 
+        .wechat-message-bubble ol,
+        .wechat-message-bubble li,
+        .wechat-message-bubble pre {
             margin: 0 !important;
-            width: 100%;
-            word-wrap: break-word;
+            padding-bottom: 0 !important;
         }
-        .wechat-message-bubble p + p {
-            margin-top: 4px !important; /* 仅在段落间保留极小间隙 */
+        
+        .wechat-message-bubble p + p,
+        .wechat-message-bubble p + ul,
+        .wechat-message-bubble p + ol,
+        .wechat-message-bubble p + pre {
+            margin-top: 4px !important;
         }
-        .wechat-message-bubble ul, .wechat-message-bubble ol {
-            padding-left: 20px;
-            margin: 4px 0 0 0; /* 仅保留顶部间距 */
-        }
-        .wechat-message-bubble ul:first-child, .wechat-message-bubble ol:first-child {
-            margin-top: 0;
-        }
-        /* 确保气泡内最后一个元素没有底部间距 */
-        .wechat-message-bubble > *:last-child {
+
+        /* 确保最后一个子元素没有任何底部边距 */
+        .wechat-message-bubble > *:last-child,
+        .wechat-message-bubble > *:last-child > *:last-child {
             margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
         }
+
         .wechat-message-bubble > p:only-child {
             display: inline;
         }
@@ -6452,9 +6456,10 @@
         .wechat-input {
             flex: 1;
             min-width: 0;
-            min-height: 36px;
+            height: 40px;
+            min-height: 40px;
             max-height: 120px;
-            padding: 8px 12px;
+            padding: 10px 12px;
             margin: 0 4px;
             border: none;
             border-radius: 6px;
@@ -6463,10 +6468,11 @@
             outline: none;
             color: #1d1d1f;
             resize: none;
-            line-height: 1.4;
-            display: block; /* textarea 应使用 block */
+            line-height: 20px;
+            display: block;
             overflow-y: auto;
             transition: height 0.1s ease;
+            box-sizing: border-box;
         }
 
         .wechat-input:focus {

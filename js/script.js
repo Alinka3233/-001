@@ -6283,6 +6283,16 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 }
             });
 
+            // --- 微信发送消息功能 ---
+            const wechatInput = document.getElementById('wechat-input');
+            if (wechatInput) {
+                // 处理输入框高度自动伸缩
+                wechatInput.addEventListener('input', () => {
+                    wechatInput.style.height = '40px';
+                    wechatInput.style.height = wechatInput.scrollHeight + 'px';
+                });
+            }
+
             async function sendWechatMessage() {
                 const input = document.getElementById('wechat-input');
                 const text = input.value.trim();
@@ -6305,6 +6315,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 target.chatHistory.push({ role: 'user', content: text, timestamp: Date.now() });
                 saveWechatData();
                 input.value = '';
+                input.style.height = '40px'; // 重置高度
                 
                 // 刷新联系人列表
                 renderWechatList();
@@ -6498,7 +6509,6 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
             async function processWechatAIMessage(char, newMessages) {
                 char.isTyping = true;
-                const input = document.getElementById('wechat-input');
                 const sendBtn = document.getElementById('wechat-send-btn');
                 
                 // 此时如果是合并消息，历史记录中已经包含了每一条，这里不需要再 push
@@ -7700,7 +7710,10 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
 
             document.addEventListener('keydown', (e) => {
                 if (e.target.id === 'wechat-input' && e.key === 'Enter') {
-                    sendWechatMessage();
+                    if (!e.shiftKey) {
+                        e.preventDefault();
+                        sendWechatMessage();
+                    }
                 }
             });
 
@@ -12112,7 +12125,8 @@ ${wechatState.profile.persona || '一个普通的用户'}`;
                     '.app-content', '.apps-grid-container', '.wechat-chat-list', 
                     '.wechat-container', '.wechat-tab', '.wechat-modal-body', 
                     '.notes-container', '.notes-editor-content', '#app-appstore', 
-                    '.assistive-touch', '.wechat-messages', '.wechat-chat-view-content'
+                    '.assistive-touch', '.wechat-messages', '.wechat-chat-view-content',
+                    '.wechat-message-list'
                 ];
                 
                 const isScrollable = scrollableSelectors.some(selector => e.target.closest(selector));
