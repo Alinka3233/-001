@@ -9301,43 +9301,59 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 const currentId = localStorage.getItem('currentAccountId') || 'default';
                 const isCheckingAccount = wechatState.characters.some(c => c.isUserIdentity);
 
+                // --- 顶部：当前身份 Banner ---
                 let html = `
-                    <div class="account-section-title">
-                        我的身份 
-                        ${isCheckingAccount ? '<span style="color: #ff9500; font-size: 10px; margin-left: 8px;">(查岗模式中)</span>' : ''}
+                    <div class="current-account-banner">
+                        <img class="current-avatar" src="${wechatState.profile.avatar || GREY_AVATAR}" alt="Avatar">
+                        <div class="current-info">
+                            <h2>${wechatState.profile.nickname}</h2>
+                            <p>${isCheckingAccount ? '正在以「查岗视角」查看角色账号' : (wechatState.profile.persona || '当前登录身份')}</p>
+                        </div>
                     </div>
-                    ${accounts.map(acc => {
-                        const hasAvatar = acc.avatar && acc.avatar !== '' && acc.avatar !== GREY_AVATAR;
-                        const isCurrent = acc.id === currentId && !isCheckingAccount;
-                        return `
-                            <div class="wechat-account-item ${isCurrent ? 'active' : ''}" data-id="${acc.id}" data-type="user">
-                                <div class="account-avatar-container">
-                                    ${hasAvatar ? `<img src="${acc.avatar}">` : ''}
-                                </div>
-                                <div class="account-info">
-                                    <div class="account-name">${acc.nickname}</div>
-                                    <div class="account-status">${isCurrent ? '当前使用' : (isCheckingAccount && acc.id === currentId ? '点击退出查岗' : '点击切换')}</div>
-                                </div>
-                                <div class="account-check">${isCurrent ? '<i class="fas fa-check"></i>' : ''}</div>
-                            </div>
-                        `;
-                    }).join('')}
                 `;
 
-                // 加入查岗部分（角色账号）
+                // --- 中间：身份切换列表 ---
+                const otherAccounts = accounts.filter(acc => acc.id !== currentId || isCheckingAccount);
+                if (otherAccounts.length > 0) {
+                    html += `
+                        <div class="account-section-title">
+                            <i class="fas fa-user-circle"></i> 我的身份切换
+                        </div>
+                        <div class="wechat-account-list">
+                            ${otherAccounts.map(acc => {
+                                const hasAvatar = acc.avatar && acc.avatar !== '' && acc.avatar !== GREY_AVATAR;
+                                const isRealCurrent = acc.id === currentId;
+                                return `
+                                    <div class="wechat-account-item" data-id="${acc.id}" data-type="user">
+                                        <div class="account-avatar-container">
+                                            ${hasAvatar ? `<img src="${acc.avatar}">` : ''}
+                                        </div>
+                                        <div class="account-info">
+                                            <div class="account-name">${acc.nickname}</div>
+                                            <div class="account-status">${isRealCurrent ? '点击结束查岗并返回' : '点击切换身份'}</div>
+                                        </div>
+                                        <div class="account-check">${isRealCurrent ? '<i class="fas fa-undo-alt" style="color: #ff9500"></i>' : ''}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                // --- 底部：查岗角色 Grid ---
                 const displayCharacters = (wechatState.characters || []).filter(c => !c.isUserIdentity);
                 if (displayCharacters.length > 0) {
                     html += `
-                        <div class="account-section-title" style="margin-top: 24px;">查岗 (切换到角色视角)</div>
-                        <div class="account-character-grid">
+                        <div class="account-section-title">
+                            <i class="fas fa-mask"></i> 查岗 (进入角色视角)
+                        </div>
+                        <div class="character-perspective-grid">
                             ${displayCharacters.map(char => {
                                 return `
-                                    <div class="wechat-character-account-item" data-id="${char.id}">
-                                        <div class="account-avatar-container char-avatar">
-                                            <img src="${char.avatar}">
-                                        </div>
-                                        <div class="account-name char-name">${char.name}</div>
-                                        <div class="char-tag">查岗</div>
+                                    <div class="character-card" data-id="${char.id}">
+                                        <img class="char-avatar-mini" src="${char.avatar}">
+                                        <div class="char-name-mini">${char.name}</div>
+                                        <div class="perspective-tag">顶号查岗</div>
                                     </div>
                                 `;
                             }).join('')}
@@ -9347,53 +9363,51 @@ ${statusInfluence || '用户当前无特定状态'}`;
 
                 accountList.innerHTML = html;
 
-                // 绑定切换点击
+                // 绑定身份切换点击
                 accountList.querySelectorAll('.wechat-account-item').forEach(item => {
                     item.addEventListener('click', async () => {
                         const id = item.dataset.id;
                         const isCheckingAccount = wechatState.characters.some(c => c.isUserIdentity);
                         
-                        // 如果 ID 相同且不在查岗模式，则不切换
-                        if (id === currentId && !isCheckingAccount) return;
-                        
-                        const targetAcc = accounts.find(a => a.id === id);
-                        if (targetAcc) {
-                            // 如果当前正处于查岗模式（即存在用户转换的角色），需要恢复
+                        // 如果是当前正在查岗的原账号，点击则结束查岗
+                        if (id === currentId && isCheckingAccount) {
                             let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
                             if (userCharIndex !== -1) {
-                                // 查找原本的角色数据并恢复
                                 const userChar = wechatState.characters[userCharIndex];
-                                
-                                // 这里我们要找回被“换”出去的角色
-                                // 由于查岗逻辑是互换，此时 profile 是原本的角色
-                                // 我们需要把现在的 profile (即角色) 重新存回角色列表
-                                const restoredChar = {
-                                    id: 'char_' + Date.now(), // 给个新 ID 防止冲突，或者记录原 ID
-                                    name: wechatState.profile.nickname,
-                                    avatar: wechatState.profile.avatar,
-                                    wechatid: wechatState.profile.wechatid,
-                                    persona: wechatState.profile.persona,
-                                    chatHistory: [], // 查岗期间的历史可能比较乱，这里简化处理
-                                    pinned: false
-                                };
-                                
-                                // 如果能找到原角色的聊天记录会更好，这里暂时简化
-                                wechatState.characters.push(restoredChar);
-                                
-                                // 移除转换出的用户角色（即那个标记为 isUserIdentity 的）
+                                wechatState.profile.nickname = userChar.name;
+                                wechatState.profile.avatar = userChar.avatar;
+                                wechatState.profile.persona = userChar.persona;
                                 wechatState.characters.splice(userCharIndex, 1);
+                                
+                                await saveWechatData();
+                                renderWechatProfile();
+                                renderWechatList();
+                                renderWechatContacts();
+                                renderAccountList();
+                                
+                                setTimeout(() => {
+                                    accountView.classList.remove('active');
+                                    setTimeout(() => {
+                                        accountView.style.display = 'none';
+                                        alert('已结束查岗，返回原身份');
+                                    }, 400);
+                                }, 300);
+                                return;
                             }
+                        }
 
-                            // 切换逻辑：从 accounts 中恢复用户资料
+                        const targetAcc = accounts.find(a => a.id === id);
+                        if (targetAcc) {
                             wechatState.profile.nickname = targetAcc.nickname;
                             wechatState.profile.avatar = targetAcc.avatar;
                             wechatState.profile.wechatid = targetAcc.wechatid || '';
                             wechatState.profile.persona = targetAcc.persona || '';
-                            wechatState.profile.status = ''; // 切换账号重置状态
+                            wechatState.profile.status = '';
                             wechatState.profile.statusIcon = '';
                             localStorage.setItem('currentAccountId', id);
                             
-                            // 更新 UI
+                            wechatState.characters = wechatState.characters.filter(c => !c.isUserIdentity);
+
                             await saveWechatData();
                             renderWechatProfile();
                             renderWechatList();
@@ -9412,13 +9426,12 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 });
 
                 // 绑定查岗点击
-                accountList.querySelectorAll('.wechat-character-account-item').forEach(item => {
+                accountList.querySelectorAll('.character-card').forEach(item => {
                     item.addEventListener('click', async () => {
                         const charId = item.dataset.id;
                         const character = wechatState.characters.find(c => c.id == charId);
                         if (!character) return;
 
-                        // AI 随机拒绝逻辑 (30% 概率拒绝)
                         const refusalChance = 0.3;
                         if (Math.random() < refusalChance) {
                             const refusalMessages = [
@@ -9434,8 +9447,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             return;
                         }
 
-                        if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份与该角色互换。`)) {
-                            // 查岗逻辑：身份互换
+                        if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份临时互换。`)) {
                             const oldProfile = {
                                 nickname: wechatState.profile.nickname,
                                 avatar: wechatState.profile.avatar,
@@ -9443,39 +9455,22 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 persona: wechatState.profile.persona
                             };
 
-                            // 1. 将当前用户保存为一个新角色（或更新现有角色，如果之前互换过）
-                            // 寻找是否已经存在一个代表“我”的角色
-                            let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
-                            if (userCharIndex !== -1) {
-                                wechatState.characters[userCharIndex].name = oldProfile.nickname;
-                                wechatState.characters[userCharIndex].avatar = oldProfile.avatar;
-                                wechatState.characters[userCharIndex].persona = oldProfile.persona;
-                            } else {
-                                // 创建一个新角色代表用户
-                                const newUserChar = {
-                                    id: 'user_char_' + Date.now(),
-                                    name: oldProfile.nickname || '我',
-                                    avatar: oldProfile.avatar || GREY_AVATAR,
-                                    persona: oldProfile.persona || '一个普通的用户',
-                                    chatHistory: character.chatHistory.map(m => ({
-                                        ...m,
-                                        role: m.role === 'user' ? 'assistant' : (m.role === 'assistant' ? 'user' : m.role)
-                                    })),
-                                    isUserIdentity: true // 标记这是用户身份转换的角色
-                                };
-                                wechatState.characters.push(newUserChar);
-                            }
+                            const newUserChar = {
+                                id: 'user_char_' + Date.now(),
+                                name: oldProfile.nickname || '我',
+                                avatar: oldProfile.avatar || GREY_AVATAR,
+                                persona: oldProfile.persona || '一个普通的用户',
+                                isUserIdentity: true
+                            };
+                            wechatState.characters.push(newUserChar);
 
-                            // 2. 将目标角色的信息设置到 profile
                             wechatState.profile.nickname = character.name;
                             wechatState.profile.avatar = character.avatar;
                             wechatState.profile.wechatid = character.wechatid || ('wxid_' + character.id);
                             wechatState.profile.persona = character.persona || '';
 
-                            // 3. 从角色列表中移除该角色
                             wechatState.characters = wechatState.characters.filter(c => c.id != charId);
 
-                            // 4. 保存并更新 UI
                             await saveWechatData();
                             renderWechatProfile();
                             renderWechatList();
