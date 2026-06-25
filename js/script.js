@@ -6008,6 +6008,7 @@
                 
                 // 获取JSON限制内容
                 const jsonRestrictions = getJsonRestrictions();
+                const statusInfluence = getStatusInfluencePrompt();
                 
                 // 动作描写指令
                 const actionDescInstruction = wechatState.settings.allowActionDescription !== false 
@@ -6035,7 +6036,7 @@ ${userPersona}
 - 环境信息：${appDataString}
 
 ### JSON限制 (底层逻辑限制)
-${jsonRestrictions || '暂无JSON限制内容'}
+${jsonRestrictions || '暂无JSON限制内容'}${statusInfluence}
 
 ### 交互准则
 ${actionDescInstruction}
@@ -6059,6 +6060,29 @@ ${Array.isArray(char.memory) ? char.memory.map((m, i) => `${i+1}. ${m}`).join('\
             function getJsonRestrictions() {
                 const jsonRestrictions = localStorage.getItem('jsonRestrictions');
                 return jsonRestrictions || '';
+            }
+
+            // 获取当前用户状态对 AI 语气的映射影响
+            function getStatusInfluencePrompt() {
+                const status = wechatState.profile.status;
+                if (!status) return '';
+
+                const toneMap = {
+                    '美滋滋': '用户现在心情非常好（状态：美滋滋）。你的语气应该更加轻快、热情，多使用一些俏皮的表情符号，分享用户的喜悦，给予积极的回馈。',
+                    '忙碌': '用户现在非常忙碌（状态：忙碌）。你的回复必须极其简洁高效，直接切入正题，避免任何废话或寒暄，必要时可以主动询问是否需要帮助或提议稍后再聊。',
+                    '摸鱼': '用户正在摸鱼放松（状态：摸鱼）。你的语气可以更加随意、散漫、幽默，可以聊一些轻松愉快的话题，甚至可以调侃一下摸鱼的快乐。',
+                    '发呆': '用户正在放空发呆（状态：发呆）。你的语气应该温柔、安静，不要给用户压力，可以聊一些治愈、唯美或带点哲理的话题，或者只是静静地陪伴。',
+                    '运动': '用户正在运动锻炼（状态：运动）。你的语气应该充满活力、阳光，多给予鼓励和正能量，可以聊聊健身、健康或挑战类的话题。',
+                    '睡觉': '用户准备休息或正在睡觉（状态：睡觉）。你的回复必须极其简短（甚至可以只回复一个表情），语气要轻柔，提醒用户好好休息，晚安。',
+                    '焦虑': '用户现在感到比较焦虑（状态：焦虑）。你必须表现出极大的耐心、同理心和支持感。语气要温和稳定，给予安慰和鼓励，绝对不要说任何可能增加用户压力的话。',
+                    '求打扰': '用户现在渴望交流（状态：求打扰）。你应该表现得更加主动、健谈，多开启话题，展现出你有趣、丰富的一面，陪伴用户愉快地聊天。'
+                };
+
+                const influence = toneMap[status] || `用户当前的状态是：${status}。请在对话中适当考虑这一状态，使你的语气更加贴切。`;
+                
+                return `\n### 用户当前状态影响 (JSON限制补充)
+- **当前状态**：${status}
+- **语气调整指令**：${influence}\n`;
             }
 
             function buildMemorySummarizePrompt(char, recentHistory) {
@@ -6526,6 +6550,8 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 const otherMembers = wechatState.characters
                     .filter(c => group.members.includes(c.id) && c.id !== member.id)
                     .map(c => c.name).join('、');
+                
+                const statusInfluence = getStatusInfluencePrompt();
 
                 return `你现在正在一个名为"${group.name}"的群聊中。
 你的身份是"${char.name}"。
@@ -6545,7 +6571,10 @@ ${char.persona}
 ${char.speakingStyle}
 
 ### 用户人设 (群主/当前聊天对象)
-${wechatState.profile.persona || '一个普通的用户'}`;
+${wechatState.profile.persona || '一个普通的用户'}
+
+### 状态感知 (JSON限制补充)
+${statusInfluence || '用户当前无特定状态'}`;
             }
 
             async function sendGroupMessageBySentences(text, member, group) {
