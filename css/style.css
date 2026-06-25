@@ -6137,7 +6137,6 @@
 
         .wechat-message.user {
             justify-content: flex-end;
-            flex-direction: row-reverse;
         }
 
         /* 头像容器 */

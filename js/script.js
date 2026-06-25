@@ -5620,7 +5620,19 @@
                 // 判断是否是特殊 HTML 内容（如红包、转账、图片）
                 const trimmedContent = content.trim();
                 const isHtml = trimmedContent.startsWith('<div') || trimmedContent.startsWith('<img');
-                const finalContent = isHtml ? content : escapeHtml(content);
+
+                // 使用 marked 解析 Markdown 内容 (如果可用)
+                let finalContent = isHtml ? content : escapeHtml(content);
+                if (!isHtml && typeof marked !== 'undefined') {
+                    // 配置 marked
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        headerIds: false,
+                        mangle: false
+                    });
+                    finalContent = marked.parse(content);
+                }
 
                 // 将 assistant 映射为 ai 以便使用现有 CSS
                 const displayRole = role === 'assistant' ? 'ai' : role;
@@ -5646,15 +5658,25 @@
                         ? `<div class="wechat-msg-nickname">${nickname}</div>` 
                         : '';
 
-                    div.innerHTML = `
+                    // 构建消息 HTML
+                    const avatarHtml = `
                         <div class="wechat-message-avatar-container">
                             ${renderAvatarHtml(avatarUrl, 'wechat-message-avatar')}
                         </div>
+                    `;
+                    const contentHtml = `
                         <div class="wechat-msg-content-wrapper">
                             ${nicknameHtml}
                             <div class="wechat-message-bubble ${isSpecial ? 'no-bg' : ''}" style="${bubbleStyle}">${finalContent}</div>
                         </div>
                     `;
+
+                    // 根据角色决定排列顺序：AI 在左（头像+内容），用户在右（内容+头像）
+                    if (displayRole === 'ai') {
+                        div.innerHTML = avatarHtml + contentHtml;
+                    } else {
+                        div.innerHTML = contentHtml + avatarHtml;
+                    }
                 }
 
                 messageList.appendChild(div);
