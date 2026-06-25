@@ -9302,8 +9302,8 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         const isCurrent = acc.id === currentId && !isCheckingAccount;
                         return `
                             <div class="wechat-account-item ${isCurrent ? 'active' : ''}" data-id="${acc.id}" data-type="user">
-                                <div class="account-avatar-container" style="width: 72px; height: 72px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                    ${hasAvatar ? `<img src="${acc.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : ''}
+                                <div class="account-avatar-container">
+                                    ${hasAvatar ? `<img src="${acc.avatar}">` : ''}
                                 </div>
                                 <div class="account-info">
                                     <div class="account-name">${acc.nickname}</div>
@@ -9320,15 +9320,15 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 if (displayCharacters.length > 0) {
                     html += `
                         <div class="account-section-title" style="margin-top: 24px;">查岗 (切换到角色视角)</div>
-                        <div class="account-character-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 0 10px;">
+                        <div class="account-character-grid">
                             ${displayCharacters.map(char => {
                                 return `
-                                    <div class="wechat-character-account-item" data-id="${char.id}" style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                        <div class="account-avatar-container" style="width: 60px; height: 60px; border-radius: 50%; background-color: #f0f0f2; margin-bottom: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                            <img src="${char.avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                    <div class="wechat-character-account-item" data-id="${char.id}">
+                                        <div class="account-avatar-container char-avatar">
+                                            <img src="${char.avatar}">
                                         </div>
-                                        <div class="account-name" style="font-size: 12px; color: #333; text-align: center; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${char.name}</div>
-                                        <div style="font-size: 10px; color: #07c160; margin-top: 2px;">查岗</div>
+                                        <div class="account-name char-name">${char.name}</div>
+                                        <div class="char-tag">查岗</div>
                                     </div>
                                 `;
                             }).join('')}
