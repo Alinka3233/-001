@@ -5699,36 +5699,7 @@
             const wechatHeaderBackBtn = document.getElementById('wechat-header-back-btn');
             if (wechatHeaderBackBtn) {
                 wechatHeaderBackBtn.addEventListener('click', () => {
-                    const currentTab = document.querySelector('.wechat-nav-item.active')?.dataset.tab;
-                    
-                    if (currentTab === 'moments') {
-                        // 如果在朋友圈，点击返回按钮回到发现页
-                        const discoverNavItem = document.querySelector('.wechat-nav-item[data-tab="moments"]');
-                        if (discoverNavItem) {
-                            // 模拟点击底部导航栏的“发现”按钮来重置状态
-                            // 但由于目前逻辑点击 moments 还是会显示朋友圈，我们需要手动重置
-                            
-                            // 切换标签页到发现（目前就是发现，但我们需要重置显示状态）
-                            const wechatTabs = document.querySelectorAll('.wechat-tab');
-                            wechatTabs.forEach(tab => tab.style.display = 'none');
-                            document.getElementById(`wechat-moments-tab`).style.display = 'block';
-                            
-                            // 恢复底部导航栏
-                            const wechatNav = document.querySelector('.wechat-nav');
-                            if (wechatNav) wechatNav.style.display = 'flex';
-                            
-                            // 隐藏头部返回按钮
-                            wechatHeaderBackBtn.style.display = 'none';
-                            
-                            // 恢复标题和加号图标
-                            document.getElementById('wechat-header-title').textContent = '发现';
-                            const wechatPlusBtn = document.getElementById('wechat-plus-btn');
-                            if (wechatPlusBtn) {
-                                wechatPlusBtn.style.display = 'flex';
-                                wechatPlusBtn.innerHTML = '<i class="fas fa-plus"></i>';
-                            }
-                        }
-                    } else if (wechatState.activeChatId) {
+                    if (wechatState.activeChatId) {
                         // 如果在聊天窗口
                         closeWechatChat();
                     }
@@ -7966,20 +7937,15 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     const wechatNav = document.querySelector('.wechat-nav');
                     const wechatHeaderBackBtn = document.getElementById('wechat-header-back-btn');
                     
-                    // 如果进入朋友圈，隐藏底部导航栏，显示返回按钮
-                    if (tabName === 'moments') {
-                        if (wechatNav) wechatNav.style.display = 'none';
-                        if (wechatHeaderBackBtn) wechatHeaderBackBtn.style.display = 'flex';
-                    } else {
-                        if (wechatNav) wechatNav.style.display = 'flex';
-                        if (wechatHeaderBackBtn) wechatHeaderBackBtn.style.display = 'none';
-                    }
+                    // 统一处理导航栏和返回按钮：所有标签页都显示导航栏，隐藏返回按钮
+                    if (wechatNav) wechatNav.style.display = 'flex';
+                    if (wechatHeaderBackBtn) wechatHeaderBackBtn.style.display = 'none';
                     
                     // 更新标题
                     document.getElementById('wechat-header-title').textContent = {
                         'chats': '微信',
                         'contacts': '通讯录',
-                        'moments': '发现',
+                        'moments': '朋友圈',
                         'me': ''
                     }[tabName];
                     
@@ -7994,12 +7960,12 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     }
                     
                     if (wechatPlusBtn) {
-                if (tabName === 'moments') {
-                    wechatPlusBtn.innerHTML = '<i class="fas fa-camera"></i>';
-                } else {
-                    wechatPlusBtn.innerHTML = '<i class="fas fa-plus"></i>';
-                }
-            }
+                        if (tabName === 'moments') {
+                            wechatPlusBtn.innerHTML = '<i class="fas fa-camera"></i>';
+                        } else {
+                            wechatPlusBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                        }
+                    }
                     
                     // 控制搜索按钮显示/隐藏
                     if (wechatSearchBtn) {
