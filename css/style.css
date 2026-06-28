@@ -6109,7 +6109,7 @@
         .wechat-redpacket {
             background-color: #fa9d3b;
             width: 240px;
-            height: 72px; /* 强制固定高度，确保扁平长方形比例 */
+            height: 82px; /* 从 72px 提升至 82px，解决“太扁”的问题 */
             border-radius: 4px;
             cursor: pointer;
             overflow: hidden;
@@ -6135,15 +6135,15 @@
 
         .wechat-redpacket-top {
             flex: 1;
-            padding: 0 12px;
+            padding: 0 14px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
         .wechat-redpacket-icon {
-            width: 30px;
-            height: 36px;
+            width: 32px; /* 稍微增大图标 */
+            height: 38px;
             background: #f25542;
             border-radius: 3px;
             display: flex;
@@ -6161,8 +6161,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: #f8e7a8;
             border-radius: 50%;
             z-index: 1;
@@ -6171,7 +6171,7 @@
 
         .wechat-redpacket-icon::after {
             content: "🧧";
-            font-size: 16px;
+            font-size: 18px;
             z-index: 2;
             position: relative;
             top: -1px;
@@ -6187,26 +6187,26 @@
 
         .wechat-redpacket-msg {
             color: #fff;
-            font-size: 14px;
+            font-size: 15px; /* 字号恢复至 15px */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-bottom: -1px;
+            margin-bottom: 2px;
             font-weight: 400;
         }
 
         .wechat-redpacket-status {
             color: rgba(255,255,255,0.9);
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .wechat-redpacket-bottom {
             background: #fff;
-            height: 18px; /* 极薄页脚 */
-            padding: 0 12px;
+            height: 20px; /* 页脚稍微增加厚度 */
+            padding: 0 14px;
             display: flex;
             align-items: center;
-            font-size: 10px;
+            font-size: 11px;
             color: #b2b2b2;
             border-top: 0.5px solid rgba(0,0,0,0.02);
         }
@@ -8837,7 +8837,7 @@
     background: linear-gradient(135deg, #f9a334 0%, #f78d1d 100%);
     border-radius: 6px;
     width: 240px;
-    height: 72px; /* 强制固定高度，确保扁平长方形比例 */
+    height: 82px; /* 提升高度至 82px，保持与红包一致 */
     color: white;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -8856,8 +8856,8 @@
 }
 
 .transfer-icon {
-    width: 36px;
-    height: 36px;
+    width: 38px; /* 恢复图标尺寸 */
+    height: 38px;
     background-color: #fff;
     border-radius: 50%;
     display: flex;
@@ -8873,24 +8873,24 @@
 }
 
 .transfer-amount {
-    font-size: 14px;
+    font-size: 15px; /* 恢复字号 */
     font-weight: 500;
-    margin-bottom: -1px;
+    margin-bottom: 2px;
 }
 
 .transfer-status {
-    font-size: 11px;
+    font-size: 12px; /* 恢复字号 */
     opacity: 0.95;
 }
 
 .transfer-footer {
     background-color: #fff;
-    height: 18px; /* 极薄页脚 */
+    height: 20px; /* 增加页脚厚度 */
     padding: 0 14px;
     display: flex;
     align-items: center;
     color: #b2b2b2;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .transfer-remark {
