@@ -602,6 +602,8 @@
                     if (typeof stopVideoCall === 'function') stopVideoCall();
                     if (typeof stopScanCamera === 'function') stopScanCamera();
                     if (typeof stopWorldClock === 'function') stopWorldClock();
+                    // 清除微信拍照回调
+                    cameraCallback = null;
                 }, 400); 
             }
             wallpaper.addEventListener('click', closeApps);
@@ -1381,6 +1383,7 @@
             // 相机和照片功能
             let currentCamera = 'user'; // 'user' 为前置相机, 'environment' 为后置相机
             let cameraMode = 'photo'; // 'photo', 'video', etc.
+            let cameraCallback = null; // 用于存储拍照后的回调函数
             
             async function startCamera() {
                 try {
@@ -1810,6 +1813,13 @@
 
                     // 保存照片到IndexedDB
                     savePhotoToDB(photoDataUrl);
+                    
+                    // 如果有回调函数，执行它（用于微信拍照发送等场景）
+                    if (cameraCallback && typeof cameraCallback === 'function') {
+                        cameraCallback(photoDataUrl);
+                        cameraCallback = null; // 执行后清除
+                        closeApps(); // 关闭相机应用返回
+                    }
                     
                     // 更新相机左下角缩略图
                     setTimeout(updateCameraGalleryPreview, 100);
@@ -10183,6 +10193,16 @@ ${statusInfluence || '用户当前无特定状态'}`;
 
             // 修改发送图片逻辑
             async function sendWechatImage(file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
+                    sendWechatPhoto(base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // 直接发送 base64 格式的图片到微信聊天
+            async function sendWechatPhoto(base64Image) {
                 const chatId = wechatState.activeChatId;
                 const chatType = wechatState.activeChatType;
                 
@@ -10195,35 +10215,30 @@ ${statusInfluence || '用户当前无特定状态'}`;
 
                 if (!target) return;
 
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const base64Image = e.target.result;
-                    const imageHtml = `<div class="wechat-msg-image"><img src="${base64Image}" onclick="previewImage('${base64Image}')"></div>`;
-                    
-                    // 添加到界面
-                    addWechatMessage(imageHtml, 'user', wechatState.profile.avatar);
-                    
-                    // 识别图片
-                    const visionDescription = await getVisionDescription(base64Image);
-                    
-                    target.chatHistory.push({ 
-                        role: 'user', 
-                        content: imageHtml, 
-                        visionDescription: visionDescription,
-                        timestamp: Date.now()
-                    });
-                    saveWechatData();
+                const imageHtml = `<div class="wechat-msg-image"><img src="${base64Image}" onclick="previewImage('${base64Image}')"></div>`;
+                
+                // 添加到界面
+                addWechatMessage(imageHtml, 'user', wechatState.profile.avatar);
+                
+                // 识别图片
+                const visionDescription = await getVisionDescription(base64Image);
+                
+                target.chatHistory.push({ 
+                    role: 'user', 
+                    content: imageHtml, 
+                    visionDescription: visionDescription,
+                    timestamp: Date.now()
+                });
+                saveWechatData();
 
-                    // 触发 AI 回复
-                    if (chatType === 'single') {
-                        target.isTyping = true;
-                        if (wechatState.activeChatId == target.id) showWechatTyping(target);
-                        processWechatAIMessage(target, [visionDescription]);
-                    } else {
-                        processGroupAIMessage(target, [visionDescription]);
-                    }
-                };
-                reader.readAsDataURL(file);
+                // 触发 AI 回复
+                if (chatType === 'single') {
+                    target.isTyping = true;
+                    if (wechatState.activeChatId == target.id) showWechatTyping(target);
+                    processWechatAIMessage(target, [visionDescription]);
+                } else {
+                    processGroupAIMessage(target, [visionDescription]);
+                }
             }
 
             // 更多功能面板
@@ -10261,7 +10276,10 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 });
                 
                 document.getElementById('plus-panel-camera')?.addEventListener('click', () => {
-                    alert('拍照功能开发中...');
+                    cameraCallback = (base64) => {
+                        sendWechatPhoto(base64);
+                    };
+                    openApp('camera');
                     plusPanel.classList.remove('active');
                 });
                 
