@@ -8578,6 +8578,8 @@
                     background: #f1f1f1;
                     display: flex;
                     flex-direction: column;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
                 }
                 .transfer-header {
                     padding: 12px 16px;
@@ -8620,7 +8622,7 @@
                     color: #000;
                 }
                 .transfer-form {
-                    padding: 0 16px;
+                    padding: 0 16px 30px;
                     display: flex;
                     flex-direction: column;
                     gap: 15px;
@@ -8720,6 +8722,8 @@
                     background: #f1f1f1;
                     display: flex;
                     flex-direction: column;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
                 }
                 .redpacket-header {
                     padding: 12px 16px;
@@ -8746,7 +8750,7 @@
                     margin: 0;
                 }
                 .redpacket-form {
-                    padding: 20px 16px;
+                    padding: 20px 16px 40px;
                     display: flex;
                     flex-direction: column;
                     gap: 15px;
@@ -8864,7 +8868,7 @@
     background: linear-gradient(135deg, #f9a334 0%, #f78d1d 100%);
     border-radius: 6px;
     width: 240px;
-    height: 82px; /* 提升高度至 82px，保持与红包一致 */
+    min-height: 82px; /* 修改为 min-height，允许内容增加时自动扩充 */
     color: white;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -8953,6 +8957,8 @@
     display: flex;
     flex-direction: column;
     background-color: #fff;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .transfer-detail-header {
@@ -8974,7 +8980,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 20px;
+    padding: 40px 20px 60px; /* 增加底部间距 */
 }
 
 .transfer-detail-icon {
