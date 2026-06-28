@@ -5695,6 +5695,46 @@
             // 绑定聊天页返回按钮，避免与头部返回按钮的选择器冲突
             document.getElementById('wechat-chat-back-btn')?.addEventListener('click', closeWechatChat);
 
+            // 处理微信头部公共返回按钮点击事件
+            const wechatHeaderBackBtn = document.getElementById('wechat-header-back-btn');
+            if (wechatHeaderBackBtn) {
+                wechatHeaderBackBtn.addEventListener('click', () => {
+                    const currentTab = document.querySelector('.wechat-nav-item.active')?.dataset.tab;
+                    
+                    if (currentTab === 'moments') {
+                        // 如果在朋友圈，点击返回按钮回到发现页
+                        const discoverNavItem = document.querySelector('.wechat-nav-item[data-tab="moments"]');
+                        if (discoverNavItem) {
+                            // 模拟点击底部导航栏的“发现”按钮来重置状态
+                            // 但由于目前逻辑点击 moments 还是会显示朋友圈，我们需要手动重置
+                            
+                            // 切换标签页到发现（目前就是发现，但我们需要重置显示状态）
+                            const wechatTabs = document.querySelectorAll('.wechat-tab');
+                            wechatTabs.forEach(tab => tab.style.display = 'none');
+                            document.getElementById(`wechat-moments-tab`).style.display = 'block';
+                            
+                            // 恢复底部导航栏
+                            const wechatNav = document.querySelector('.wechat-nav');
+                            if (wechatNav) wechatNav.style.display = 'flex';
+                            
+                            // 隐藏头部返回按钮
+                            wechatHeaderBackBtn.style.display = 'none';
+                            
+                            // 恢复标题和加号图标
+                            document.getElementById('wechat-header-title').textContent = '发现';
+                            const wechatPlusBtn = document.getElementById('wechat-plus-btn');
+                            if (wechatPlusBtn) {
+                                wechatPlusBtn.style.display = 'flex';
+                                wechatPlusBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                            }
+                        }
+                    } else if (wechatState.activeChatId) {
+                        // 如果在聊天窗口
+                        closeWechatChat();
+                    }
+                });
+            }
+
             function renderWechatMessages(target) {
                 const messageList = document.getElementById('wechat-messages');
                 messageList.innerHTML = '';
