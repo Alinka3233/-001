@@ -4785,6 +4785,11 @@
 
             // 初始化微信界面
             async function initWechat() {
+                // 阻止微信内部点击冒泡到壁纸层导致应用关闭
+                document.getElementById('app-wechat')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+
                 try {
                     // 从localStorage加载API配置（优先使用小手机设置中的配置）
                     const savedApiUrl = localStorage.getItem('wechatApiUrl');
@@ -10277,7 +10282,8 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 }
                 
                 // 绑定加号面板项
-                document.getElementById('plus-panel-photo')?.addEventListener('click', () => {
+                document.getElementById('plus-panel-photo')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = 'image/*';
@@ -10291,7 +10297,9 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     plusPanel.classList.remove('active');
                 });
                 
-                document.getElementById('plus-panel-camera')?.addEventListener('click', () => {
+                document.getElementById('plus-panel-camera')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('WeChat camera clicked');
                     cameraCallback = (base64) => {
                         sendWechatPhoto(base64);
                     };
@@ -10299,15 +10307,38 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     plusPanel.classList.remove('active');
                 });
                 
-                document.getElementById('plus-panel-redpacket')?.addEventListener('click', () => {
+                document.getElementById('plus-panel-redpacket')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     openRedpacketModal();
                     plusPanel.classList.remove('active');
                 });
                 
-                document.getElementById('plus-panel-transfer')?.addEventListener('click', () => {
+                document.getElementById('plus-panel-transfer')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     openTransferModal();
                     plusPanel.classList.remove('active');
                 });
+
+                // 为更多功能面板（8格那个）也绑定事件
+                const morePanel = document.getElementById('wechat-more-panel');
+                if (morePanel) {
+                    morePanel.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const item = e.target.closest('.wechat-more-item');
+                        if (item) {
+                            const func = item.getAttribute('data-function');
+                            if (func === 'camera') {
+                                cameraCallback = (base64) => {
+                                    sendWechatPhoto(base64);
+                                };
+                                openApp('camera');
+                                morePanel.classList.remove('active');
+                            } else {
+                                handleMoreFunction(func);
+                            }
+                        }
+                    });
+                }
 
                 // 点击消息列表或输入框时隐藏面板
                 document.getElementById('wechat-messages')?.addEventListener('click', () => {
