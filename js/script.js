@@ -9689,7 +9689,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         for (let i = char.chatHistory.length - 1; i >= 0; i--) {
                             if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
                                 let content = char.chatHistory[i].content;
-                                content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
+                                content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true"');
                                 content = content.replace(`转账给${char.name}`, '已被接收');
                                 char.chatHistory[i].content = content;
                                 break;
@@ -9786,7 +9786,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         for (let i = char.chatHistory.length - 1; i >= 0; i--) {
                             if (char.chatHistory[i].content.includes(`data-id="${rpId}"`)) {
                                 let content = char.chatHistory[i].content;
-                                content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true" style="opacity: 0.7"');
+                                content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true"');
                                 content = content.replace('<div class="wechat-redpacket-status">已发出</div>', '<div class="wechat-redpacket-status">已领取</div>');
                                 char.chatHistory[i].content = content;
                                 break;
@@ -9936,16 +9936,15 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         // 1. 更新当前页面的 DOM 状态
                         rp.dataset.opened = 'true';
                         rp.querySelector('.wechat-redpacket-status').textContent = '已领取';
-                        rp.style.opacity = '0.7';
 
                         // 2. 核心修复：同步更新历史记录中的 HTML 内容
                         if (rpId) {
                             for (let i = char.chatHistory.length - 1; i >= 0; i--) {
                                 if (char.chatHistory[i].content.includes(`data-id="${rpId}"`)) {
                                     let content = char.chatHistory[i].content;
-                                    // 添加 data-opened 属性和样式
+                                    // 添加 data-opened 属性
                                     if (!content.includes('data-opened="true"')) {
-                                        content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true" style="opacity: 0.7"');
+                                        content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true"');
                                         content = content.replace('<div class="wechat-redpacket-status">领取红包</div>', '<div class="wechat-redpacket-status">已领取</div>');
                                         char.chatHistory[i].content = content;
                                     }
@@ -10035,7 +10034,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                     if (char.chatHistory[i].content.includes(`data-id="${tfId}"`)) {
                                         let content = char.chatHistory[i].content;
                                         if (!content.includes('data-opened="true"')) {
-                                            content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true" style="opacity: 0.7"');
+                                            content = content.replace('class="wechat-transfer"', 'class="wechat-transfer" data-opened="true"');
                                             content = content.replace('微信转账', '已收款');
                                             char.chatHistory[i].content = content;
                                         }
