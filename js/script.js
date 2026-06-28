@@ -6182,18 +6182,7 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                             const msg = parts[1] ? parts.slice(1).join(':').trim() : '恭喜发财，大吉大利';
                             const rpId = 'rp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                             
-                            const redpacketContent = `
-                                <div class="wechat-redpacket" data-id="${rpId}" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="ai">
-                                    <div class="wechat-redpacket-top">
-                                        <div class="wechat-redpacket-icon"></div>
-                                        <div class="wechat-redpacket-info">
-                                            <div class="wechat-redpacket-msg">${msg}</div>
-                                            <div class="wechat-redpacket-status">领取红包</div>
-                                        </div>
-                                    </div>
-                                    <div class="wechat-redpacket-bottom">微信红包</div>
-                                </div>
-                            `;
+                            const redpacketContent = `<div class="wechat-redpacket" data-id="${rpId}" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="ai"><div class="wechat-redpacket-top"><div class="wechat-redpacket-icon"></div><div class="wechat-redpacket-info"><div class="wechat-redpacket-msg">${msg}</div><div class="wechat-redpacket-status">领取红包</div></div></div><div class="wechat-redpacket-bottom">微信红包</div></div>`;
                             
                             // 直接插入红包消息到聊天记录中
                             if (String(wechatState.activeCharacterId) === String(char.id)) {
@@ -9669,16 +9658,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                 if (char) {
                     const tfId = 'tf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                    const transferContent = `<div class="wechat-transfer" data-id="${tfId}" data-amount="${amount.toFixed(2)}" data-sender="user">
-                        <div class="transfer-main">
-                            <div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div>
-                            <div class="transfer-text">
-                                <div class="transfer-amount">¥${amount.toFixed(2)}</div>
-                                <div class="transfer-status">转账给${char.name}</div>
-                            </div>
-                        </div>
-                        <div class="transfer-footer">微信支付</div>
-                    </div>`;
+                    const transferContent = `<div class="wechat-transfer" data-id="${tfId}" data-amount="${amount.toFixed(2)}" data-sender="user"><div class="transfer-main"><div class="transfer-icon"><i class="fas fa-exchange-alt"></i></div><div class="transfer-text"><div class="transfer-amount">¥${amount.toFixed(2)}</div><div class="transfer-status">转账给${char.name}</div></div></div><div class="transfer-footer">微信支付</div></div>`;
                     addWechatMessage(transferContent, 'user', char.avatar);
                     char.chatHistory.push({ role: 'user', content: transferContent, timestamp: Date.now() });
                     saveWechatData();
@@ -9706,7 +9686,6 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             const tfElements = document.querySelectorAll(`.wechat-transfer[data-id="${tfId}"]`);
                             tfElements.forEach(tf => {
                                 tf.dataset.opened = 'true';
-                                tf.style.opacity = '0.7';
                                 const statusEl = tf.querySelector('.transfer-status');
                                 if (statusEl) statusEl.textContent = '已被接收';
                             });
@@ -9764,18 +9743,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 if (char) {
                     const rpId = 'rp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                     // 使用 1:1 还原的红包 HTML
-                    const redpacketContent = `
-                        <div class="wechat-redpacket" data-id="${rpId}" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="user">
-                            <div class="wechat-redpacket-top">
-                                <div class="wechat-redpacket-icon"></div>
-                                <div class="wechat-redpacket-info">
-                                    <div class="wechat-redpacket-msg">${msg}</div>
-                                    <div class="wechat-redpacket-status">已发出</div>
-                                </div>
-                            </div>
-                            <div class="wechat-redpacket-bottom">微信红包</div>
-                        </div>
-                    `;
+                    const redpacketContent = `<div class="wechat-redpacket" data-id="${rpId}" data-amount="${amount.toFixed(2)}" data-msg="${msg}" data-sender="user"><div class="wechat-redpacket-top"><div class="wechat-redpacket-icon"></div><div class="wechat-redpacket-info"><div class="wechat-redpacket-msg">${msg}</div><div class="wechat-redpacket-status">查看红包</div></div></div><div class="wechat-redpacket-bottom">微信红包</div></div>`;
                     addWechatMessage(redpacketContent, 'user', char.avatar);
                     char.chatHistory.push({ role: 'user', content: redpacketContent, timestamp: Date.now() });
                     saveWechatData();
@@ -9787,7 +9755,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             if (char.chatHistory[i].content.includes(`data-id="${rpId}"`)) {
                                 let content = char.chatHistory[i].content;
                                 content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true"');
-                                content = content.replace('<div class="wechat-redpacket-status">已发出</div>', '<div class="wechat-redpacket-status">已领取</div>');
+                                content = content.replace('<div class="wechat-redpacket-status">查看红包</div>', '<div class="wechat-redpacket-status">红包已领取</div>');
                                 char.chatHistory[i].content = content;
                                 break;
                             }
@@ -9803,9 +9771,8 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             const rpElements = document.querySelectorAll(`.wechat-redpacket[data-id="${rpId}"]`);
                             rpElements.forEach(rp => {
                                 rp.dataset.opened = 'true';
-                                rp.style.opacity = '0.7';
                                 const statusEl = rp.querySelector('.wechat-redpacket-status');
-                                if (statusEl) statusEl.textContent = '已领取';
+                                if (statusEl) statusEl.textContent = '红包已领取';
                             });
                             addWechatMessage(systemMsg, 'system', char.avatar);
                         }
@@ -9935,7 +9902,9 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         
                         // 1. 更新当前页面的 DOM 状态
                         rp.dataset.opened = 'true';
-                        rp.querySelector('.wechat-redpacket-status').textContent = '已领取';
+                        const newStatus = isAI ? '已领取' : '红包已领取';
+                        const statusEl = rp.querySelector('.wechat-redpacket-status');
+                        if (statusEl) statusEl.textContent = newStatus;
 
                         // 2. 核心修复：同步更新历史记录中的 HTML 内容
                         if (rpId) {
@@ -9946,6 +9915,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                     if (!content.includes('data-opened="true"')) {
                                         content = content.replace('class="wechat-redpacket"', 'class="wechat-redpacket" data-opened="true"');
                                         content = content.replace('<div class="wechat-redpacket-status">领取红包</div>', '<div class="wechat-redpacket-status">已领取</div>');
+                                        content = content.replace('<div class="wechat-redpacket-status">查看红包</div>', '<div class="wechat-redpacket-status">红包已领取</div>');
                                         char.chatHistory[i].content = content;
                                     }
                                     break;
