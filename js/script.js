@@ -1787,10 +1787,19 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     
-                    // 如果是前置摄像头，拍照时需要水平翻转，因为预览是镜像的，但流本身通常不是镜像的
-                    // 但 iOS Safari 的 getUserMedia 表现各异，这里我们保持原始流绘制
+                    // 如果是前置摄像头，预览是镜像的，为了让拍出来的照片和看到的一致，也进行镜像处理
+                    if (currentCamera === 'user') {
+                        ctx.translate(canvas.width, 0);
+                        ctx.scale(-1, 1);
+                    }
+                    
                     // 绘制原始视频流
                     ctx.drawImage(cameraViewfinder, 0, 0, canvas.width, canvas.height);
+
+                    // 恢复 context 状态
+                    if (currentCamera === 'user') {
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    }
 
                     // 拍照闪光效果
                     const flash = document.getElementById('camera-flash');
