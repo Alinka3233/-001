@@ -1783,8 +1783,23 @@
                         return;
                     }
 
-                    canvas.width = width;
-                    canvas.height = height;
+                    // 限制最大尺寸以优化性能、存储和视觉识别速度
+                    const MAX_SIZE = 1280;
+                    let targetWidth = width;
+                    let targetHeight = height;
+                    
+                    if (width > MAX_SIZE || height > MAX_SIZE) {
+                        if (width > height) {
+                            targetWidth = MAX_SIZE;
+                            targetHeight = Math.round((height / width) * MAX_SIZE);
+                        } else {
+                            targetHeight = MAX_SIZE;
+                            targetWidth = Math.round((width / height) * MAX_SIZE);
+                        }
+                    }
+
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
                     const ctx = canvas.getContext('2d');
                     
                     // 如果是前置摄像头，预览是镜像的，为了让拍出来的照片和看到的一致，也进行镜像处理
@@ -1793,7 +1808,7 @@
                         ctx.scale(-1, 1);
                     }
                     
-                    // 绘制原始视频流
+                    // 绘制原始视频流（drawImage 会自动处理缩放）
                     ctx.drawImage(cameraViewfinder, 0, 0, canvas.width, canvas.height);
 
                     // 恢复 context 状态
@@ -5749,8 +5764,8 @@
                     div.className = `wechat-message ${displayRole}`;
                     const avatarUrl = displayRole === 'ai' ? avatar : (wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png');
                     
-                    // 如果是红包或转账，气泡背景设为透明，因为自带背景
-                    const isSpecial = content.includes('wechat-redpacket') || content.includes('wechat-transfer');
+                    // 如果是红包、转账或图片，气泡背景设为透明，因为自带背景或本身就是展示主体
+                    const isSpecial = content.includes('wechat-redpacket') || content.includes('wechat-transfer') || content.includes('wechat-msg-image');
                     const bubbleStyle = isSpecial ? 'background: transparent; box-shadow: none; padding: 0;' : '';
                     
                     // 群聊显示昵称
