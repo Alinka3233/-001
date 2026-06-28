@@ -1784,7 +1784,7 @@
                     }
 
                     // 限制最大尺寸以优化性能、存储和视觉识别速度
-                    const MAX_SIZE = 1280;
+                    const MAX_SIZE = 1024;
                     let targetWidth = width;
                     let targetHeight = height;
                     
