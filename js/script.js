@@ -1783,8 +1783,8 @@
                         return;
                     }
 
-                    // 限制最大尺寸以优化性能、存储和视觉识别速度
-                    const MAX_SIZE = 1024;
+                    // 进一步压缩物理分辨率以匹配更小的预览尺寸
+                    const MAX_SIZE = 800;
                     let targetWidth = width;
                     let targetHeight = height;
                     
