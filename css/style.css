@@ -6105,21 +6105,23 @@
             color: #666;
         }
 
-        /* 聊天红包样式 - 1:1 还原微信官方 */
+        /* 聊天红包样式 - 极致还原微信官方横向长方形 */
         .wechat-redpacket {
-            background-color: #fa9d3b; /* 还原为微信原生标准橘色 */
-            width: 240px; /* 恢复宽度为 240px，确保长方形比例 */
+            background-color: #fa9d3b;
+            width: 240px;
+            height: 72px; /* 强制固定高度，确保扁平长方形比例 */
             border-radius: 4px;
             cursor: pointer;
             overflow: hidden;
             user-select: none;
             box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-            transition: background-color 0.2s;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 已领取状态 */
         .wechat-redpacket[data-opened="true"] {
-            background-color: #fcd7a1 !important; /* 领取后显著变浅 */
+            background-color: #fcd7a1 !important;
         }
 
         .wechat-redpacket[data-opened="true"] .wechat-redpacket-icon {
@@ -6132,15 +6134,16 @@
         }
 
         .wechat-redpacket-top {
-            padding: 7px 12px; /* 极致压减高度 */
+            flex: 1;
+            padding: 0 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .wechat-redpacket-icon {
-            width: 28px; /* 进一步缩小图标 */
-            height: 34px;
+            width: 30px;
+            height: 36px;
             background: #f25542;
             border-radius: 3px;
             display: flex;
@@ -6158,8 +6161,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 10px; /* 随图标缩小 */
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background: #f8e7a8;
             border-radius: 50%;
             z-index: 1;
@@ -6168,7 +6171,7 @@
 
         .wechat-redpacket-icon::after {
             content: "🧧";
-            font-size: 14px; /* 缩小文字 */
+            font-size: 16px;
             z-index: 2;
             position: relative;
             top: -1px;
@@ -6188,7 +6191,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-bottom: -1px; /* 紧凑排版 */
+            margin-bottom: -1px;
             font-weight: 400;
         }
 
@@ -6199,7 +6202,10 @@
 
         .wechat-redpacket-bottom {
             background: #fff;
-            padding: 2px 12px; /* 极致压减页脚高度 */
+            height: 18px; /* 极薄页脚 */
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
             font-size: 10px;
             color: #b2b2b2;
             border-top: 0.5px solid rgba(0,0,0,0.02);
@@ -8826,36 +8832,40 @@
                     color: #fff;
                 }
 
-/* 微信聊天气泡内转账样式 */
+/* 微信聊天气泡内转账样式 - 横向长方形 */
 .wechat-transfer {
     background: linear-gradient(135deg, #f9a334 0%, #f78d1d 100%);
     border-radius: 6px;
-    width: 240px; /* 恢复宽度为 240px，确保长方形比例 */
-    padding: 0;
+    width: 240px;
+    height: 72px; /* 强制固定高度，确保扁平长方形比例 */
     color: white;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     border: 1px solid rgba(0,0,0,0.05);
 }
 
 .transfer-main {
-    padding: 8px 14px; /* 极致压减高度 */
+    flex: 1;
+    padding: 0 14px;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .transfer-icon {
-    width: 32px; /* 进一步缩小图标 */
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background-color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px; /* 随图标缩小字号 */
+    font-size: 20px;
     color: #f89e24;
+    flex-shrink: 0;
 }
 
 .transfer-text {
@@ -8863,20 +8873,23 @@
 }
 
 .transfer-amount {
-    font-size: 14px; /* 进一步缩小字号 */
+    font-size: 14px;
     font-weight: 500;
     margin-bottom: -1px;
 }
 
 .transfer-status {
-    font-size: 11px; /* 缩小字号 */
+    font-size: 11px;
     opacity: 0.95;
 }
 
 .transfer-footer {
     background-color: #fff;
-    color: #b2b2b2; /* 统一页脚颜色 */
-    padding: 2px 14px; /* 极致压减高度 */
+    height: 18px; /* 极薄页脚 */
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    color: #b2b2b2;
     font-size: 10px;
 }
 
