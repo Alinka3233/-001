@@ -6108,7 +6108,7 @@
         /* 聊天红包样式 - 1:1 还原微信官方 */
         .wechat-redpacket {
             background-color: #fa9d3b;
-            width: 230px;
+            width: 250px; /* 增加宽度，对标微信原生 250px-260px */
             border-radius: 4px;
             cursor: pointer;
             overflow: hidden;
@@ -6117,15 +6117,15 @@
         }
 
         .wechat-redpacket-top {
-            padding: 12px 16px;
+            padding: 14px 16px; /* 稍微增加内边距 */
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
         .wechat-redpacket-icon {
-            width: 34px;
-            height: 40px;
+            width: 36px;
+            height: 42px;
             background: #f25542;
             border-radius: 4px;
             display: flex;
@@ -6136,7 +6136,7 @@
 
         .wechat-redpacket-icon::after {
             content: "🧧";
-            font-size: 20px;
+            font-size: 22px;
         }
 
         .wechat-redpacket-info {
@@ -6146,7 +6146,7 @@
 
         .wechat-redpacket-msg {
             color: #fff;
-            font-size: 15px;
+            font-size: 16px; /* 提升至 16px，微信原生红包标题字号较大 */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -6154,15 +6154,15 @@
         }
 
         .wechat-redpacket-status {
-            color: rgba(255,255,255,0.8);
-            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
         }
 
         .wechat-redpacket-bottom {
             background: #fff;
-            padding: 4px 16px;
+            padding: 5px 16px;
             font-size: 11px;
-            color: #888;
+            color: #b2b2b2; /* 调浅颜色，更接近原生效果 */
         }
 
         .wechat-message.user .wechat-redpacket {
@@ -8789,7 +8789,7 @@
 .wechat-transfer {
     background: linear-gradient(135deg, #f9a334 0%, #f78d1d 100%);
     border-radius: 6px;
-    width: 240px;
+    width: 250px; /* 统一宽度为 250px */
     padding: 0;
     color: white;
     cursor: pointer;
@@ -8799,21 +8799,21 @@
 }
 
 .transfer-main {
-    padding: 12px 16px;
+    padding: 14px 16px; /* 增加内边距 */
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .transfer-icon {
-    width: 38px;
-    height: 38px;
+    width: 42px; /* 微信原生转账图标稍大 */
+    height: 42px;
     background-color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 24px;
     color: #f89e24;
 }
 
@@ -8824,17 +8824,18 @@
 .transfer-amount {
     font-size: 16px;
     font-weight: 500;
+    margin-bottom: 1px;
 }
 
 .transfer-status {
-    font-size: 12px;
+    font-size: 13px;
     opacity: 0.95;
 }
 
 .transfer-footer {
     background-color: #fff;
-    color: #8e8e93;
-    padding: 4px 16px;
+    color: #b2b2b2; /* 统一页脚颜色 */
+    padding: 5px 16px;
     font-size: 11px;
 }
 
