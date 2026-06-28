@@ -6108,8 +6108,8 @@
         /* 聊天红包样式 - 极致还原微信官方横向长方形 */
         .wechat-redpacket {
             background-color: #fa9d3b;
-            width: 240px;
-            height: 82px; /* 从 72px 提升至 82px，解决“太扁”的问题 */
+            width: 200px; /* 缩减宽度 */
+            height: 82px;
             border-radius: 4px;
             cursor: pointer;
             overflow: hidden;
@@ -8869,7 +8869,7 @@
 .wechat-transfer {
     background-color: #f9a334; /* 改为与红包接近的橙色 */
     border-radius: 4px;
-    width: 240px;
+    width: 200px; /* 缩减宽度 */
     height: 82px;
     color: white;
     cursor: pointer;
