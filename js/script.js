@@ -11257,12 +11257,6 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     }
                 }
                 
-                // 处理状态点击
-                const statusItem = e.target.closest('.status-item');
-                if (statusItem) {
-                    alert('设置状态功能开发中');
-                }
-                
                 // 处理好友请求点击
                 const statusFriends = e.target.closest('.status-friends');
                 if (statusFriends) {
