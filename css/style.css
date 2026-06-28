@@ -23,6 +23,13 @@
             --wallpaper-url: none;
             --widget-bg-url: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop');
             --spring-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+            
+            /* Dock 响应式变量 */
+            --dock-icon-size: 60px;
+            --dock-gap: 24px;
+            --dock-padding-v: 12px;
+            --dock-padding-h: 20px;
+            --dock-radius: 32px;
         }
 
         .dark-mode {
@@ -735,12 +742,6 @@
             transition: transform 0.1s ease !important;
         }
 
-        /* 解决 Dock 栏在替换瞬间的布局抖动 */
-        .dock:has(> :nth-child(5)) {
-            max-width: 380px !important;
-            transition: none !important;
-        }
-
         #app-appstore {
             background-color: #f2f2f7;
             display: flex;
@@ -891,9 +892,9 @@
                 grid-row: span 2;
             }
             .dock {
-                width: 100%;
+                width: auto;
                 max-width: 800px;
-                padding: 16px;
+                padding: var(--dock-padding-v) var(--dock-padding-h);
             }
         }
 
@@ -905,8 +906,9 @@
                 width: 100%;
             }
             .dock {
-                width: 100%;
+                width: auto;
                 max-width: 600px;
+                padding: var(--dock-padding-v) var(--dock-padding-h);
             }
         }
 
@@ -973,7 +975,7 @@
             .dock {
                 bottom: 10px;
                 padding: 8px 20px;
-                width: 100%;
+                width: auto;
                 max-width: 80%;
             }
         }
@@ -1919,16 +1921,16 @@
 
         .dock {
             width: fit-content;
-            min-width: 100px;
+            min-width: calc(var(--dock-icon-size) + var(--dock-padding-h) * 2);
             max-width: 98%;
-            padding: 12px 20px;
+            padding: var(--dock-padding-v) var(--dock-padding-h);
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
             -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.1);
-            border-radius: 32px;
+            border-radius: var(--dock-radius);
             display: flex;
             justify-content: center;
-            gap: 24px; 
+            gap: var(--dock-gap); 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
             border: none;
             transform: translateZ(0);
@@ -1939,7 +1941,12 @@
 
         .dock .app-icon {
             flex-shrink: 0;
-            width: 60px;
+            width: var(--dock-icon-size);
+        }
+
+        .dock .app-icon .icon {
+            width: var(--dock-icon-size);
+            height: var(--dock-icon-size);
         }
 
         .dock .app-icon span {
@@ -1947,12 +1954,12 @@
         }
 
         /* 动态调整 Dock 宽度，配合 Sortable.js 的 DOM 变化 */
-        .dock:has(> :nth-child(1):last-child) { width: 100px; }
-        .dock:has(> :nth-child(2):last-child) { width: 184px; }
-        .dock:has(> :nth-child(3):last-child) { width: 268px; }
-        .dock:has(> :nth-child(4):last-child) { width: 352px; }
-        .dock:has(> :nth-child(5):last-child) { width: 436px; }
-        .dock:has(> :nth-child(6):last-child) { width: 520px; }
+        .dock:has(> :nth-child(1):last-child) { width: calc(var(--dock-icon-size) * 1 + var(--dock-gap) * 0 + var(--dock-padding-h) * 2); }
+        .dock:has(> :nth-child(2):last-child) { width: calc(var(--dock-icon-size) * 2 + var(--dock-gap) * 1 + var(--dock-padding-h) * 2); }
+        .dock:has(> :nth-child(3):last-child) { width: calc(var(--dock-icon-size) * 3 + var(--dock-gap) * 2 + var(--dock-padding-h) * 2); }
+        .dock:has(> :nth-child(4):last-child) { width: calc(var(--dock-icon-size) * 4 + var(--dock-gap) * 3 + var(--dock-padding-h) * 2); }
+        .dock:has(> :nth-child(5):last-child) { width: calc(var(--dock-icon-size) * 5 + var(--dock-gap) * 4 + var(--dock-padding-h) * 2); }
+        .dock:has(> :nth-child(6):last-child) { width: calc(var(--dock-icon-size) * 6 + var(--dock-gap) * 5 + var(--dock-padding-h) * 2); }
 
         .dark-mode .dock {
             background: rgba(30, 30, 30, 0.4);
@@ -8110,6 +8117,13 @@
 
         /* --- ▼▼▼ 响应式布局：小屏手机适配 ▼▼▼ --- */
         @media (max-width: 375px) {
+            :root {
+                --dock-icon-size: 50px;
+                --dock-gap: 12px;
+                --dock-padding-h: 16px;
+                --dock-padding-v: 12px;
+            }
+
             .home-screen {
                 padding: calc(10px + env(safe-area-inset-top, 10px)) 16px 10px;
             }
@@ -8128,20 +8142,18 @@
             .app-icon span {
                 font-size: 11px;
             }
-
-            .dock {
-                gap: 12px;
-                padding: 12px 16px;
-            }
-
-            .dock .app-icon .icon {
-                width: 50px;
-                height: 50px;
-            }
         }
 
         /* --- ▼▼▼ 响应式布局：平板 ▼▼▼ --- */
         @media (min-width: 768px) {
+            :root {
+                --dock-icon-size: 70px;
+                --dock-gap: 24px;
+                --dock-padding-h: 32px;
+                --dock-padding-v: 16px;
+                --dock-radius: 40px;
+            }
+
             .home-screen {
                 padding: calc(40px + env(safe-area-inset-top, 20px)) clamp(40px, 10vw, 100px) 40px;
             }
@@ -8167,22 +8179,18 @@
                 font-size: 14px;
                 margin-top: 8px;
             }
-
-            .dock {
-                width: auto;
-                max-width: 500px;
-                padding: 16px 32px;
-                gap: 24px;
-            }
-
-            .dock .app-icon .icon {
-                width: 70px;
-                height: 70px;
-            }
         }
 
         /* --- ▼▼▼ 响应式布局：桌面/大屏幕适配 ▼▼▼ --- */
         @media (min-width: 1025px) {
+            :root {
+                --dock-icon-size: 80px;
+                --dock-gap: 32px;
+                --dock-padding-h: 40px;
+                --dock-padding-v: 20px;
+                --dock-radius: 48px;
+            }
+
             .home-screen {
                 padding: calc(60px + env(safe-area-inset-top, 20px)) 0 60px;
             }
@@ -8200,17 +8208,6 @@
                 width: 90px;
                 height: 90px;
                 font-size: 42px;
-            }
-
-            .dock {
-                max-width: 700px;
-                padding: 20px 40px;
-                gap: 32px;
-            }
-
-            .dock .app-icon .icon {
-                width: 80px;
-                height: 80px;
             }
         }
 
