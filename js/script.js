@@ -1816,9 +1816,16 @@
                     
                     // 如果有回调函数，执行它（用于微信拍照发送等场景）
                     if (cameraCallback && typeof cameraCallback === 'function') {
-                        cameraCallback(photoDataUrl);
+                        const cb = cameraCallback;
                         cameraCallback = null; // 执行后清除
-                        closeApps(); // 关闭相机应用返回
+                        cb(photoDataUrl);
+                        
+                        // 返回微信应用而不是桌面
+                        openApp('wechat'); 
+                        // 稍微延迟关闭摄像头，保证动画流畅
+                        setTimeout(() => {
+                            if (typeof stopCamera === 'function') stopCamera();
+                        }, 400);
                     }
                     
                     // 更新相机左下角缩略图
