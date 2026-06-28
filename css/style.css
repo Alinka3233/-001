@@ -6108,7 +6108,7 @@
         /* 聊天红包样式 - 1:1 还原微信官方 */
         .wechat-redpacket {
             background-color: #fa9d3b; /* 还原为微信原生标准橘色 */
-            width: 240px; /* 微信原生约为 240px */
+            width: 230px; /* 压减宽度，更精致 */
             border-radius: 4px;
             cursor: pointer;
             overflow: hidden;
@@ -6132,15 +6132,15 @@
         }
 
         .wechat-redpacket-top {
-            padding: 12px 14px;
+            padding: 8px 12px; /* 显著减少内边距 */
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .wechat-redpacket-icon {
-            width: 34px;
-            height: 40px;
+            width: 30px; /* 缩小图标 */
+            height: 36px;
             background: #f25542;
             border-radius: 3px;
             display: flex;
@@ -6158,8 +6158,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 14px;
-            height: 14px;
+            width: 12px; /* 随图标缩小 */
+            height: 12px;
             background: #f8e7a8;
             border-radius: 50%;
             z-index: 1;
@@ -6168,7 +6168,7 @@
 
         .wechat-redpacket-icon::after {
             content: "🧧";
-            font-size: 18px; /* 缩小一点，放在圆圈上 */
+            font-size: 16px; /* 缩小文字 */
             z-index: 2;
             position: relative;
             top: -1px;
@@ -6184,23 +6184,23 @@
 
         .wechat-redpacket-msg {
             color: #fff;
-            font-size: 15px;
+            font-size: 14px; /* 稍微缩小字号 */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-bottom: 2px;
+            margin-bottom: 0px;
             font-weight: 400;
         }
 
         .wechat-redpacket-status {
             color: rgba(255,255,255,0.9);
-            font-size: 12px;
+            font-size: 11px; /* 缩小字号 */
         }
 
         .wechat-redpacket-bottom {
             background: #fff;
-            padding: 4px 14px;
-            font-size: 11px;
+            padding: 3px 12px; /* 显著减少内边距 */
+            font-size: 10px;
             color: #b2b2b2;
             border-top: 0.5px solid rgba(0,0,0,0.02);
         }
@@ -8830,7 +8830,7 @@
 .wechat-transfer {
     background: linear-gradient(135deg, #f9a334 0%, #f78d1d 100%);
     border-radius: 6px;
-    width: 250px; /* 统一宽度为 250px */
+    width: 230px; /* 统一压减宽度为 230px */
     padding: 0;
     color: white;
     cursor: pointer;
@@ -8840,21 +8840,21 @@
 }
 
 .transfer-main {
-    padding: 14px 16px; /* 增加内边距 */
+    padding: 10px 14px; /* 压减内边距 */
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .transfer-icon {
-    width: 42px; /* 微信原生转账图标稍大 */
-    height: 42px;
+    width: 36px; /* 缩小图标尺寸 */
+    height: 36px;
     background-color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px; /* 随图标缩小字号 */
     color: #f89e24;
 }
 
@@ -8863,21 +8863,21 @@
 }
 
 .transfer-amount {
-    font-size: 16px;
+    font-size: 15px; /* 稍微缩小字号 */
     font-weight: 500;
-    margin-bottom: 1px;
+    margin-bottom: 0px;
 }
 
 .transfer-status {
-    font-size: 13px;
+    font-size: 12px; /* 缩小字号 */
     opacity: 0.95;
 }
 
 .transfer-footer {
     background-color: #fff;
     color: #b2b2b2; /* 统一页脚颜色 */
-    padding: 5px 16px;
-    font-size: 11px;
+    padding: 3px 14px; /* 压减内边距 */
+    font-size: 10px;
 }
 
 .transfer-remark {
