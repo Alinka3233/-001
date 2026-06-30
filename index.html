@@ -2068,7 +2068,7 @@
         <div class="wechat-modal-content">
             <div class="wechat-modal-header">
                 <h2>全局设置</h2>
-                <button class="wechat-close-btn">&times;</button>
+                <button class="wechat-close-btn" onclick="closeWechatModal('wechat-settings-modal')">&times;</button>
             </div>
             <div class="wechat-modal-body">
                 <h3>外观主题</h3>
@@ -2117,7 +2117,7 @@
                 </div>
             </div>
             <div class="wechat-modal-footer">
-                <button type="button" id="wechat-save-settings">保存</button>
+                <button type="button" id="wechat-save-settings" onclick="saveWechatSettings()">保存</button>
             </div>
         </div>
     </div>
@@ -2133,8 +2133,8 @@
                 <p style="font-size: 14px; color: #666;">此操作不可撤销！</p>
             </div>
             <div class="wechat-modal-footer" style="justify-content: center;">
-                <button type="button" id="confirm-cancel" class="secondary">取消</button>
-                <button type="button" id="confirm-ok" style="background: #ff3b30;">确认</button>
+                <button type="button" id="confirm-cancel" class="secondary" onclick="closeWechatModal('wechat-confirm-modal')">取消</button>
+                <button type="button" id="confirm-ok" onclick="confirmWechatAction()" style="background: #ff3b30;">确认</button>
             </div>
         </div>
     </div>
@@ -2149,7 +2149,7 @@
                 <p id="alert-message" style="font-size: 16px; color: #333; margin-bottom: 20px;"></p>
             </div>
             <div class="wechat-modal-footer" style="justify-content: center;">
-                <button type="button" id="alert-ok" style="background: #007aff;">确定</button>
+                <button type="button" id="alert-ok" onclick="closeWechatModal('wechat-alert-modal')" style="background: #007aff;">确定</button>
             </div>
         </div>
     </div>
@@ -2159,7 +2159,7 @@
         <div class="wechat-modal-content">
             <div class="wechat-modal-header">
                 <h2 id="wechat-char-modal-title">创建角色</h2>
-                <button class="wechat-close-btn">&times;</button>
+                <button class="wechat-close-btn" onclick="closeWechatModal('wechat-character-modal')">&times;</button>
             </div>
             <div class="wechat-modal-body">
                 <div class="wechat-form-group">
@@ -2194,7 +2194,7 @@
                 </div>
             </div>
             <div class="wechat-modal-footer">
-                <button id="wechat-save-character">保存</button>
+                <button id="wechat-save-character" onclick="saveWechatCharacter()">保存</button>
             </div>
         </div>
     </div>
