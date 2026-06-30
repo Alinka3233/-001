@@ -7762,141 +7762,6 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 document.getElementById('wechat-settings-modal').classList.remove('active');
             }
 
-            // Wechat事件监听
-            document.addEventListener('click', (e) => {
-                // 处理所有微信相关的返回按钮
-                const backBtn = e.target.closest('#wechat-header-back-btn, #wechat-chat-back-btn');
-                if (backBtn) {
-                    // 如果是在朋友圈标签页，返回到聊天标签页
-                    const momentsTab = document.getElementById('wechat-moments-tab');
-                    if (momentsTab && momentsTab.style.display === 'block') {
-                        const chatsNavItem = document.querySelector('.wechat-nav-item[data-tab="chats"]');
-                        if (chatsNavItem) chatsNavItem.click();
-                        return;
-                    }
-                    
-                    // 否则执行原有的返回聊天列表逻辑
-                    closeWechatChat();
-                }
-
-                // 发送消息
-                if (e.target.id === 'wechat-send') {
-                    sendWechatMessage();
-                }
-
-                // 创建新角色
-                if (e.target.id === 'wechat-add-btn') {
-                    showWechatCharacterModal();
-                }
-
-                // 关闭模态框
-                if (e.target.classList.contains('wechat-close-btn')) {
-                    e.target.closest('.wechat-modal').classList.remove('active');
-                }
-
-                // 保存设置
-                if (e.target.id === 'wechat-save-settings') {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    
-                    (async () => {
-                        console.log('保存设置按钮被点击');
-
-                        // 保存动作描写设置
-                        const allowActionDescBtn = document.getElementById('wechat-allow-action-desc');
-                        if (allowActionDescBtn) {
-                            wechatState.settings.allowActionDescription = allowActionDescBtn.checked;
-                        }
-
-                        // 从localStorage同步最新的API配置（以防在API配置应用中修改了但没同步到内存）
-                        const savedApiUrl = localStorage.getItem('wechatApiUrl');
-                        const savedApiKey = localStorage.getItem('wechatApiKey');
-                        const savedModel = localStorage.getItem('wechatModel');
-                        const savedCustomModel = localStorage.getItem('wechatCustomModel');
-                        
-                        if (savedApiUrl) wechatState.settings.apiUrl = savedApiUrl;
-                        if (savedApiKey) wechatState.settings.apiKey = savedApiKey;
-                        if (savedModel) {
-                            wechatState.settings.model = savedModel;
-                        }
-                        if (savedCustomModel) wechatState.settings.customModel = savedCustomModel;
-
-                        try {
-                            await saveWechatData();
-                            console.log('微信数据保存成功');
-                            
-                            // 显示保存成功提示
-                            showWechatAlert('设置保存成功！');
-                            
-                            // 关闭设置模态框
-                            document.getElementById('wechat-settings-modal').classList.remove('active');
-                            
-                            // 应用主题
-                            applyWechatTheme();
-                        } catch (error) {
-                            console.error('保存微信数据失败:', error);
-                            showWechatAlert('保存失败，请重试！');
-                        }
-                    })();
-                }
-
-                // 保存角色
-                const saveCharBtn = e.target.closest('#wechat-save-character');
-                if (saveCharBtn) {
-                    (async () => {
-                        console.log('--- GLOBAL SAVE BUTTON CLICKED ---');
-                        const success = await saveWechatCharacter();
-                        console.log('--- GLOBAL SAVE SUCCESS:', success);
-                        if (success === true) {
-                            // 关闭模态框
-                            const modal = document.getElementById('wechat-character-modal');
-                            if (modal) {
-                                modal.classList.remove('active');
-                            }
-                            // 显示创建成功提示
-                            alert('【全局提示】角色创建成功！');
-                        }
-                    })();
-                }
-
-                // 确认对话框 - 取消按钮
-                if (e.target.id === 'confirm-cancel') {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    document.getElementById('wechat-confirm-modal').classList.remove('active');
-                    confirmDialogCallback = null;
-                }
-
-                // 确认对话框 - 确认按钮
-                if (e.target.id === 'confirm-ok') {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const confirmModal = document.getElementById('wechat-confirm-modal');
-                    if (confirmDialogCallback) {
-                        confirmDialogCallback();
-                        confirmDialogCallback = null;
-                    }
-                    confirmModal.classList.remove('active');
-                }
-
-                // 提示对话框 - 确定按钮
-                if (e.target.id === 'alert-ok') {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    document.getElementById('wechat-alert-modal').classList.remove('active');
-                }
-
-                // 打开设置（长按聊天头像）
-                if (e.target.id === 'wechat-current-avatar') {
-                    const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
-                    if (char) {
-                        showWechatCharacterModal(char);
-                    }
-                }
-            });
-
-
-
             document.addEventListener('keydown', (e) => {
                 if (e.target.id === 'wechat-input' && e.key === 'Enter') {
                     if (!e.shiftKey) {
@@ -7907,11 +7772,158 @@ ${statusInfluence || '用户当前无特定状态'}`;
             });
 
             // 为微信"我的"页面中的"设置"菜单项添加点击事件
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('.wechat-menu-item') && e.target.closest('.wechat-menu-item').querySelector('.wechat-menu-text').textContent === '设置') {
+            // 注意：由于 app-wechat 阻止了冒泡，这里必须直接给按钮绑定，或者在 app-wechat 上做代理
+            const wechatSettingsBtn = document.getElementById('wechat-settings-btn');
+            if (wechatSettingsBtn) {
+                wechatSettingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('WeChat Settings button clicked');
                     showWechatSettingsModal();
-                }
-            });
+                });
+            }
+
+            // 处理所有微信内部的点击事件（通过代理方式，因为 app-wechat 阻止了冒泡到 document）
+            const wechatApp = document.getElementById('app-wechat');
+            if (wechatApp) {
+                wechatApp.addEventListener('click', (e) => {
+                    // 处理菜单项点击
+                    const menuItem = e.target.closest('.wechat-menu-item');
+                    if (menuItem) {
+                        const menuTextEl = menuItem.querySelector('.wechat-menu-text');
+                        if (menuTextEl) {
+                            const menuText = menuTextEl.textContent;
+                            switch(menuText) {
+                                case '钱包':
+                                    openWalletView();
+                                    break;
+                                case '收藏':
+                                    alert('收藏功能开发中');
+                                    break;
+                                case '朋友圈':
+                                    const momentsNavItem = document.querySelector('.wechat-nav-item[data-tab="moments"]');
+                                    if (momentsNavItem) momentsNavItem.click();
+                                    break;
+                                case '公众号':
+                                    alert('公众号功能开发中');
+                                    break;
+                                case '订单与卡包':
+                                    alert('订单与卡包功能开发中');
+                                    break;
+                                case '表情':
+                                    alert('表情功能开发中');
+                                    break;
+                            }
+                        }
+                    }
+
+                    // 处理返回按钮
+                    const backBtn = e.target.closest('#wechat-header-back-btn, #wechat-chat-back-btn');
+                    if (backBtn) {
+                        const momentsTab = document.getElementById('wechat-moments-tab');
+                        if (momentsTab && momentsTab.style.display === 'block') {
+                            const chatsNavItem = document.querySelector('.wechat-nav-item[data-tab="chats"]');
+                            if (chatsNavItem) chatsNavItem.click();
+                            return;
+                        }
+                        closeWechatChat();
+                    }
+
+                    // 发送消息
+                    if (e.target.id === 'wechat-send') {
+                        sendWechatMessage();
+                    }
+
+                    // 创建新角色
+                    if (e.target.id === 'wechat-add-btn') {
+                        showWechatCharacterModal();
+                    }
+
+                    // 关闭模态框
+                    if (e.target.classList.contains('wechat-close-btn')) {
+                        const modal = e.target.closest('.wechat-modal');
+                        if (modal) modal.classList.remove('active');
+                    }
+                    
+                    // 保存设置按钮
+                    if (e.target.id === 'wechat-save-settings') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        
+                        (async () => {
+                            console.log('保存设置按钮被点击');
+
+                            // 保存动作描写设置
+                            const allowActionDescBtn = document.getElementById('wechat-allow-action-desc');
+                            if (allowActionDescBtn) {
+                                wechatState.settings.allowActionDescription = allowActionDescBtn.checked;
+                            }
+
+                            // 从localStorage同步最新的API配置
+                            const savedApiUrl = localStorage.getItem('wechatApiUrl');
+                            const savedApiKey = localStorage.getItem('wechatApiKey');
+                            const savedModel = localStorage.getItem('wechatModel');
+                            const savedCustomModel = localStorage.getItem('wechatCustomModel');
+                            
+                            if (savedApiUrl) wechatState.settings.apiUrl = savedApiUrl;
+                            if (savedApiKey) wechatState.settings.apiKey = savedApiKey;
+                            if (savedModel) wechatState.settings.model = savedModel;
+                            if (savedCustomModel) wechatState.settings.customModel = savedCustomModel;
+
+                            try {
+                                await saveWechatData();
+                                showWechatAlert('设置保存成功！');
+                                document.getElementById('wechat-settings-modal').classList.remove('active');
+                                applyWechatTheme();
+                            } catch (error) {
+                                console.error('保存微信数据失败:', error);
+                                showWechatAlert('保存失败，请重试！');
+                            }
+                        })();
+                    }
+
+                    // 保存角色
+                    const saveCharBtn = e.target.closest('#wechat-save-character');
+                    if (saveCharBtn) {
+                        (async () => {
+                            const success = await saveWechatCharacter();
+                            if (success === true) {
+                                const modal = document.getElementById('wechat-character-modal');
+                                if (modal) modal.classList.remove('active');
+                                alert('角色保存成功！');
+                            }
+                        })();
+                    }
+
+                    // 确认对话框 - 取消按钮
+                    if (e.target.id === 'confirm-cancel') {
+                        document.getElementById('wechat-confirm-modal').classList.remove('active');
+                        confirmDialogCallback = null;
+                    }
+
+                    // 确认对话框 - 确认按钮
+                    if (e.target.id === 'confirm-ok') {
+                        const confirmModal = document.getElementById('wechat-confirm-modal');
+                        if (confirmDialogCallback) {
+                            confirmDialogCallback();
+                            confirmDialogCallback = null;
+                        }
+                        confirmModal.classList.remove('active');
+                    }
+
+                    // 提示对话框 - 确定按钮
+                    if (e.target.id === 'alert-ok') {
+                        document.getElementById('wechat-alert-modal').classList.remove('active');
+                    }
+
+                    // 打开设置（点击当前聊天头像）
+                    if (e.target.id === 'wechat-current-avatar') {
+                        const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
+                        if (char) {
+                            showWechatCharacterModal(char);
+                        }
+                    }
+                });
+            }
 
             // --- 微信标签页切换功能 ---
             const wechatNavItems = document.querySelectorAll('.wechat-nav-item');
@@ -11276,43 +11288,8 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 renderMemoryDetailList(char);
             };
             
-            // 为菜单项添加点击事件
+            // 处理好友请求点击
             document.addEventListener('click', (e) => {
-                // 处理菜单项点击
-                const menuItem = e.target.closest('.wechat-menu-item');
-                if (menuItem) {
-                    const menuText = menuItem.querySelector('.wechat-menu-text').textContent;
-                    
-                    switch(menuText) {
-                        case '钱包':
-                            openWalletView();
-                            break;
-                        case '收藏':
-                            alert('收藏功能开发中');
-                            break;
-                        case '朋友圈':
-                            // 切换到朋友圈标签页
-                            const momentsNavItem = document.querySelector('.wechat-nav-item[data-tab="moments"]');
-                            if (momentsNavItem) {
-                                momentsNavItem.click();
-                            }
-                            break;
-                        case '公众号':
-                            alert('公众号功能开发中');
-                            break;
-                        case '订单与卡包':
-                            alert('订单与卡包功能开发中');
-                            break;
-                        case '表情':
-                            alert('表情功能开发中');
-                            break;
-                        // 设置功能由另一个事件监听器处理
-                        default:
-                            break;
-                    }
-                }
-                
-                // 处理好友请求点击
                 const statusFriends = e.target.closest('.status-friends');
                 if (statusFriends) {
                     alert('好友请求功能开发中');
