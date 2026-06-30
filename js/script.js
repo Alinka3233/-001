@@ -4800,11 +4800,6 @@
 
             // 初始化微信界面
             async function initWechat() {
-                // 阻止微信内部点击冒泡到壁纸层导致应用关闭
-                document.getElementById('app-wechat')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-
                 try {
                     // 从localStorage加载API配置（优先使用小手机设置中的配置）
                     const savedApiUrl = localStorage.getItem('wechatApiUrl');
@@ -7771,27 +7766,27 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 }
             });
 
-            // 为微信"我的"页面中的"设置"菜单项添加点击事件
-            // 注意：由于 app-wechat 阻止了冒泡，这里必须直接给按钮绑定，或者在 app-wechat 上做代理
-            const wechatSettingsBtn = document.getElementById('wechat-settings-btn');
-            if (wechatSettingsBtn) {
-                wechatSettingsBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    console.log('WeChat Settings button clicked');
-                    showWechatSettingsModal();
-                });
-            }
-
-            // 处理所有微信内部的点击事件（通过代理方式，因为 app-wechat 阻止了冒泡到 document）
+            // 处理所有微信内部的点击事件（通过代理方式）
             const wechatApp = document.getElementById('app-wechat');
             if (wechatApp) {
                 wechatApp.addEventListener('click', (e) => {
-                    // 处理菜单项点击
+                    // 阻止点击事件冒泡到壁纸层导致应用关闭
+                    e.stopPropagation();
+                    
+                    // 1. 处理设置按钮（通过 ID 匹配，最优先）
+                    const settingsBtn = e.target.closest('#wechat-settings-btn');
+                    if (settingsBtn) {
+                        console.log('WeChat Settings button clicked (via ID)');
+                        showWechatSettingsModal();
+                        return;
+                    }
+
+                    // 2. 处理菜单项点击（其他菜单）
                     const menuItem = e.target.closest('.wechat-menu-item');
                     if (menuItem) {
                         const menuTextEl = menuItem.querySelector('.wechat-menu-text');
                         if (menuTextEl) {
-                            const menuText = menuTextEl.textContent;
+                            const menuText = menuTextEl.textContent.trim();
                             switch(menuText) {
                                 case '钱包':
                                     openWalletView();
@@ -7812,11 +7807,15 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 case '表情':
                                     alert('表情功能开发中');
                                     break;
+                                case '设置':
+                                    showWechatSettingsModal();
+                                    break;
                             }
                         }
+                        return;
                     }
 
-                    // 处理返回按钮
+                    // 3. 处理返回按钮
                     const backBtn = e.target.closest('#wechat-header-back-btn, #wechat-chat-back-btn');
                     if (backBtn) {
                         const momentsTab = document.getElementById('wechat-moments-tab');
@@ -7826,49 +7825,46 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             return;
                         }
                         closeWechatChat();
+                        return;
                     }
 
-                    // 发送消息
+                    // 4. 发送消息
                     if (e.target.id === 'wechat-send') {
                         sendWechatMessage();
+                        return;
                     }
 
-                    // 创建新角色
+                    // 5. 创建新角色
                     if (e.target.id === 'wechat-add-btn') {
                         showWechatCharacterModal();
+                        return;
                     }
 
-                    // 关闭模态框
+                    // 6. 关闭模态框
                     if (e.target.classList.contains('wechat-close-btn')) {
                         const modal = e.target.closest('.wechat-modal');
                         if (modal) modal.classList.remove('active');
+                        return;
                     }
                     
-                    // 保存设置按钮
+                    // 7. 保存设置按钮
                     if (e.target.id === 'wechat-save-settings') {
-                        e.stopPropagation();
                         e.preventDefault();
-                        
                         (async () => {
                             console.log('保存设置按钮被点击');
-
-                            // 保存动作描写设置
+                            // 保存逻辑...
                             const allowActionDescBtn = document.getElementById('wechat-allow-action-desc');
                             if (allowActionDescBtn) {
                                 wechatState.settings.allowActionDescription = allowActionDescBtn.checked;
                             }
-
-                            // 从localStorage同步最新的API配置
                             const savedApiUrl = localStorage.getItem('wechatApiUrl');
                             const savedApiKey = localStorage.getItem('wechatApiKey');
                             const savedModel = localStorage.getItem('wechatModel');
                             const savedCustomModel = localStorage.getItem('wechatCustomModel');
-                            
                             if (savedApiUrl) wechatState.settings.apiUrl = savedApiUrl;
                             if (savedApiKey) wechatState.settings.apiKey = savedApiKey;
                             if (savedModel) wechatState.settings.model = savedModel;
                             if (savedCustomModel) wechatState.settings.customModel = savedCustomModel;
-
                             try {
                                 await saveWechatData();
                                 showWechatAlert('设置保存成功！');
@@ -7879,9 +7875,10 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 showWechatAlert('保存失败，请重试！');
                             }
                         })();
+                        return;
                     }
 
-                    // 保存角色
+                    // 8. 保存角色
                     const saveCharBtn = e.target.closest('#wechat-save-character');
                     if (saveCharBtn) {
                         (async () => {
@@ -7892,15 +7889,15 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 alert('角色保存成功！');
                             }
                         })();
+                        return;
                     }
 
-                    // 确认对话框 - 取消按钮
+                    // 9. 确认/提示对话框按钮
                     if (e.target.id === 'confirm-cancel') {
                         document.getElementById('wechat-confirm-modal').classList.remove('active');
                         confirmDialogCallback = null;
+                        return;
                     }
-
-                    // 确认对话框 - 确认按钮
                     if (e.target.id === 'confirm-ok') {
                         const confirmModal = document.getElementById('wechat-confirm-modal');
                         if (confirmDialogCallback) {
@@ -7908,19 +7905,20 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             confirmDialogCallback = null;
                         }
                         confirmModal.classList.remove('active');
+                        return;
                     }
-
-                    // 提示对话框 - 确定按钮
                     if (e.target.id === 'alert-ok') {
                         document.getElementById('wechat-alert-modal').classList.remove('active');
+                        return;
                     }
 
-                    // 打开设置（点击当前聊天头像）
+                    // 10. 打开角色编辑（点击头像）
                     if (e.target.id === 'wechat-current-avatar') {
                         const char = wechatState.characters.find(c => c.id == wechatState.activeCharacterId);
                         if (char) {
                             showWechatCharacterModal(char);
                         }
+                        return;
                     }
                 });
             }
