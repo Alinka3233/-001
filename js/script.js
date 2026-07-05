@@ -5857,12 +5857,23 @@
                 messageList.innerHTML = '';
 
                 const isGroup = wechatState.activeChatType === 'group';
+                
+                // 关键逻辑：判断是否处于查岗模式且正在与“原用户”对话
+                // 如果是，我们需要反转渲染角色，因为历史记录是站在原用户视角存的
+                const shouldFlipRoles = !isGroup && target.isUserIdentity === true;
 
                 target.chatHistory.forEach(msg => {
                     if (isGroup) {
                         addWechatMessage(msg.content, msg.role, msg.avatar, msg.nickname);
                     } else {
-                        addWechatMessage(msg.content, msg.role, target.avatar);
+                        let renderRole = msg.role;
+                        if (shouldFlipRoles) {
+                            // 在查岗视角下：
+                            // 原始 role 为 'user' 的（原用户发的），现在是“对方”，应显示在左边 (ai)
+                            // 原始 role 为 'ai' 的（角色发的），现在是“我”，应显示在右边 (user)
+                            renderRole = (msg.role === 'user' ? 'ai' : (msg.role === 'ai' || msg.role === 'assistant' ? 'user' : msg.role));
+                        }
+                        addWechatMessage(msg.content, renderRole, target.avatar);
                     }
                 });
                 
@@ -6611,18 +6622,29 @@ ${recentHistory.map(m => `${m.role}: ${m.content}`).join('\n')}
                 if (!target) return;
 
                 // 添加用户消息到界面和历史
+                // 关键逻辑：在查岗模式下发送消息，实际是以角色的身份发送，所以存入历史记录时 role 应为 'ai'
+                const isInvestigatingUser = chatType === 'single' && target.isUserIdentity === true;
+                const saveRole = isInvestigatingUser ? 'ai' : 'user';
+
                 if (chatType === 'group') {
                     addWechatMessage(text, 'user', wechatState.profile.avatar, wechatState.profile.nickname || '我');
                 } else {
                     addWechatMessage(text, 'user', wechatState.profile.avatar);
                 }
-                target.chatHistory.push({ role: 'user', content: text, timestamp: Date.now() });
+                
+                target.chatHistory.push({ role: saveRole, content: text, timestamp: Date.now() });
                 saveWechatData();
                 input.value = '';
                 input.style.height = '40px'; // 重置高度
                 
                 // 刷新联系人列表
                 renderWechatList();
+
+                // 关键逻辑：如果是在查岗视角下与“原用户”对话，不触发 AI 自动回复
+                if (isInvestigatingUser) {
+                    console.log('查岗模式：不触发 AI 自动回复');
+                    return;
+                }
 
                 if (chatType === 'single') {
                     // 检查是否启用了延迟回复
