@@ -12397,8 +12397,9 @@ ${statusInfluence || '用户当前无特定状态'}`;
 
             // 自动调整输入框高度
             eternInput.addEventListener('input', () => {
-                eternInput.style.height = 'auto';
-                eternInput.style.height = Math.min(eternInput.scrollHeight, 100) + 'px';
+                eternInput.style.height = '38px';
+                const newHeight = Math.min(eternInput.scrollHeight, 120);
+                eternInput.style.height = newHeight + 'px';
             });
 
             // 发送消息逻辑
@@ -12409,7 +12410,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 // 添加用户消息
                 addEternMessage(text, 'user');
                 eternInput.value = '';
-                eternInput.style.height = '40px';
+                eternInput.style.height = '38px';
                 
                 // 发送后自动滚动到底部
                 const container = document.getElementById('etern-chat-container');
