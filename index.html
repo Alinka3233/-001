@@ -258,22 +258,22 @@
     </div>
 
     <div class="app-page" id="app-etern">
-        <header class="app-header" style="background: #1c1c1e; border-bottom: 1px solid #38383a;">
-            <button class="ios-back-btn" onclick="closeApps()" style="color: #0a84ff !important;"><i class="fas fa-chevron-left"></i> 退出</button>
-            <h1 style="color: white;">ETERN AI</h1>
-            <button id="etern-clear-chat" style="background: none; border: none; color: #0a84ff; font-size: 16px; cursor: pointer;">清除</button>
+        <header class="app-header etern-header">
+            <button class="ios-back-btn" onclick="closeApps()"><i class="fas fa-chevron-left"></i> 退出</button>
+            <h1>ETERN AI</h1>
+            <button id="etern-clear-chat">清除</button>
         </header>
-        <div class="app-content" style="background: #000; padding: 0; flex-direction: column;">
-            <div id="etern-chat-container" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+        <div class="app-content etern-content">
+            <div id="etern-chat-container">
                 <!-- 欢迎消息 -->
                 <div class="etern-message ai">
                     <div class="etern-avatar"><i class="fas fa-robot"></i></div>
                     <div class="etern-bubble">你好！我是 ETERN，你的小手机 AI 助手。你可以问我关于这个系统的任何问题，比如如何切换账号、怎么发朋友圈或者如何配置 AI 角色。</div>
                 </div>
             </div>
-            <div class="etern-input-area" style="padding: 15px; background: #1c1c1e; border-top: 1px solid #38383a; display: flex; gap: 10px; align-items: flex-end;">
-                <textarea id="etern-input" placeholder="问问我关于这个手机的事..." style="flex: 1; background: #2c2c2e; border: none; border-radius: 20px; padding: 10px 15px; color: white; resize: none; max-height: 100px; font-family: inherit; font-size: 15px;"></textarea>
-                <button id="etern-send-btn" style="width: 35px; height: 35px; border-radius: 50%; background: #0a84ff; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s;">
+            <div class="etern-input-area">
+                <textarea id="etern-input" placeholder="问问我关于这个手机的事..."></textarea>
+                <button id="etern-send-btn">
                     <i class="fas fa-arrow-up"></i>
                 </button>
             </div>
