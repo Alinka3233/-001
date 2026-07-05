@@ -12410,6 +12410,12 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 addEternMessage(text, 'user');
                 eternInput.value = '';
                 eternInput.style.height = '40px';
+                
+                // 发送后自动滚动到底部
+                const container = document.getElementById('etern-chat-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
 
                 // 显示输入状态
                 const typingIndicator = showEternTyping();
@@ -12419,6 +12425,13 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     const response = await getEternAIResponse(text);
                     typingIndicator.remove();
                     addEternMessage(response, 'ai');
+                    
+                    // 回复后再次确保滚动到底部
+                    if (container) {
+                        setTimeout(() => {
+                            container.scrollTop = container.scrollHeight;
+                        }, 50);
+                    }
                 } catch (error) {
                     typingIndicator.remove();
                     addEternMessage('抱歉，我现在有点累了，请稍后再试。', 'ai');
