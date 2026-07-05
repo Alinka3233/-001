@@ -4899,7 +4899,8 @@
                 isTyping: false,
                 editingCharId: null,
                 defaultCharacters: [],
-                groups: []
+                groups: [],
+                investigateSnapshot: null
             };
 
             // 获取当前账号对应的存储 Key
@@ -4960,6 +4961,7 @@
                             wechatState.momentsCover = saved.momentsCover;
                         }
                         wechatState.groups = saved.groups || [];
+                        wechatState.investigateSnapshot = saved.investigateSnapshot || null;
                         
                         // 迁移旧的localStorage数据到IndexedDB（如果存在）
                         const oldLocalStorageData = localStorage.getItem('wechat_app_state');
@@ -5305,12 +5307,14 @@
             // 保存微信数据到IndexedDB
             let saveWechatDataTimeout = null;
             async function saveWechatData(immediate = false) {
+                // 关键修复：立即获取当前的 storeKey，防止在异步防抖期间账号已切换
+                const currentStoreKey = getWechatStoreKey();
+
                 if (saveWechatDataTimeout) {
                     clearTimeout(saveWechatDataTimeout);
-                    // 如果有正在等待的 Promise，虽然这里简单处理了，但 immediate 模式会跳过等待
                 }
                 
-                const performSave = async () => {
+                const performSave = async (key) => {
                     try {
                         const dataToSave = {
                             characters: wechatState.characters,
@@ -5318,12 +5322,13 @@
                             moments: wechatState.moments,
                             momentsCover: wechatState.momentsCover,
                             settings: wechatState.settings,
-                            groups: wechatState.groups || []
+                            groups: wechatState.groups || [],
+                            // 保存查岗快照（如果存在）
+                            investigateSnapshot: wechatState.investigateSnapshot || null
                         };
                         
-                        const storeKey = getWechatStoreKey();
-                        await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, storeKey);
-                        console.log(`微信数据保存成功 (${storeKey})` + (immediate ? ' (立即)' : ' (已防抖)'));
+                        await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, key);
+                        console.log(`微信数据保存成功 (${key})` + (immediate ? ' (立即)' : ' (已防抖)'));
                         return true;
                     } catch (error) {
                         console.error('保存微信数据失败:', error);
@@ -5332,12 +5337,12 @@
                 };
 
                 if (immediate) {
-                    return await performSave();
+                    return await performSave(currentStoreKey);
                 }
 
                 return new Promise((resolve) => {
                     saveWechatDataTimeout = setTimeout(async () => {
-                        resolve(await performSave());
+                        resolve(await performSave(currentStoreKey));
                     }, 500);
                 });
             }
@@ -9451,46 +9456,41 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         const isCheckingAccount = wechatState.characters.some(c => c.isUserIdentity);
                         
                         // 如果是当前正在查岗的原账号，点击则结束查岗
-                        if (id === currentId && isCheckingAccount) {
-                            let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
-                            if (userCharIndex !== -1) {
-                                const userChar = wechatState.characters[userCharIndex];
-                                
-                                // 查找正在被查岗的角色（即当前的 profile）
-                                // 逻辑：被查岗的角色应该被放回联系人列表，其聊天历史需要同步
-                                const characterToRestore = {
-                                    id: 'restored_' + Date.now(),
-                                    name: wechatState.profile.nickname,
-                                    avatar: wechatState.profile.avatar,
-                                    wechatid: wechatState.profile.wechatid,
-                                    persona: wechatState.profile.persona,
-                                    chatHistory: userChar.chatHistory || [] // 将查岗期间的聊天记录同步回角色
-                                };
-
-                                // 恢复原用户身份
-                                wechatState.profile.nickname = userChar.name;
-                                wechatState.profile.avatar = userChar.avatar;
-                                wechatState.profile.persona = userChar.persona;
-                                
-                                // 移除临时的“原用户联系人”，放回“被查岗角色”
-                                wechatState.characters = wechatState.characters.filter(c => !c.isUserIdentity);
-                                wechatState.characters.push(characterToRestore);
-                                
-                                await saveWechatData(true);
-                                renderWechatProfile();
-                                renderWechatList();
-                                renderWechatContacts();
-                                renderAccountList();
-                                
-                                setTimeout(() => {
-                                    accountView.classList.remove('active');
-                                    setTimeout(() => {
-                                        accountView.style.display = 'none';
-                                        alert('已结束查岗，返回原身份，聊天记录已同步。');
-                                    }, 400);
-                                }, 300);
-                                return;
+                        if (id === currentId && wechatState.investigateSnapshot) {
+                            const snapshot = wechatState.investigateSnapshot;
+                            const userChar = wechatState.characters.find(c => c.isUserIdentity);
+                            
+                            // 1. 恢复原始 profile
+                            wechatState.profile = snapshot.profile;
+                            
+                            // 2. 恢复原始 characters 列表
+                            wechatState.characters = snapshot.characters;
+                            
+                            // 3. 将查岗期间的聊天记录同步回对应的角色
+                            if (userChar && userChar.chatHistory) {
+                                const targetChar = wechatState.characters.find(c => c.id == snapshot.targetCharId);
+                                if (targetChar) {
+                                    targetChar.chatHistory = userChar.chatHistory;
+                                }
                             }
+
+                            // 4. 清除快照
+                            wechatState.investigateSnapshot = null;
+                            
+                            await saveWechatData(true);
+                            renderWechatProfile();
+                            renderWechatList();
+                            renderWechatContacts();
+                            renderAccountList();
+                            
+                            setTimeout(() => {
+                                accountView.classList.remove('active');
+                                setTimeout(() => {
+                                    accountView.style.display = 'none';
+                                    alert('已结束查岗，返回原身份，所有好友及聊天记录已完全恢复。');
+                                }, 400);
+                            }, 300);
+                            return;
                         }
 
                         const targetAcc = accounts.find(a => a.id === id);
@@ -9538,16 +9538,18 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         }
 
                         if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份临时互换。`)) {
-                            // 1. 先保存当前真实账号的数据
+                            // 1. 进入查岗前，保存当前完整状态的快照
+                            wechatState.investigateSnapshot = {
+                                profile: JSON.parse(JSON.stringify(wechatState.profile)),
+                                characters: JSON.parse(JSON.stringify(wechatState.characters)),
+                                targetCharId: charId
+                            };
+
+                            // 2. 先保存当前真实账号的数据（包含快照）
                             await saveWechatData(true);
 
-                            // 2. 构造“查岗视角”的数据状态
-                            const oldProfile = {
-                                nickname: wechatState.profile.nickname,
-                                avatar: wechatState.profile.avatar,
-                                wechatid: wechatState.profile.wechatid,
-                                persona: wechatState.profile.persona
-                            };
+                            // 3. 构造“查岗视角”的数据状态
+                            const oldProfile = wechatState.investigateSnapshot.profile;
 
                             // 创建代表原用户的联系人
                             const newUserChar = {
@@ -9569,10 +9571,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             wechatState.characters = wechatState.characters.filter(c => c.id != charId);
                             wechatState.characters.unshift(newUserChar);
 
-                            // 3. 注意：查岗模式下不改变 getWechatStoreKey，
-                            // 而是临时修改内存中的 wechatState 并渲染，但不建议立即 saveWechatData(true)
-                            // 除非你想让查岗状态在刷新后也保留。
-                            // 这里我们选择保存，这样刷新页面也能维持查岗状态
+                            // 4. 保存进入查岗后的临时状态
                             await saveWechatData(true);
 
                             renderWechatProfile();
