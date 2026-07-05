@@ -2461,22 +2461,26 @@
 
         .etern-input-area {
             padding: 12px 16px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom, 20px));
-            background: #1c1c1e;
-            border-top: 1px solid #38383a;
+            padding-bottom: max(16px, env(safe-area-inset-bottom, 24px));
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             gap: 12px;
             align-items: flex-end;
             flex-shrink: 0;
             width: 100%;
             box-sizing: border-box;
+            position: relative;
+            z-index: 10;
         }
 
         #etern-input {
             flex: 1;
-            background: #2c2c2e;
-            border: none;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 22px;
             padding: 10px 18px;
             color: white;
             resize: none;
@@ -2486,13 +2490,19 @@
             font-size: 16px;
             line-height: 1.4;
             outline: none;
+            transition: all 0.2s;
+        }
+
+        #etern-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(10, 132, 255, 0.5);
         }
 
         #etern-send-btn {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: #0a84ff;
+            background: linear-gradient(135deg, #0a84ff 0%, #0071e3 100%);
             border: none;
             color: white;
             display: flex;
@@ -2502,11 +2512,17 @@
             transition: all 0.2s;
             flex-shrink: 0;
             margin-bottom: 2px;
+            box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+        }
+
+        #etern-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
         }
 
         #etern-send-btn:active {
             transform: scale(0.9);
-            background: #0071e3;
+            filter: brightness(0.9);
         }
 
         /* ETERN AI 助手消息样式 */
