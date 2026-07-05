@@ -3665,35 +3665,67 @@
 
         /* --- 统一的高级简约返回键样式 --- */
         .ios-back-btn {
-            color: var(--text-color) !important;
-            opacity: 0.85;
+            color: #007aff !important; /* 默认使用 iOS 经典蓝色 */
+            opacity: 1;
             font-size: 17px !important;
             background: none;
             border: none;
-            padding: 0;
-            margin: 0;
+            padding: 8px 4px;
+            margin-left: -4px;
             cursor: pointer;
             display: flex !important;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             font-weight: 400 !important;
-            letter-spacing: -0.3px;
-            z-index: 2;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            letter-spacing: -0.4px;
+            z-index: 10;
+            transition: opacity 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ios-back-btn.white-text {
+            color: #ffffff !important;
+        }
+
+        .ios-back-btn.orange-text {
+            color: #ff9500 !important;
+        }
+
+        .ios-back-btn.red-text {
+            color: #ff3b30 !important;
+        }
+
+        .ios-back-btn.yellow-text {
+            color: #ffcc00 !important;
         }
 
         .ios-back-btn:active {
-            opacity: 0.4;
-            transform: scale(0.96);
+            opacity: 0.3;
         }
 
         .ios-back-btn i {
-            font-size: 16px;
-            font-weight: 300;
-            margin-top: 1px;
+            font-size: 19px; /* 图标稍大一点，符合 iOS 风格 */
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .ios-back-btn span {
+            display: inline-block;
+        }
+
+        /* 微信专用的返回键颜色覆盖 */
+        .wechat-header .ios-back-btn,
+        .wechat-tab .ios-back-btn,
+        #wechat-chat-view .ios-back-btn {
+            color: var(--text-color) !important;
         }
 
         .dark-mode .ios-back-btn {
+            /* 在暗黑模式下，如果是默认蓝色则保留，如果是文字颜色则变白 */
+        }
+
+        .dark-mode .wechat-header .ios-back-btn {
             color: #fff !important;
         }
 
