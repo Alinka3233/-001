@@ -644,6 +644,23 @@
             background-repeat: no-repeat;
         }
         .icon.clock i { display: none; }
+
+        .icon.etern {
+            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+            color: #0a84ff;
+            font-size: 28px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(10, 132, 255, 0.3);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+        }
+
+        .icon.etern i {
+            display: block !important;
+            filter: drop-shadow(0 0 5px #0a84ff);
+        }
+
         .icon.calendar { background: #fff; color: #ff3b30; flex-direction: column; justify-content: center; gap: 2px; }
         .icon.calendar .cal-weekday { font-size: calc(10px * var(--icon-scale, 1)); font-weight: 700; text-transform: uppercase; line-height: 1; margin-top: 4px; }
         .icon.calendar .cal-day { font-size: calc(28px * var(--icon-scale, 1)); font-weight: 400; color: #000; line-height: 1; }
@@ -2392,6 +2409,83 @@
         }
 
         /* --- 天气应用样式优化 --- */
+        #app-etern {
+            background: #000;
+            z-index: 100;
+        }
+
+        /* ETERN AI 助手消息样式 */
+        .etern-message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+        }
+
+        .etern-message.ai {
+            align-self: flex-start;
+        }
+
+        .etern-message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .etern-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #1c1c1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a84ff;
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .etern-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .etern-message.ai .etern-bubble {
+            background: #1c1c1e;
+            color: #fff;
+            border: 1px solid #38383a;
+            border-top-left-radius: 4px;
+        }
+
+        .etern-message.user .etern-bubble {
+            background: #0a84ff;
+            color: #fff;
+            border-top-right-radius: 4px;
+        }
+
+        .etern-typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 5px 10px;
+        }
+
+        .etern-dot {
+            width: 6px;
+            height: 6px;
+            background: #0a84ff;
+            border-radius: 50%;
+            animation: etern-bounce 1.4s infinite ease-in-out both;
+        }
+
+        .etern-dot:nth-child(1) { animation-delay: -0.32s; }
+        .etern-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes etern-bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
         #app-weather {
             background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
             transition: background 0.5s ease;

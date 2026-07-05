@@ -253,6 +253,11 @@
                 initIOSAdaptation();
             }
 
+            // 6. 初始化 ETERN
+            if (typeof initEternApp === 'function') {
+                initEternApp();
+            }
+
             const phoneContainer = document.getElementById('phone-ui-container');
             const homeScreen = document.getElementById('home-screen');
             const wallpaper = document.getElementById('wallpaper');
@@ -313,7 +318,7 @@
             setInterval(updateClock, 60000);
 
             // 应用切换逻辑
-            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'community-api-config', 'memory-manager', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore'];
+            const implementedApps = ['safari', 'weather', 'settings', 'camera', 'photos', 'themes', 'wechat', 'music', 'calculator', 'worldbook', 'api-config', 'vision-api-config', 'community-api-config', 'memory-manager', 'location', 'general', 'notes', 'clock', 'calendar', 'appstore', 'etern'];
             
             // --- 应用管理系统 (删除与下载) ---
             let deletedApps = JSON.parse(localStorage.getItem('deletedApps') || '[]');
@@ -333,6 +338,7 @@
                 { id: 'calendar', name: '日历', icon: 'fas fa-calendar-alt', color: '#fff' },
                 { id: 'notes', name: '备忘录', icon: 'fas fa-sticky-note', img: 'https://cdn.jim-nielsen.com/ios/1024/notes-2025-10-20.png?rf=1024', color: '#FFCC00' },
                 { id: 'phone', name: '电话', icon: 'fas fa-phone', img: 'https://cdn.jim-nielsen.com/ios/1024/phone-2025-10-20.png?rf=1024', color: '#28CD41' },
+                { id: 'etern', name: 'ETERN', icon: 'fas fa-robot', color: '#000' },
                 { id: 'safari', name: 'AI 社区', icon: 'fas fa-robot', img: 'https://cdn-icons-png.flaticon.com/512/6134/6134346.png', color: '#fff' },
                 { id: 'messages', name: '信息', icon: 'fas fa-comment', img: 'https://cdn.jim-nielsen.com/ios/1024/messages-2025-10-20.png?rf=1024', color: '#28CD41' },
                 { id: 'music', name: '音乐', icon: 'fas fa-music', color: '#FF2D55' }
@@ -12378,6 +12384,150 @@ ${statusInfluence || '用户当前无特定状态'}`;
             localStorage.setItem('ios-notes', JSON.stringify(notes));
             loadNotes();
             closeNoteEditor();
+        }
+
+        // 初始化 ETERN AI 应用
+        function initEternApp() {
+            const eternInput = document.getElementById('etern-input');
+            const eternSendBtn = document.getElementById('etern-send-btn');
+            const eternChatContainer = document.getElementById('etern-chat-container');
+            const eternClearBtn = document.getElementById('etern-clear-chat');
+
+            if (!eternInput || !eternSendBtn) return;
+
+            // 自动调整输入框高度
+            eternInput.addEventListener('input', () => {
+                eternInput.style.height = 'auto';
+                eternInput.style.height = Math.min(eternInput.scrollHeight, 100) + 'px';
+            });
+
+            // 发送消息逻辑
+            const sendEternMessage = async () => {
+                const text = eternInput.value.trim();
+                if (!text) return;
+
+                // 添加用户消息
+                addEternMessage(text, 'user');
+                eternInput.value = '';
+                eternInput.style.height = '40px';
+
+                // 显示输入状态
+                const typingIndicator = showEternTyping();
+                
+                try {
+                    // 获取 AI 回复
+                    const response = await getEternAIResponse(text);
+                    typingIndicator.remove();
+                    addEternMessage(response, 'ai');
+                } catch (error) {
+                    typingIndicator.remove();
+                    addEternMessage('抱歉，我现在有点累了，请稍后再试。', 'ai');
+                }
+            };
+
+            eternSendBtn.addEventListener('click', sendEternMessage);
+            eternInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendEternMessage();
+                }
+            });
+
+            eternClearBtn.addEventListener('click', () => {
+                if (confirm('确定要清除所有对话记录吗？')) {
+                    eternChatContainer.innerHTML = `
+                        <div class="etern-message ai">
+                            <div class="etern-avatar"><i class="fas fa-robot"></i></div>
+                            <div class="etern-bubble">你好！我是 ETERN，你的小手机 AI 助手。你可以问我关于这个系统的任何问题，比如如何切换账号、怎么发朋友圈或者如何配置 AI 角色。</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function addEternMessage(content, role) {
+            const container = document.getElementById('etern-chat-container');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.className = `etern-message ${role}`;
+            
+            const avatarHtml = role === 'ai' ? '<div class="etern-avatar"><i class="fas fa-robot"></i></div>' : '';
+            
+            // 处理换行符
+            const formattedContent = content.replace(/\n/g, '<br>');
+            
+            div.innerHTML = `
+                ${avatarHtml}
+                <div class="etern-bubble">${formattedContent}</div>
+            `;
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showEternTyping() {
+            const container = document.getElementById('etern-chat-container');
+            const div = document.createElement('div');
+            div.className = 'etern-message ai';
+            div.innerHTML = `
+                <div class="etern-avatar"><i class="fas fa-robot"></i></div>
+                <div class="etern-bubble">
+                    <div class="etern-typing-indicator">
+                        <div class="etern-dot"></div>
+                        <div class="etern-dot"></div>
+                        <div class="etern-dot"></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        async function getEternAIResponse(userInput) {
+            // 优先从小手机设置中获取 API 配置
+            const apiUrl = localStorage.getItem('wechatApiUrl') || 'https://api.openai.com/v1/chat/completions';
+            const apiKey = localStorage.getItem('wechatApiKey');
+            const model = localStorage.getItem('wechatModel') || 'gpt-3.5-turbo';
+
+            if (!apiKey) {
+                return '你好！我是 ETERN 助手。目前你还没有在“微信设置”中配置 API Key，所以我只能进行简单的离线回复。这个小手机支持微信对话、朋友圈、多账号切换、主题更换等功能，你可以去探索一下！';
+            }
+
+            const systemPrompt = `你是一个名为 ETERN 的 AI 助手，专门为这个“虚拟小手机”系统提供帮助。
+你的性格：专业、热情、有科技感，像一个未来的数字生命。
+关于系统的核心信息：
+1. 微信功能：支持与 AI 角色聊天、发朋友圈、创建/编辑 AI 好友。
+2. 查岗模式：在微信“切换账号”里，可以“顶号查岗”进入 AI 角色的视角查看他们的聊天记录和好友。
+3. 账号系统：支持多身份切换，每个身份的数据（聊天记录等）是完全独立的。
+4. 主题设置：微信设置里可以更换聊天背景、主页底图，还可以开启/关闭动作描写。
+5. 其它应用：天气（支持自动定位）、照片、相机、计算器、时钟、备忘录等。
+你的任务是解答用户关于这些功能的疑问，并引导他们体验系统的深度功能。回答要简洁明了。`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userInput }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('ETERN AI 请求失败:', error);
+                return '连接服务器失败了，请检查网络或 API 配置。';
+            }
         }
 
         // --- iOS辅助触控（小白点）自定义功能 ---
