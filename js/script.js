@@ -9455,12 +9455,28 @@ ${statusInfluence || '用户当前无特定状态'}`;
                             let userCharIndex = wechatState.characters.findIndex(c => c.isUserIdentity);
                             if (userCharIndex !== -1) {
                                 const userChar = wechatState.characters[userCharIndex];
+                                
+                                // 查找正在被查岗的角色（即当前的 profile）
+                                // 逻辑：被查岗的角色应该被放回联系人列表，其聊天历史需要同步
+                                const characterToRestore = {
+                                    id: 'restored_' + Date.now(),
+                                    name: wechatState.profile.nickname,
+                                    avatar: wechatState.profile.avatar,
+                                    wechatid: wechatState.profile.wechatid,
+                                    persona: wechatState.profile.persona,
+                                    chatHistory: userChar.chatHistory || [] // 将查岗期间的聊天记录同步回角色
+                                };
+
+                                // 恢复原用户身份
                                 wechatState.profile.nickname = userChar.name;
                                 wechatState.profile.avatar = userChar.avatar;
                                 wechatState.profile.persona = userChar.persona;
-                                wechatState.characters.splice(userCharIndex, 1);
                                 
-                                await saveWechatData();
+                                // 移除临时的“原用户联系人”，放回“被查岗角色”
+                                wechatState.characters = wechatState.characters.filter(c => !c.isUserIdentity);
+                                wechatState.characters.push(characterToRestore);
+                                
+                                await saveWechatData(true);
                                 renderWechatProfile();
                                 renderWechatList();
                                 renderWechatContacts();
@@ -9470,7 +9486,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                     accountView.classList.remove('active');
                                     setTimeout(() => {
                                         accountView.style.display = 'none';
-                                        alert('已结束查岗，返回原身份');
+                                        alert('已结束查岗，返回原身份，聊天记录已同步。');
                                     }, 400);
                                 }, 300);
                                 return;
@@ -9522,6 +9538,10 @@ ${statusInfluence || '用户当前无特定状态'}`;
                         }
 
                         if (confirm(`确定要切换到角色 "${character.name}" 的视角进行查岗吗？\n这会将您的当前身份临时互换。`)) {
+                            // 1. 先保存当前真实账号的数据
+                            await saveWechatData(true);
+
+                            // 2. 构造“查岗视角”的数据状态
                             const oldProfile = {
                                 nickname: wechatState.profile.nickname,
                                 avatar: wechatState.profile.avatar,
@@ -9529,23 +9549,32 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 persona: wechatState.profile.persona
                             };
 
+                            // 创建代表原用户的联系人
                             const newUserChar = {
                                 id: 'user_char_' + Date.now(),
                                 name: oldProfile.nickname || '我',
                                 avatar: oldProfile.avatar || GREY_AVATAR,
                                 persona: oldProfile.persona || '一个普通的用户',
-                                isUserIdentity: true
+                                isUserIdentity: true,
+                                chatHistory: character.chatHistory || [] // 继承原有的聊天记录
                             };
-                            wechatState.characters.push(newUserChar);
 
+                            // 更新全局状态为角色视角
                             wechatState.profile.nickname = character.name;
                             wechatState.profile.avatar = character.avatar;
                             wechatState.profile.wechatid = character.wechatid || ('wxid_' + character.id);
                             wechatState.profile.persona = character.persona || '';
 
+                            // 角色列表：移除当前被查岗的角色，加入原用户作为联系人
                             wechatState.characters = wechatState.characters.filter(c => c.id != charId);
+                            wechatState.characters.unshift(newUserChar);
 
-                            await saveWechatData();
+                            // 3. 注意：查岗模式下不改变 getWechatStoreKey，
+                            // 而是临时修改内存中的 wechatState 并渲染，但不建议立即 saveWechatData(true)
+                            // 除非你想让查岗状态在刷新后也保留。
+                            // 这里我们选择保存，这样刷新页面也能维持查岗状态
+                            await saveWechatData(true);
+
                             renderWechatProfile();
                             renderWechatList();
                             renderWechatContacts();
@@ -9555,7 +9584,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                                 accountView.classList.remove('active');
                                 setTimeout(() => {
                                     accountView.style.display = 'none';
-                                    alert(`查岗模式已开启！您现在正在使用 "${character.name}" 的账号。`);
+                                    alert(`查岗模式已开启！您现在正在使用 "${character.name}" 的账号，可以查看与原用户的聊天记录。`);
                                 }, 400);
                             }, 300);
                         }
