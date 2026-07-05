@@ -12400,6 +12400,13 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 eternInput.style.height = '38px';
                 const newHeight = Math.min(eternInput.scrollHeight, 120);
                 eternInput.style.height = newHeight + 'px';
+                
+                // 如果超过最大高度，显示滚动条，否则隐藏
+                if (eternInput.scrollHeight > 120) {
+                    eternInput.style.overflowY = 'auto';
+                } else {
+                    eternInput.style.overflowY = 'hidden';
+                }
             });
 
             // 发送消息逻辑
@@ -12411,6 +12418,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 addEternMessage(text, 'user');
                 eternInput.value = '';
                 eternInput.style.height = '38px';
+                eternInput.style.overflowY = 'hidden'; // 发送后恢复隐藏
                 
                 // 发送后自动滚动到底部
                 const container = document.getElementById('etern-chat-container');
