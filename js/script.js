@@ -4902,6 +4902,12 @@
                 groups: []
             };
 
+            // 获取当前账号对应的存储 Key
+            function getWechatStoreKey() {
+                const currentId = localStorage.getItem('currentAccountId') || 'default';
+                return `wechatAppState_${currentId}`;
+            }
+
             // 初始化微信界面
             async function initWechat() {
                 try {
@@ -4918,8 +4924,21 @@
                     }
                     if (savedCustomModel) wechatState.settings.customModel = savedCustomModel;
                     
-                    // 从IndexedDB加载数据
-                    const saved = await loadDataFromIndexedDB(STORES.APP_DATA, 'wechatAppState');
+                    // 从IndexedDB加载数据（使用账号特定的 Key）
+                    const storeKey = getWechatStoreKey();
+                    let saved = await loadDataFromIndexedDB(STORES.APP_DATA, storeKey);
+                    
+                    // 如果特定账号数据不存在，尝试检查旧的全局数据（进行迁移）
+                    if (!saved && (localStorage.getItem('currentAccountId') || 'default') === 'default') {
+                        const legacySaved = await loadDataFromIndexedDB(STORES.APP_DATA, 'wechatAppState');
+                        if (legacySaved) {
+                            console.log('检测到旧版全局微信数据，正在迁移到默认账号...');
+                            saved = legacySaved;
+                            // 立即保存一份到新 Key
+                            await saveDataToIndexedDB(STORES.APP_DATA, saved, storeKey);
+                        }
+                    }
+
                     if (saved) {
                         // 从IndexedDB加载成功
                         wechatState.characters = saved.characters && saved.characters.length > 0 ? saved.characters : wechatState.defaultCharacters;
@@ -4967,10 +4986,22 @@
                             await saveWechatData();
                             localStorage.removeItem('wechat_app_state'); // 清除旧数据
                         } else {
-                            // 初始化默认数据
+                            // 初始化新账号数据
                             wechatState.characters = wechatState.defaultCharacters;
                             wechatState.moments = [];
-                            // 不再初始化默认朋友圈数据，保持朋友圈为空
+                            // 保持当前账号的 profile 基础信息（从账号列表加载）
+                            const accounts = JSON.parse(localStorage.getItem('wechatAccounts') || '[]');
+                            const currentId = localStorage.getItem('currentAccountId') || 'default';
+                            const currentAcc = accounts.find(a => a.id === currentId);
+                            if (currentAcc) {
+                                wechatState.profile = {
+                                    ...wechatState.profile,
+                                    nickname: currentAcc.nickname,
+                                    avatar: currentAcc.avatar,
+                                    wechatid: currentAcc.wechatid || '',
+                                    persona: currentAcc.persona || ''
+                                };
+                            }
                             await saveWechatData();
                         }
                     }
@@ -5290,8 +5321,9 @@
                             groups: wechatState.groups || []
                         };
                         
-                        await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, 'wechatAppState');
-                        console.log('微信数据保存成功' + (immediate ? ' (立即)' : ' (已防抖)'));
+                        const storeKey = getWechatStoreKey();
+                        await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, storeKey);
+                        console.log(`微信数据保存成功 (${storeKey})` + (immediate ? ' (立即)' : ' (已防抖)'));
                         return true;
                     } catch (error) {
                         console.error('保存微信数据失败:', error);
@@ -9447,21 +9479,14 @@ ${statusInfluence || '用户当前无特定状态'}`;
 
                         const targetAcc = accounts.find(a => a.id === id);
                         if (targetAcc) {
-                            wechatState.profile.nickname = targetAcc.nickname;
-                            wechatState.profile.avatar = targetAcc.avatar;
-                            wechatState.profile.wechatid = targetAcc.wechatid || '';
-                            wechatState.profile.persona = targetAcc.persona || '';
-                            wechatState.profile.status = '';
-                            wechatState.profile.statusIcon = '';
+                            // 1. 先保存当前账号的数据
+                            await saveWechatData(true);
+                            
+                            // 2. 切换当前账号 ID
                             localStorage.setItem('currentAccountId', id);
                             
-                            wechatState.characters = wechatState.characters.filter(c => !c.isUserIdentity);
-
-                            await saveWechatData();
-                            renderWechatProfile();
-                            renderWechatList();
-                            renderWechatContacts();
-                            renderAccountList();
+                            // 3. 重新初始化微信（会从新账号的 Key 加载数据）
+                            await initWechat();
                             
                             setTimeout(() => {
                                 accountView.classList.remove('active');
