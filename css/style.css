@@ -3667,21 +3667,24 @@
         .ios-back-btn {
             color: #007aff !important; /* 默认使用 iOS 经典蓝色 */
             opacity: 1;
-            font-size: 17px !important;
+            font-size: 22px !important; /* 图标作为主要元素，字号加大 */
             background: none;
             border: none;
-            padding: 8px 4px;
-            margin-left: -4px;
+            padding: 10px 12px; /* 增加点击区域 */
+            margin-left: -10px;
             cursor: pointer;
             display: flex !important;
             align-items: center;
-            gap: 5px;
-            font-weight: 400 !important;
-            letter-spacing: -0.4px;
+            justify-content: center;
             z-index: 10;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        .ios-back-btn:active {
+            opacity: 0.3;
+            transform: scale(0.9); /* 点击反馈 */
         }
 
         .ios-back-btn.white-text {
@@ -3700,18 +3703,14 @@
             color: #ffcc00 !important;
         }
 
-        .ios-back-btn:active {
-            opacity: 0.3;
-        }
-
         .ios-back-btn i {
-            font-size: 19px; /* 图标稍大一点，符合 iOS 风格 */
+            font-size: 22px; /* 确保图标大小一致 */
             font-weight: 600;
-            display: inline-block;
         }
 
+        /* 移除之前针对 span 的样式 */
         .ios-back-btn span {
-            display: inline-block;
+            display: none !important;
         }
 
         /* 微信专用的返回键颜色覆盖 */
