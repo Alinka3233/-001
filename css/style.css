@@ -4352,9 +4352,9 @@
             font-size: 22px; /* 统一图标大小 */
             color: #000;
             cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
+            padding: 10px; /* 统一垂直内边距 */
+            /* width: 32px; */ /* 移除固定宽度 */
+            /* height: 32px; */ /* 移除固定高度 */
             display: flex;
             align-items: center;
             justify-content: center;
