@@ -4326,7 +4326,6 @@
         
         /* 微信头部标题容器 */
         .wechat-header-center {
-            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
