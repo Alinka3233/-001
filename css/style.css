@@ -4305,7 +4305,7 @@
             justify-content: space-between;
             align-items: center;
             padding-left: 24px;
-            padding-right: 0px !important;
+            padding-right: 24px !important;
             padding-bottom: 12px;
             padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
             background-color: #ffffff;
@@ -4322,8 +4322,6 @@
         
         .wechat-header-right {
             text-align: right;
-            margin-left: auto;
-            padding-right: 10px;
         }
         
         /* 微信头部标题容器 */
@@ -4363,6 +4361,7 @@
             justify-content: center;
             border-radius: 50%;
             transition: transform 0.2s, opacity 0.2s, background-color 0.2s, filter 0.2s;
+            margin-right: -10px;
         }
 
         .wechat-header-btn:hover {
@@ -6687,7 +6686,7 @@
         }
 
         .wechat-chat-header {
-        padding: 12px 24px; /* 调整垂直和水平内边距，使其与主微信头部一致 */
+        padding: 12px 30px; /* 调整垂直和水平内边距，使其与主微信头部一致 */
         padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
         display: flex;
         align-items: center;
@@ -6733,7 +6732,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-right: 15px;
             /* 移除绝对定位相关的样式 */
             /* position: absolute; */
             /* right: 16px; */
