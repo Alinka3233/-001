@@ -6774,6 +6774,7 @@
             overflow-y: scroll; /* 强制显示滚动条轨道，有助于 iOS 识别滚动区域 */
             display: flex;
             flex-direction: column;
+            gap: 20px; /* Use gap for consistent spacing */
             -webkit-overflow-scrolling: touch;
             height: 100%; /* 确保在 flex 容器中占满高度 */
         }
@@ -6781,7 +6782,6 @@
         .wechat-message {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 24px; /* Increase spacing between all messages */
             /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }
