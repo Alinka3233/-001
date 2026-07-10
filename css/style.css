@@ -6684,20 +6684,20 @@
         }
 
         .wechat-chat-header {
-            padding: 8px 20px; /* 进一步减小上下内边距，使其更短 */
-            padding-top: max(0px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* 左右两端对齐 */
-            background: #ededed; /* 修改为微信标准的头部背景色 */
-            position: relative;
-            width: 100%;
-            min-height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
-            box-sizing: border-box;
-            z-index: 102;
-            flex-shrink: 0;
-        }
+        padding: 8px 20px; /* 进一步减小上下内边距，使其更短 */
+        padding-top: max(0px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* 左右两端对齐 */
+        background: purple !important; /* 修改为微信标准的头部背景色 */
+        position: relative;
+        width: 100%;
+        min-height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
+        box-sizing: border-box;
+        z-index: 102;
+        flex-shrink: 0;
+    }
 
         .wechat-back-btn {
             background: none;
