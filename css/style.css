@@ -6790,9 +6790,13 @@
             justify-content: flex-start;
         }
 
-        .wechat-message.user {
-            justify-content: flex-end;
-        }
+        .wechat-message.system {
+    margin: 10px 0;
+}
+
+.wechat-message.user {
+    justify-content: flex-end;
+}
 
         .wechat-message.system {
             justify-content: center;

@@ -5932,7 +5932,7 @@
 
                 if (displayRole === 'system') {
                     div.className = 'wechat-message system';
-                    div.innerHTML = `<div class="wechat-message-bubble" style="background: rgba(255, 255, 255, 0.8); color: var(--secondary-text-color); font-size: 12px; padding: 6px 12px; border-radius: 12px;">${finalContent}</div>`;
+                    div.innerHTML = `<div class="wechat-message-bubble" style="background: rgba(0, 0, 0, 0.1); color: var(--secondary-text-color); font-size: 10px; padding: 4px 8px; border-radius: 4px;">${finalContent}</div>`;
                 } else {
                     div.className = `wechat-message ${displayRole}`;
                     const avatarUrl = displayRole === 'ai' ? avatar : (wechatState.profile.avatar || 'https://image-1306385190.cos.ap-nanjing.myqcloud.com/gpt/avatar_user.png');
