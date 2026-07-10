@@ -4310,14 +4310,13 @@
             padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
             background-color: #ffffff;
             z-index: 101;
-            position: relative; /* 添加相对定位作为基准 */
         }
         
         /* 重置之前的样式，确保左右容器能正常显示按钮 */
         .wechat-header-left,
         .wechat-header-right {
             flex-shrink: 0;
-            width: auto;
+            width: 44px; /* 强制宽度相等以确保中间元素居中 */
             text-align: left;
         }
         
@@ -4325,16 +4324,11 @@
             text-align: right;
         }
         
-        /* 微信头部标题容器 - 使用绝对定位强制居中 */
+        /* 微信头部标题容器 */
         .wechat-header-center {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 仅为适配顶部安全区域 */
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
         }
         
 
