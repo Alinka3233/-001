@@ -6756,7 +6756,7 @@
             display: flex;
             align-items: flex-start;
             margin-bottom: 16px;
-            width: 100%; /* 确保消息行占满宽度，防止气泡被压缩 */
+            /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }
 
@@ -6771,6 +6771,8 @@
         .wechat-message.system {
             justify-content: center;
             align-items: center;
+            margin: 0 auto; /* 居中系统消息块本身 */
+            width: fit-content; /* 让系统消息块宽度适应内容 */
         }
 
         /* 头像容器 */
