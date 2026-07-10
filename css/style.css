@@ -6686,7 +6686,7 @@
         }
 
         .wechat-chat-header {
-        padding: 12px 16px; /* 调整垂直和水平内边距，使其与主微信头部一致 */
+        padding: 12px 8px 12px 16px; /* 调整右侧内边距为8px，与头像对齐 */
         padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
         display: flex;
         align-items: center;
@@ -6732,7 +6732,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: -8px; /* 将三个点向右移动 */
             /* 移除绝对定位相关的样式 */
             /* position: absolute; */
             /* right: 16px; */
