@@ -4308,7 +4308,7 @@
             padding-right: 24px;
             padding-bottom: 12px;
             padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
-            background-color: #ffffff;
+            background-color: red !important;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
         }
@@ -6693,7 +6693,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between; /* 左右两端对齐 */
-        background: #ededed; /* 修改为微信标准的头部背景色 */
+        background: blue !important; /* 修改为微信标准的头部背景色 */
         position: relative;
         width: 100%;
         box-sizing: border-box;
