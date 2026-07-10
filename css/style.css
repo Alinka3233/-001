@@ -2013,8 +2013,8 @@
         }
 
         .app-header {
-            padding: 16px 20px;
-            padding-top: max(16px, env(safe-area-inset-top, 20px));
+            padding: 12px 20px; /* 减小垂直内边距，使其更紧凑 */
+            padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
             background-color: var(--app-header-bg);
             backdrop-filter: blur(20px) saturate(190%);
             -webkit-backdrop-filter: blur(20px) saturate(190%);
