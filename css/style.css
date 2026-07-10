@@ -4304,7 +4304,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 24px; /* 统一顶部和底部内边距，使其更对称 */
+            padding-left: 24px;
+            padding-right: 24px;
+            padding-bottom: 12px;
+            padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
