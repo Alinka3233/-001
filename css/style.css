@@ -6781,7 +6781,7 @@
         .wechat-message {
             display: flex;
             align-items: flex-start;
-            margin-top: 20px; /* Add consistent spacing between all messages */
+            margin-top: 22px; /* Add consistent spacing between all messages */
             /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }

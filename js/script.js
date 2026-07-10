@@ -12207,7 +12207,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
         function loadNotes() {
             const notesList = document.getElementById('notes-list');
             const notesCount = document.getElementById('notes-count');
-            const notes = JSON.parse(localStorage.getItem('ios-notes') || '[]');
+            const notes = JSON.parse(localStorage.getItem('ios-notes') || '[]').filter(item => item.createdAt); // Filter for actual notes
             
             notesCount.textContent = `${notes.length} 个备忘录`;
             
