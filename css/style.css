@@ -4305,7 +4305,7 @@
             justify-content: space-between;
             align-items: center;
             padding-left: 24px;
-            padding-right: 24px;
+            padding-right: 0px !important;
             padding-bottom: 12px;
             padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
             background-color: #ffffff;
@@ -4322,6 +4322,8 @@
         
         .wechat-header-right {
             text-align: right;
+            margin-left: auto;
+            padding-right: 10px;
         }
         
         /* 微信头部标题容器 */
@@ -6731,6 +6733,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding-right: 15px;
             /* 移除绝对定位相关的样式 */
             /* position: absolute; */
             /* right: 16px; */
