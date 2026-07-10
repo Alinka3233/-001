@@ -4310,7 +4310,6 @@
             padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域 */
             background-color: #ffffff;
             z-index: 101;
-            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
         }
         
         /* 重置之前的样式，确保左右容器能正常显示按钮 */
@@ -6689,7 +6688,6 @@
         .wechat-chat-header {
         padding: 12px 24px; /* 调整垂直和水平内边距，使其与主微信头部一致 */
         padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         display: flex;
         align-items: center;
         justify-content: space-between; /* 左右两端对齐 */
