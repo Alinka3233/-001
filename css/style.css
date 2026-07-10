@@ -4304,9 +4304,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 28px 24px 16px; /* 进一步增加顶部内边距，并调整底部内边距 */
-            /* padding-top: 24px; */ /* 顶部安全区域已由父级处理，此处不再单独设置 */
-            /* padding-bottom: 12px; */
+            padding: 20px 24px; /* 统一顶部和底部内边距，使其更对称 */
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
@@ -4332,11 +4330,7 @@
             align-items: center;
         }
         
-        /* 确保标题本身居中 */
-        #wechat-header-title {
-            margin: 0 auto;
-            text-align: center;
-        }
+
 
         .wechat-header-left {
             display: flex;
@@ -4355,7 +4349,7 @@
         .wechat-header-btn {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 22px; /* 统一图标大小 */
             color: #000;
             cursor: pointer;
             padding: 0;
@@ -4376,10 +4370,12 @@
             font-size: 18px;
             font-weight: 400; /* 变细 */
             color: var(--text-color); /* 使用主题色变量 */
-            margin: 0;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            margin: 0; /* 确保没有额外的外边距 */
+            line-height: 1; /* 确保标题文本的行高不会引入额外的垂直空间 */
+            /* 移除绝对定位和transform，让父级Flexbox居中 */
+            /* position: absolute; */
+            /* left: 50%; */
+            /* transform: translateX(-50%); */
             letter-spacing: 0.3px;
         }
 
