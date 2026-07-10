@@ -6795,10 +6795,7 @@
     justify-content: flex-end;
 }
 
-.wechat-message.system {
-    justify-content: center;
-    margin: 15px 0; /* Symmetrical margin for centering */
-}
+
 
         .wechat-message.system {
             justify-content: center;
@@ -8920,6 +8917,14 @@
                     margin-bottom: 15px;
                 }
                 .transfer-input-item {
+
+/* Media Query for Mobile Devices */
+@media (max-width: 767px) {
+    .wechat-message.system {
+        margin: 15px 0 !important; /* Force symmetrical margin on mobile */
+    }
+}
+
                     display: flex;
                     align-items: center;
                     gap: 5px;
