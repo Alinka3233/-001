@@ -6684,7 +6684,7 @@
         }
 
         .wechat-chat-header {
-            padding: 16px 20px; /* 增加左右内边距，使其不那么靠外 */
+            padding: 16px 10px; /* 减小左右内边距，使其更紧凑 */
             padding-top: max(16px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
