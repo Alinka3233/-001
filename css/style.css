@@ -6781,7 +6781,7 @@
         .wechat-message {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 16px;
+            margin-bottom: 24px; /* Increase spacing between all messages */
             /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }
@@ -6790,9 +6790,7 @@
             justify-content: flex-start;
         }
 
-        .wechat-message.system {
-    margin: 5px 0 25px 0; /* Move up by adjusting top and bottom margins */
-}
+        
 
 .wechat-message.user {
     justify-content: flex-end;
