@@ -5418,7 +5418,10 @@
                     if (chatList) chatList.style.background = 'transparent';
                     if (contactsContent) contactsContent.style.background = 'transparent';
                     if (momentsContent) momentsContent.style.background = 'transparent';
-                    if (meContent) meContent.style.background = 'transparent';
+                    if (meContent) {
+                        meContent.style.background = 'transparent'; // 确保背景透明以显示磨砂效果
+                        meContent.classList.add('wechat-me-frosted'); // 添加磨砂效果
+                    }
                 } else {
                     if (wechatContent) wechatContent.style.backgroundImage = '';
                     
@@ -5426,7 +5429,10 @@
                     if (chatList) chatList.style.background = 'var(--bg-color)';
                     if (contactsContent) contactsContent.style.background = 'var(--bg-color)';
                     if (momentsContent) momentsContent.style.background = 'var(--bg-color)';
-                    if (meContent) meContent.style.background = 'var(--bg-color)';
+                    if (meContent) {
+                        meContent.style.background = 'var(--bg-color)'; // 恢复默认背景色
+                        meContent.classList.remove('wechat-me-frosted'); // 移除磨砂效果
+                    }
                 }
 
                 // 处理自定义聊天背景
