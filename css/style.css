@@ -6690,7 +6690,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between; /* 左右两端对齐 */
-        background: purple !important; /* 修改为微信标准的头部背景色 */
+        background: #ededed; /* 修改为微信标准的头部背景色 */
         position: relative;
         width: 100%;
         min-height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
