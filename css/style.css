@@ -4305,7 +4305,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 24px;
-            padding-top: max(40px, env(safe-area-inset-top, 20px));
+            /* padding-top: max(40px, env(safe-area-inset-top, 20px)); */ /* 顶部安全区域已由父级处理 */
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
@@ -6642,6 +6642,7 @@
             height: 100%;
             background: #ededed; /* 修改为微信标准的聊天背景色 */
             z-index: 105; /* 确保覆盖在所有其他微信元素之上 */
+            padding-top: env(safe-area-inset-top, 0px); /* 适配顶部安全区域 */
         }
         
         /* 确保元素顺序正确 */
