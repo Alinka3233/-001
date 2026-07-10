@@ -4304,10 +4304,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 24px; /* 保持左右内边距 */
-            padding-top: 24px; /* 增加顶部内边距 */
-            padding-bottom: 12px; /* 增加底部内边距 */
-            /* padding-top: max(40px, env(safe-area-inset-top, 20px)); */ /* 顶部安全区域已由父级处理 */
+            padding: 20px 24px; /* 统一顶部和底部内边距，并保持左右内边距 */
+            /* padding-top: 24px; */ /* 顶部安全区域已由父级处理，此处不再单独设置 */
+            /* padding-bottom: 12px; */
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
