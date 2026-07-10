@@ -6781,6 +6781,7 @@
         .wechat-message {
             display: flex;
             align-items: flex-start;
+            margin-bottom: 16px; /* 恢复原始的底部边距 */
             /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }
@@ -6789,18 +6790,14 @@
             justify-content: flex-start;
         }
 
-        
-
-.wechat-message.user {
-    justify-content: flex-end;
-}
-
-
+        .wechat-message.user {
+            justify-content: flex-end;
+        }
 
         .wechat-message.system {
             justify-content: center;
             align-items: center;
-            margin: 0 auto; /* 居中系统消息块本身 */
+            margin: 15px auto; /* 仅为系统提示添加上下 15px 的间距，并保持水平居中 */
             width: fit-content; /* 让系统消息块宽度适应内容 */
         }
 
@@ -8663,14 +8660,6 @@
                     background: rgba(0,0,0,0.6) !important;
                     z-index: 3000 !important;
                 }
-
-/* Media Query for Mobile Devices */
-@media (max-width: 767px) {
-    .wechat-message.system {
-        margin: 15px 0 !important; /* Force symmetrical margin on mobile */
-    }
-}
-
                 .redpacket-open-container {
                     width: 300px;
                     height: 420px;
