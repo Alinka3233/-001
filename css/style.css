@@ -4304,7 +4304,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px; /* 统一顶部和底部内边距，使其更对称 */
+            padding: 12px 24px; /* 统一顶部和底部内边距，使其更对称 */
             background-color: #ffffff;
             z-index: 101;
             box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
