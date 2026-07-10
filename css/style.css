@@ -8663,6 +8663,14 @@
                     background: rgba(0,0,0,0.6) !important;
                     z-index: 3000 !important;
                 }
+
+/* Media Query for Mobile Devices */
+@media (max-width: 767px) {
+    .wechat-message.system {
+        margin: 15px 0 !important; /* Force symmetrical margin on mobile */
+    }
+}
+
                 .redpacket-open-container {
                     width: 300px;
                     height: 420px;
@@ -8917,14 +8925,6 @@
                     margin-bottom: 15px;
                 }
                 .transfer-input-item {
-
-/* Media Query for Mobile Devices */
-@media (max-width: 767px) {
-    .wechat-message.system {
-        margin: 15px 0 !important; /* Force symmetrical margin on mobile */
-    }
-}
-
                     display: flex;
                     align-items: center;
                     gap: 5px;
