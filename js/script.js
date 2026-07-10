@@ -5931,8 +5931,8 @@
                 const isMarkdown = !isHtml && typeof marked !== 'undefined';
 
                 if (displayRole === 'system') {
-                    div.className = 'wechat-message';
-                    div.style.alignSelf = 'center';
+                    div.className = 'wechat-message system';
+                    div.style.justifyContent = 'center';
                     div.innerHTML = `<div class="wechat-message-bubble" style="background: rgba(255, 255, 255, 0.8); color: var(--secondary-text-color); font-size: 12px; padding: 6px 12px; border-radius: 12px;">${finalContent}</div>`;
                 } else {
                     div.className = `wechat-message ${displayRole}`;
