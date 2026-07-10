@@ -4304,7 +4304,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 24px;
+            padding: 18px 24px; /* 保持左右内边距 */
+            padding-top: 24px; /* 增加顶部内边距 */
+            padding-bottom: 12px; /* 增加底部内边距 */
             /* padding-top: max(40px, env(safe-area-inset-top, 20px)); */ /* 顶部安全区域已由父级处理 */
             background-color: #ffffff;
             z-index: 101;
@@ -4341,7 +4343,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            transform: translateY(2px); /* 将左侧容器（含返回按钮）向下微调，实现垂直对齐 */
+            /* transform: translateY(2px); */ /* 移除此行，避免垂直偏移 */
         }
 
         .wechat-header-right {
