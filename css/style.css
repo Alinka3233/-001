@@ -6768,6 +6768,11 @@
             justify-content: flex-end;
         }
 
+        .wechat-message.system {
+            justify-content: center;
+            align-items: center;
+        }
+
         /* 头像容器 */
         .wechat-message-avatar-container {
             width: 42px;
