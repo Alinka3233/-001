@@ -1,5 +1,5 @@
 :root {
-            --bg-color: #f5f5f7;
+             --bg-color: #f5f5f7;
             --text-color: #1d1d1f;
             --secondary-text-color: #86868b;
             --app-header-bg: rgba(255, 255, 255, 0.65);
@@ -6781,7 +6781,6 @@
         .wechat-message {
             display: flex;
             align-items: flex-start;
-            margin-top: 22px; /* Add consistent spacing between all messages */
             /* width: 100%; */ /* 移除此行，让系统消息可以居中 */
             animation: fadeIn 0.3s;
         }
@@ -6794,6 +6793,11 @@
 
 .wechat-message.user {
     justify-content: flex-end;
+}
+
+.wechat-message.system {
+    justify-content: center;
+    margin: 15px 0; /* Symmetrical margin for centering */
 }
 
         .wechat-message.system {
