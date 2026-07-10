@@ -6684,8 +6684,8 @@
         }
 
         .wechat-chat-header {
-        padding: 12px 20px; /* 调整垂直内边距，使其与主微信头部一致 */
-        padding-top: max(0px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
+        padding: 12px 24px; /* 调整垂直和水平内边距，使其与主微信头部一致 */
+        padding-top: max(12px, env(safe-area-inset-top, 20px)); /* 适配顶部安全区域，并确保最小高度 */
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         display: flex;
         align-items: center;
@@ -6693,7 +6693,6 @@
         background: #ededed; /* 修改为微信标准的头部背景色 */
         position: relative;
         width: 100%;
-        min-height: calc(54px + env(safe-area-inset-top, 20px)); /* 稍微增加总高度 */
         box-sizing: border-box;
         z-index: 102;
         flex-shrink: 0;
