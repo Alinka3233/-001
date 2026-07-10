@@ -4304,7 +4304,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px; /* 统一顶部和底部内边距，并保持左右内边距 */
+            padding: 24px 24px; /* 进一步增加顶部和底部内边距 */
             /* padding-top: 24px; */ /* 顶部安全区域已由父级处理，此处不再单独设置 */
             /* padding-bottom: 12px; */
             background-color: #ffffff;
