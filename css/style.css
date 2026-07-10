@@ -6791,7 +6791,7 @@
         }
 
         .wechat-message.system {
-    margin: 15px 0;
+    margin: 5px 0 25px 0; /* Move up by adjusting top and bottom margins */
 }
 
 .wechat-message.user {
