@@ -3591,8 +3591,8 @@
 
             // 搜索城市
             if (weatherCitySearchInput) {
-                weatherCitySearchInput.addEventListener('input', window.debounce(async function() {
-                    const keyword = this.value.trim();
+                weatherCitySearchInput.addEventListener('input', window.debounce(async (e) => {
+                    const keyword = e.target.value.trim();
                     console.log('Search keyword triggered:', keyword);
                     if (keyword.length < 1) {
                         weatherCityResults.innerHTML = '';
@@ -3606,6 +3606,9 @@
                         const url = `https://restapi.amap.com/v3/assistant/inputtips?keywords=${encodeURIComponent(keyword)}&key=${apiKey}&datatype=all`;
                         const response = await fetch(url);
                         const data = await response.json();
+                        
+                        // 输出返回的数据进行调试
+                        console.log('AMap inputtips response:', data);
 
                         if (data.status === '1' && data.tips) {
                             renderCityResults(data.tips);
@@ -3617,11 +3620,14 @@
             }
 
             function renderCityResults(tips) {
+                console.log('Rendering tips:', tips);
                 const cities = tips.filter(tip => {
                     if (!tip.name || tip.name.length === 0 || tip.name === '[]') return false; // 必须有名字
                     return true; // 只要有名字就展示，即使没有 location 或 adcode 也可以尝试展示
                 });
                 
+                console.log('Filtered cities:', cities);
+
                 if (cities.length === 0) {
                     weatherCityResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区</div>';
                     return;
