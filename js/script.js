@@ -16,6 +16,15 @@
             // 将全局常量移至此处，确保 fetchLocalCityForClock 等外部函数也能访问
             const GAODE_API_KEY = '5af5f1043f8d111d737b55c81a860793';
 
+            // 全局可用的防抖函数
+            window.debounce = function(func, wait) {
+                let timeout;
+                return function() {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, arguments), wait);
+                };
+            };
+
             // --- 全局视图适配与响应式处理 ---
             const AppAdapter = {
                 isMobile: () => window.innerWidth <= 768,
@@ -30,7 +39,7 @@
                 // 监听缩放与旋转
                 init: function() {
                     this.setViewportHeight();
-                    window.addEventListener('resize', this.debounce(() => {
+                    window.addEventListener('resize', window.debounce(() => {
                         this.setViewportHeight();
                         this.adaptModals();
                         this.adaptLayouts();
@@ -44,15 +53,6 @@
                     });
                 },
                 
-                // 防抖处理
-                debounce: function(func, wait) {
-                    let timeout;
-                    return function() {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(() => func.apply(this, arguments), wait);
-                    };
-                },
-
                 // 动态适配所有弹窗
                 adaptModals: function() {
                     const modals = document.querySelectorAll('.clock-modal-overlay, .wechat-modal, .app-page, .wechat-edit-profile-modal, .wechat-chat-view');
@@ -2342,63 +2342,67 @@
             }
             
             // 通用应用内部事件监听器
-            document.addEventListener('appopen', (e) => {
-                if (e.detail.app === 'general') {
-                    // 初始化通用应用
-                    const generalLocationToggle = document.getElementById('general-location-toggle');
-                    const generalApiConfigToggle = document.getElementById('general-api-config-toggle');
-                    const delayReplyTime = document.getElementById('delay-reply-time');
+            // 移除重复的事件绑定，使用一个统一的 appopen 监听器
+            const onGeneralAppOpen = () => {
+                // 初始化通用应用
+                const generalLocationToggle = document.getElementById('general-location-toggle');
+                const generalApiConfigToggle = document.getElementById('general-api-config-toggle');
+                const delayReplyTime = document.getElementById('delay-reply-time');
+                
+                // 初始化延迟回复设置
+                if (delayReplyTime && !delayReplyTime.hasAttribute('data-bound')) {
+                    delayReplyTime.setAttribute('data-bound', 'true');
+                    const savedDelayTime = localStorage.getItem('wechatDelayReplyTime') || '3';
+                    delayReplyTime.value = savedDelayTime;
                     
-                    // 初始化延迟回复设置
-                    if (delayReplyTime) {
-                        const savedDelayTime = localStorage.getItem('wechatDelayReplyTime') || '3';
-                        delayReplyTime.value = savedDelayTime;
-                        
-                        delayReplyTime.addEventListener('input', (e) => {
-                            // 只允许输入数字
-                            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                        });
+                    delayReplyTime.addEventListener('input', (e) => {
+                        // 只允许输入数字
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    });
 
-                        delayReplyTime.addEventListener('blur', (e) => {
-                            let val = parseInt(e.target.value);
-                            if (isNaN(val) || val < 0) val = 0;
-                            if (val > 60) val = 60;
-                            e.target.value = val;
-                            localStorage.setItem('wechatDelayReplyTime', val);
-                        });
-                    }
-
-                    // 定位服务点击事件
-                    if (generalLocationToggle) {
-                        generalLocationToggle.addEventListener('click', () => {
-                            openApp('location');
-                        });
-                    }
-                    
-                    // API配置点击事件
-                    if (generalApiConfigToggle) {
-                        generalApiConfigToggle.addEventListener('click', () => {
-                            openApp('api-config');
-                        });
-                    }
-
-                    // 图片识别API点击事件
-                    const generalVisionApiToggle = document.getElementById('general-vision-api-toggle');
-                    if (generalVisionApiToggle) {
-                        generalVisionApiToggle.addEventListener('click', () => {
-                            openApp('vision-api-config');
-                        });
-                    }
-
-                    // AI社区API点击事件
-                    const generalCommunityApiToggle = document.getElementById('general-community-api-toggle');
-                    if (generalCommunityApiToggle) {
-                        generalCommunityApiToggle.addEventListener('click', () => {
-                            openApp('community-api-config');
-                        });
-                    }
+                    delayReplyTime.addEventListener('blur', (e) => {
+                        let val = parseInt(e.target.value);
+                        if (isNaN(val) || val < 0) val = 0;
+                        if (val > 60) val = 60;
+                        e.target.value = val;
+                        localStorage.setItem('wechatDelayReplyTime', val);
+                    });
                 }
-            });
+
+                // 定位服务点击事件
+                if (generalLocationToggle && !generalLocationToggle.hasAttribute('data-bound')) {
+                    generalLocationToggle.setAttribute('data-bound', 'true');
+                    generalLocationToggle.addEventListener('click', () => {
+                        openApp('location');
+                    });
+                }
+                
+                // API配置点击事件
+                if (generalApiConfigToggle && !generalApiConfigToggle.hasAttribute('data-bound')) {
+                    generalApiConfigToggle.setAttribute('data-bound', 'true');
+                    generalApiConfigToggle.addEventListener('click', () => {
+                        openApp('api-config');
+                    });
+                }
+
+                // 图片识别API点击事件
+                const generalVisionApiToggle = document.getElementById('general-vision-api-toggle');
+                if (generalVisionApiToggle && !generalVisionApiToggle.hasAttribute('data-bound')) {
+                    generalVisionApiToggle.setAttribute('data-bound', 'true');
+                    generalVisionApiToggle.addEventListener('click', () => {
+                        openApp('vision-api-config');
+                    });
+                }
+
+                // AI社区API点击事件
+                const generalCommunityApiToggle = document.getElementById('general-community-api-toggle');
+                if (generalCommunityApiToggle && !generalCommunityApiToggle.hasAttribute('data-bound')) {
+                    generalCommunityApiToggle.setAttribute('data-bound', 'true');
+                    generalCommunityApiToggle.addEventListener('click', () => {
+                        openApp('community-api-config');
+                    });
+                }
+            };
             
             // 通用应用返回按钮
             const generalBackBtn = document.getElementById('general-back-btn');
@@ -2518,6 +2522,7 @@
                         resultDiv.innerHTML = '<span style="color: #ff9500;">⚠ 建议使用完整端端点</span>';
                     }
                 } catch (e) {
+                    console.warn("Vision API URL 格式验证警告:", e.message);
                     resultDiv.innerHTML = '<span style="color: #ff3b30;">✗ URL 格式错误</span>';
                 }
             }
@@ -2576,6 +2581,7 @@
                     resultDiv.textContent = `✓ 成功提取 ${models.length} 个模型`;
                     resultDiv.style.color = '#34c759';
                 } catch (error) {
+                    console.error("Vision API 提取模型失败:", error);
                     resultDiv.textContent = '✗ 提取失败: ' + error.message;
                     resultDiv.style.color = '#ff3b30';
                 } finally {
@@ -2602,8 +2608,9 @@
                         body: JSON.stringify({ model: model || 'gpt-4o', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
                     });
                     if (response.ok) alert('✓ Vision API连接测试成功！');
-                    else alert(`连接失败 (${response.status})`);
+                    else alert(`连接失败 (${response.status}): ${await response.text().catch(() => '')}`);
                 } catch (error) {
+                    console.error("Vision API 测试连接失败:", error);
                     alert(`请求出错: ${error.message}`);
                 } finally {
                     visionApiTestBtn.disabled = false;
@@ -3029,7 +3036,7 @@
                 jsonResetBtn.addEventListener('click', resetJsonContent);
             }
             
-            // 监听应用打开事件
+            // 统一的应用打开事件监听器
             document.addEventListener('appopen', (e) => {
                 if (e.detail.app === 'worldbook') {
                     onJsonRestrictionsAppOpen();
@@ -3041,6 +3048,8 @@
                     onCommunityApiConfigAppOpen();
                 } else if (e.detail.app === 'location') {
                     onLocationAppOpen();
+                } else if (e.detail.app === 'general') {
+                    onGeneralAppOpen();
                 }
             });
             
@@ -5421,7 +5430,7 @@
                         };
                         
                         await saveDataToIndexedDB(STORES.APP_DATA, dataToSave, key);
-                        console.log(`微信数据保存成功 (${key})` + (immediate ? ' (立即)' : ' (已防抖)'));
+                        // console.log(`微信数据保存成功 (${key})` + (immediate ? ' (立即)' : ' (已防抖)'));
                         return true;
                     } catch (error) {
                         console.error('保存微信数据失败:', error);
@@ -5457,7 +5466,8 @@
                 const momentsCover = document.getElementById('moments-cover');
                 const momentsCoverInput = document.getElementById('moments-cover-input');
                 
-                if (momentsCover && momentsCoverInput) {
+                if (momentsCover && momentsCoverInput && !momentsCover.hasAttribute('data-bound')) {
+                    momentsCover.setAttribute('data-bound', 'true');
                     // 点击背景图片打开发布模态框
                     momentsCover.addEventListener('click', () => {
                         momentsCoverInput.click();
@@ -5981,11 +5991,11 @@
                 }
             }
 
-            function escapeHtml(text) {
+            window.escapeHtml = function(text) {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
-            }
+            };
 
             function addWechatMessage(content, role, avatar, nickname = null) {
                 const messageList = document.getElementById('wechat-messages');
@@ -12036,14 +12046,6 @@ ${statusInfluence || '用户当前无特定状态'}`;
                 const m = String(activeMinute.dataset.value).padStart(2, '0');
                 document.getElementById('input-alarm-time').value = `${h}:${m}`;
             }
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, arguments), wait);
-            };
         }
 
         window.closeClockAddModal = function() {

@@ -96,37 +96,88 @@
             -ms-overflow-style: none;
         }
         
-        /* 自定义滚动条样式 */
-        *::-webkit-scrollbar {
+        /* --- 移除对所有元素的滚动条统一样式 --- */
+        
+        /* 自定义特定容器的滚动条样式 */
+        .apps-grid-container::-webkit-scrollbar,
+        .wechat-chat-history::-webkit-scrollbar,
+        .wechat-contacts-list::-webkit-scrollbar,
+        .wechat-moments-list::-webkit-scrollbar,
+        .wechat-groups-list::-webkit-scrollbar,
+        .settings-group::-webkit-scrollbar,
+        .notes-list::-webkit-scrollbar,
+        #weather-city-results::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         
-        *::-webkit-scrollbar-track {
+        .apps-grid-container::-webkit-scrollbar-track,
+        .wechat-chat-history::-webkit-scrollbar-track,
+        .wechat-contacts-list::-webkit-scrollbar-track,
+        .wechat-moments-list::-webkit-scrollbar-track,
+        .wechat-groups-list::-webkit-scrollbar-track,
+        .settings-group::-webkit-scrollbar-track,
+        .notes-list::-webkit-scrollbar-track,
+        #weather-city-results::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.05);
             border-radius: 3px;
         }
         
-        *::-webkit-scrollbar-thumb {
+        .apps-grid-container::-webkit-scrollbar-thumb,
+        .wechat-chat-history::-webkit-scrollbar-thumb,
+        .wechat-contacts-list::-webkit-scrollbar-thumb,
+        .wechat-moments-list::-webkit-scrollbar-thumb,
+        .wechat-groups-list::-webkit-scrollbar-thumb,
+        .settings-group::-webkit-scrollbar-thumb,
+        .notes-list::-webkit-scrollbar-thumb,
+        #weather-city-results::-webkit-scrollbar-thumb {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 3px;
             transition: background 0.3s ease;
         }
         
-        *::-webkit-scrollbar-thumb:hover {
+        .apps-grid-container::-webkit-scrollbar-thumb:hover,
+        .wechat-chat-history::-webkit-scrollbar-thumb:hover,
+        .wechat-contacts-list::-webkit-scrollbar-thumb:hover,
+        .wechat-moments-list::-webkit-scrollbar-thumb:hover,
+        .wechat-groups-list::-webkit-scrollbar-thumb:hover,
+        .settings-group::-webkit-scrollbar-thumb:hover,
+        .notes-list::-webkit-scrollbar-thumb:hover,
+        #weather-city-results::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
         }
         
         /* 暗黑模式下的滚动条样式 */
-        .dark-mode *::-webkit-scrollbar-track {
+        .dark-mode .apps-grid-container::-webkit-scrollbar-track,
+        .dark-mode .wechat-chat-history::-webkit-scrollbar-track,
+        .dark-mode .wechat-contacts-list::-webkit-scrollbar-track,
+        .dark-mode .wechat-moments-list::-webkit-scrollbar-track,
+        .dark-mode .wechat-groups-list::-webkit-scrollbar-track,
+        .dark-mode .settings-group::-webkit-scrollbar-track,
+        .dark-mode .notes-list::-webkit-scrollbar-track,
+        .dark-mode #weather-city-results::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
         }
         
-        .dark-mode *::-webkit-scrollbar-thumb {
+        .dark-mode .apps-grid-container::-webkit-scrollbar-thumb,
+        .dark-mode .wechat-chat-history::-webkit-scrollbar-thumb,
+        .dark-mode .wechat-contacts-list::-webkit-scrollbar-thumb,
+        .dark-mode .wechat-moments-list::-webkit-scrollbar-thumb,
+        .dark-mode .wechat-groups-list::-webkit-scrollbar-thumb,
+        .dark-mode .settings-group::-webkit-scrollbar-thumb,
+        .dark-mode .notes-list::-webkit-scrollbar-thumb,
+        .dark-mode #weather-city-results::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
         }
         
-        .dark-mode *::-webkit-scrollbar-thumb:hover {
+        .dark-mode .apps-grid-container::-webkit-scrollbar-thumb:hover,
+        .dark-mode .wechat-chat-history::-webkit-scrollbar-thumb:hover,
+        .dark-mode .wechat-contacts-list::-webkit-scrollbar-thumb:hover,
+        .dark-mode .wechat-moments-list::-webkit-scrollbar-thumb:hover,
+        .dark-mode .wechat-groups-list::-webkit-scrollbar-thumb:hover,
+        .dark-mode .settings-group::-webkit-scrollbar-thumb:hover,
+        .dark-mode .notes-list::-webkit-scrollbar-thumb:hover,
+        .dark-mode #weather-city-results::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
@@ -230,12 +281,26 @@
         }
 
         /* --- 针对 Firefox 的滚动条样式适配 (scrollbar-color: thumb track) --- */
-        * {
+        .apps-grid-container,
+        .wechat-chat-history,
+        .wechat-contacts-list,
+        .wechat-moments-list,
+        .wechat-groups-list,
+        .settings-group,
+        .notes-list,
+        #weather-city-results {
             scrollbar-width: thin;
             scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
         }
 
-        .dark-mode * {
+        .dark-mode .apps-grid-container,
+        .dark-mode .wechat-chat-history,
+        .dark-mode .wechat-contacts-list,
+        .dark-mode .wechat-moments-list,
+        .dark-mode .wechat-groups-list,
+        .dark-mode .settings-group,
+        .dark-mode .notes-list,
+        .dark-mode #weather-city-results {
             scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
         }
 
