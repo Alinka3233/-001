@@ -3792,7 +3792,7 @@
                         showWeatherError('加载天气失败');
                     }
                 }
-            }
+            } // end of initWeather
 
             // --- 主题商店功能 ---
             // --- 壁纸商店功能 ---
