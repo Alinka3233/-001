@@ -2688,73 +2688,92 @@
 
         .weather-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: clamp(12px, 2vw, 20px);
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             width: 100%;
             margin-top: 30px;
         }
 
         .weather-detail-item {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: clamp(12px, 2vw, 20px);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .weather-detail-item:hover {
+            transform: translateY(-2px);
         }
 
         .weather-detail-item i {
-            font-size: 18px;
-            width: 24px;
+            font-size: 24px;
+            width: 30px;
             text-align: center;
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
         .weather-detail-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
+            align-items: flex-start;
         }
 
         .weather-detail-label {
-            font-size: 12px;
-            opacity: 0.7;
+            font-size: 13px;
+            opacity: 0.8;
             order: 1; /* 文字在上 */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .weather-detail-value {
-            font-size: 15px;
+            font-size: 18px;
             font-weight: 600;
             order: 2; /* 数字在下 */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .forecast-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            margin: 30px 0 12px 5px;
+            margin: 40px 0 16px 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            opacity: 0.8;
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .forecast-container {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 10px 5px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
 
         .forecast-item {
-            padding: 12px 15px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            transition: background-color 0.2s ease;
+            border-radius: 12px;
+        }
+        
+        .forecast-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .forecast-item:last-child {
@@ -2762,21 +2781,25 @@
         }
 
         .day-name {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 500;
-            width: 50px;
+            width: 60px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .forecast-item i {
-            font-size: 20px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            font-size: 22px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+            width: 30px;
+            text-align: center;
         }
 
         .temp-range {
-            font-size: 16px;
-            font-weight: 500;
-            width: 90px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100px;
             text-align: right;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         /* 重试按钮 */

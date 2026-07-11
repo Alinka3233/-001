@@ -3702,17 +3702,28 @@
                         const regeoData = await regeoResponse.json();
                         if (regeoData.status !== '1') throw new Error(regeoData.info || '高德地理编码错误');
                         const adcode = regeoData.regeocode.addressComponent.adcode;
-                        const weatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=all`;
-                        const weatherResponse = await fetch(weatherUrl);
-                        if (!weatherResponse.ok) throw new Error('高德天气服务失败');
-                        const weatherData = await weatherResponse.json();
-                        if (weatherData.status !== '1') throw new Error(weatherData.info || '高德天气查询错误');
+                        const baseWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=base`;
+                        const forecastWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=all`;
+                        
+                        const [baseResponse, forecastResponse] = await Promise.all([
+                            fetch(baseWeatherUrl),
+                            fetch(forecastWeatherUrl)
+                        ]);
+                        
+                        if (!baseResponse.ok || !forecastResponse.ok) throw new Error('高德天气服务失败');
+                        
+                        const baseData = await baseResponse.json();
+                        const forecastData = await forecastResponse.json();
+                        
+                        if (baseData.status !== '1' || forecastData.status !== '1') throw new Error('高德天气查询错误');
                         
                         // 获取天气数据
-                        if (!weatherData.forecasts || weatherData.forecasts.length === 0) {
+                        if (!forecastData.forecasts || forecastData.forecasts.length === 0 || !baseData.lives || baseData.lives.length === 0) {
                             throw new Error('未获取到天气预报数据');
                         }
-                        const forecast = weatherData.forecasts[0];
+                        
+                        const live = baseData.lives[0];
+                        const forecast = forecastData.forecasts[0];
                         if (!forecast.casts || forecast.casts.length === 0) {
                             throw new Error('天气数据格式不正确');
                         }
@@ -3757,10 +3768,8 @@
                         updateWeatherBackground(today.dayweather);
                         
                         // 显示天气详情
-                        document.getElementById('weather-humidity').textContent = '50%'; // 预报API不含湿度，设为默认
-                        document.getElementById('weather-wind').textContent = `${today.daywind}风 ${today.daypower}级`;
-                        document.getElementById('weather-visibility').textContent = '10km';
-                        document.getElementById('weather-pressure').textContent = '1013hPa';
+                        document.getElementById('weather-humidity').textContent = `${live.humidity}%`;
+                        document.getElementById('weather-wind').textContent = `${live.winddirection}风 ${live.windpower}级`;
                         
                         // 更新预报列表
                         const forecastList = document.getElementById('weather-forecast-list');
@@ -3808,18 +3817,18 @@
                             }
                         }
 
-                        const weatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${cityAdcode}&key=${apiKey}&extensions=all`;
-                        fetch(weatherUrl)
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('网络响应错误');
-                                }
-                                return response.json();
-                            })
-                            .then(weatherData => {
-                                if (weatherData.status === '1' && weatherData.forecasts && weatherData.forecasts.length > 0) {
+                        const baseWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${cityAdcode}&key=${apiKey}&extensions=base`;
+                        const forecastWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${cityAdcode}&key=${apiKey}&extensions=all`;
+                        
+                        Promise.all([
+                            fetch(baseWeatherUrl).then(res => res.json()),
+                            fetch(forecastWeatherUrl).then(res => res.json())
+                        ])
+                            .then(([baseData, forecastData]) => {
+                                if (baseData.status === '1' && forecastData.status === '1' && forecastData.forecasts && forecastData.forecasts.length > 0 && baseData.lives && baseData.lives.length > 0) {
                                     // 获取天气数据
-                                    const forecast = weatherData.forecasts[0];
+                                    const live = baseData.lives[0];
+                                    const forecast = forecastData.forecasts[0];
                                     const today = forecast.casts[0];
                                     
                                     // 显示位置信息
@@ -3862,10 +3871,8 @@
                                     updateWeatherBackground(today.dayweather);
                                     
                                     // 显示天气详情
-                                    document.getElementById('weather-humidity').textContent = '50%';
-                                    document.getElementById('weather-wind').textContent = `${today.daywind}风 ${today.daypower}级`;
-                                    document.getElementById('weather-visibility').textContent = '10km';
-                                    document.getElementById('weather-pressure').textContent = '1013hPa';
+                                    document.getElementById('weather-humidity').textContent = `${live.humidity}%`;
+                                    document.getElementById('weather-wind').textContent = `${live.winddirection}风 ${live.windpower}级`;
                                     
                                     // 更新预报列表
                                     const forecastList = document.getElementById('weather-forecast-list');
