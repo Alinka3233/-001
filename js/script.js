@@ -3609,99 +3609,44 @@
                 document.getElementById('weather-description').textContent = '';
                 weatherRetryBtn.style.display = 'none';
                 
-                // 检查localStorage中是否有保存的位置信息
-                const savedLocation = localStorage.getItem('weather_location');
-                
-                if (savedLocation) {
+                // 1. 优先使用用户手动选择的城市
+                const manualCityJson = localStorage.getItem('weather_manual_city');
+                if (manualCityJson) {
                     try {
-                        const locationData = JSON.parse(savedLocation);
-                        console.log('使用保存的位置信息:', locationData);
-                        // 使用保存的位置获取天气
-                        await fetchWeatherByLocation(locationData, apiKey);
+                        const manualCity = JSON.parse(manualCityJson);
+                        console.log('使用手动选择的城市:', manualCity.name);
+                        await fetchWeatherByAdcode(manualCity.adcode, apiKey, manualCity.name, true);
                         return;
                     } catch (err) {
-                        console.error('使用保存的位置失败:', err);
-                        // 如果使用保存的位置失败，继续获取新位置
+                        console.error('解析自选城市失败:', err);
                     }
                 }
                 
-                // 检查是否为HTTPS环境
-                if (window.location.protocol !== 'https:' && window.location.protocol !== 'file:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    console.warn('定位功能在HTTP环境下可能受限，建议使用HTTPS访问');
-                }
-                
-                // 检查浏览器是否支持定位
-                if (!navigator.geolocation) {
-                    showWeatherError("浏览器不支持地理位置，正在使用默认城市");
-                    loadDefaultWeather(apiKey);
-                    return;
-                }
-                
-                // 配置定位选项，提高定位成功率
-                const geolocationOptions = {
-                    enableHighAccuracy: true, // 启用高精度定位
-                    timeout: 15000, // 延长超时时间到15秒
-                    maximumAge: 120000 // 允许使用2分钟内的缓存位置
-                };
-                
+                // 2. 使用高德 IP 定位 (无感定位，成功率极高)
                 try {
-                    // 尝试获取位置
-                    navigator.geolocation.getCurrentPosition(async (position) => {
-                        try {
-                            const { latitude, longitude } = position.coords;
-                            console.log('定位成功:', { latitude, longitude });
-                            
-                            // 保存位置到localStorage
-                            const locationData = {
-                                latitude: latitude,
-                                longitude: longitude
-                            };
-                            localStorage.setItem('weather_location', JSON.stringify(locationData));
-                            
-                            // 使用新获取的位置获取天气
-                            await fetchWeatherByLocation(locationData, apiKey);
-                            
-                        } catch (err) {
-                            console.error('Weather API Error:', err);
-                            showWeatherError('无法获取天气数据，请检查API Key或网络连接');
-                            loadDefaultWeather(apiKey);
-                        }
-                    }, (err) => {
-                        console.error('Geolocation Error:', err);
-                        // 详细的错误信息，帮助用户理解问题
-                        let errorMessage = '无法获取位置信息，正在使用默认城市';
-                        switch (err.code) {
-                            case err.PERMISSION_DENIED:
-                                errorMessage = '定位权限被拒绝，正在使用默认城市';
-                                break;
-                            case err.POSITION_UNAVAILABLE:
-                                errorMessage = '位置信息不可用，正在使用默认城市';
-                                break;
-                            case err.TIMEOUT:
-                                errorMessage = '定位超时，正在使用默认城市';
-                                break;
-                            default:
-                                errorMessage = '定位失败，正在使用默认城市';
-                        }
-                        showWeatherError(errorMessage);
-                        loadDefaultWeather(apiKey);
-                    }, geolocationOptions);
+                    const ipUrl = `https://restapi.amap.com/v3/ip?key=${apiKey}`;
+                    const ipResponse = await fetch(ipUrl);
+                    if (!ipResponse.ok) throw new Error('高德IP定位服务失败');
+                    const ipData = await ipResponse.json();
+                    
+                    if (ipData.status === '1' && ipData.adcode && typeof ipData.adcode === 'string' && ipData.adcode.length > 0) {
+                        console.log('IP定位成功:', ipData.city || ipData.province);
+                        const locationName = ipData.city || ipData.province || '未知城市';
+                        await fetchWeatherByAdcode(ipData.adcode, apiKey, locationName, false);
+                        return;
+                    } else {
+                        console.warn('IP定位失败，信息:', ipData.info);
+                        throw new Error('IP定位未返回有效数据');
+                    }
                 } catch (err) {
-                    console.error('定位请求异常:', err);
-                    showWeatherError('定位请求异常，正在使用默认城市');
+                    console.error('IP定位异常:', err);
+                    showWeatherError('自动定位失败，正在使用默认城市');
                     loadDefaultWeather(apiKey);
                 }
                 
-                // 根据位置获取天气的函数
-                async function fetchWeatherByLocation(locationData, apiKey) {
+                // 通用的根据 adcode 获取天气的函数
+                async function fetchWeatherByAdcode(adcode, apiKey, locationName, isManual = false) {
                     try {
-                        const { latitude, longitude } = locationData;
-                        const regeoUrl = `https://restapi.amap.com/v3/geocode/regeo?output=json&location=${longitude},${latitude}&key=${apiKey}`;
-                        const regeoResponse = await fetch(regeoUrl);
-                        if (!regeoResponse.ok) throw new Error('高德地理编码服务失败');
-                        const regeoData = await regeoResponse.json();
-                        if (regeoData.status !== '1') throw new Error(regeoData.info || '高德地理编码错误');
-                        const adcode = regeoData.regeocode.addressComponent.adcode;
                         const baseWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=base`;
                         const forecastWeatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=all`;
                         
@@ -3729,10 +3674,13 @@
                         }
                         const today = forecast.casts[0];
                         
-                        // 显示精简位置信息（直接使用高德天气API返回的城市/区县名，正好是县级市/区级别）
-                        const locationName = forecast.city || regeoData.regeocode.addressComponent.district || regeoData.regeocode.addressComponent.city;
+                        // 确定显示的城市名称
+                        let displayCityName = locationName || forecast.city;
+                        if (isManual) {
+                            displayCityName = '📍 ' + displayCityName;
+                        }
                         
-                        document.getElementById('weather-location').textContent = locationName;
+                        document.getElementById('weather-location').textContent = displayCityName;
                         
                         // 显示日期和时间
                         const now = new Date();
@@ -3760,8 +3708,6 @@
                         const iconClass = getWeatherIcon(today.dayweather);
                         const weatherIcon = document.getElementById('weather-icon');
                         weatherIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
-                        
-                        // 根据天气类型添加额外的类
                         weatherIcon.className = 'weather-icon';
                         
                         // 更新背景样式
@@ -3781,7 +3727,6 @@
                             const forecastItem = document.createElement('div');
                             forecastItem.className = 'forecast-item';
                             
-                            // 根据天气类型添加额外的类
                             if (cast.dayweather === '阴') {
                                 forecastItem.classList.add('cloudy');
                             }
@@ -3798,8 +3743,26 @@
                     }
                 }
                 
+                // 根据位置获取天气的函数 (保留以备不时之需)
+                async function fetchWeatherByLocation(locationData, apiKey) {
+                    try {
+                        const { latitude, longitude } = locationData;
+                        const regeoUrl = `https://restapi.amap.com/v3/geocode/regeo?output=json&location=${longitude},${latitude}&key=${apiKey}`;
+                        const regeoResponse = await fetch(regeoUrl);
+                        if (!regeoResponse.ok) throw new Error('高德地理编码服务失败');
+                        const regeoData = await regeoResponse.json();
+                        if (regeoData.status !== '1') throw new Error(regeoData.info || '高德地理编码错误');
+                        const adcode = regeoData.regeocode.addressComponent.adcode;
+                        
+                        const locationName = regeoData.regeocode.addressComponent.district || regeoData.regeocode.addressComponent.city;
+                        
+                        await fetchWeatherByAdcode(adcode, apiKey, locationName, false);
+                    } catch (err) {
+                        throw err;
+                    }
+                }
+                
                 // 加载默认城市天气（备用方案）
-                function loadDefaultWeather(apiKey) {
                     try {
                         // 优先使用用户自选的地区
                         const manualCityJson = localStorage.getItem('weather_manual_city');
