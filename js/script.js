@@ -3591,8 +3591,9 @@
 
             // 搜索城市
             if (weatherCitySearchInput) {
-                weatherCitySearchInput.addEventListener('input', debounce(async function() {
+                weatherCitySearchInput.addEventListener('input', window.debounce(async function() {
                     const keyword = this.value.trim();
+                    console.log('Search keyword triggered:', keyword);
                     if (keyword.length < 1) {
                         weatherCityResults.innerHTML = '';
                         return;
@@ -11998,7 +11999,7 @@ ${statusInfluence || '用户当前无特定状态'}`;
                     updateActiveItem(wheel);
                 }, { passive: true });
 
-                wheel.addEventListener('scroll', AppAdapter.debounce(() => {
+                wheel.addEventListener('scroll', window.debounce(() => {
                     updateActiveItem(wheel);
                     updateAlarmTimeValue();
                 }, 100));
