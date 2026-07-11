@@ -3536,23 +3536,25 @@
 
             // 内置默认/热门城市列表，保证在无网或未配置API key时也有可用选项
             const defaultCities = [
-                { name: '北京市', district: '北京', adcode: '110000', location: '116.405285,39.904989' },
-                { name: '上海市', district: '上海', adcode: '310000', location: '121.472644,31.231706' },
-                { name: '广州市', district: '广东', adcode: '440100', location: '113.280637,23.125178' },
-                { name: '深圳市', district: '广东', adcode: '440300', location: '114.085947,22.547000' },
-                { name: '成都市', district: '四川', adcode: '510100', location: '104.065735,30.659462' },
-                { name: '杭州市', district: '浙江', adcode: '330100', location: '120.153576,30.287459' },
-                { name: '武汉市', district: '湖北', adcode: '420100', location: '114.298572,30.584355' },
-                { name: '重庆市', district: '重庆', adcode: '500000', location: '106.504962,29.533155' },
-                { name: '西安市', district: '陕西', adcode: '610100', location: '108.948024,34.263161' },
-                { name: '南京市', district: '江苏', adcode: '320100', location: '118.767413,32.041544' },
-                { name: '香港', district: '香港特别行政区', adcode: '810000', location: '114.165460,22.275340' },
-                { name: '澳门', district: '澳门特别行政区', adcode: '820000', location: '113.549130,22.198750' },
-                { name: '台北市', district: '台湾', adcode: '710000', location: '121.509062,25.044332' },
-                { name: '伦敦', district: '英国', adcode: '', location: '-0.1275,51.5072' },
-                { name: '纽约', district: '美国', adcode: '', location: '-74.0060,40.7128' },
-                { name: '东京', district: '日本', adcode: '', location: '139.6917,35.6895' },
-                { name: '巴黎', district: '法国', adcode: '', location: '2.3522,48.8566' }
+                { name: '北京市', path: '中国 - 北京市', adcode: '110000', location: '116.405285,39.904989' },
+                { name: '朝阳区', path: '中国 - 北京市 - 朝阳区', adcode: '110105', location: '116.443108,39.92147' },
+                { name: '上海市', path: '中国 - 上海市', adcode: '310000', location: '121.472644,31.231706' },
+                { name: '浦东新区', path: '中国 - 上海市 - 浦东新区', adcode: '310115', location: '121.528461,31.233462' },
+                { name: '广州市', path: '中国 - 广东省 - 广州市', adcode: '440100', location: '113.280637,23.125178' },
+                { name: '深圳市', path: '中国 - 广东省 - 深圳市', adcode: '440300', location: '114.085947,22.547000' },
+                { name: '成都市', path: '中国 - 四川省 - 成都市', adcode: '510100', location: '104.065735,30.659462' },
+                { name: '杭州市', path: '中国 - 浙江省 - 杭州市', adcode: '330100', location: '120.153576,30.287459' },
+                { name: '武汉市', path: '中国 - 湖北省 - 武汉市', adcode: '420100', location: '114.298572,30.584355' },
+                { name: '重庆市', path: '中国 - 重庆市', adcode: '500000', location: '106.504962,29.533155' },
+                { name: '西安市', path: '中国 - 陕西省 - 西安市', adcode: '610100', location: '108.948024,34.263161' },
+                { name: '南京市', path: '中国 - 江苏省 - 南京市', adcode: '320100', location: '118.767413,32.041544' },
+                { name: '香港', path: '中国 - 香港特别行政区', adcode: '810000', location: '114.165460,22.275340' },
+                { name: '澳门', path: '中国 - 澳门特别行政区', adcode: '820000', location: '113.549130,22.198750' },
+                { name: '台北市', path: '中国 - 台湾省 - 台北市', adcode: '710000', location: '121.509062,25.044332' },
+                { name: '伦敦', path: '英国 - 伦敦', adcode: '', location: '-0.1275,51.5072' },
+                { name: '纽约', path: '美国 - 纽约', adcode: '', location: '-74.0060,40.7128' },
+                { name: '东京', path: '日本 - 东京', adcode: '', location: '139.6917,35.6895' },
+                { name: '巴黎', path: '法国 - 巴黎', adcode: '', location: '2.3522,48.8566' }
             ];
 
             function renderDefaultCities(keyword = '') {
@@ -3563,7 +3565,7 @@
                     renderCityResults(defaultCities);
                     return;
                 }
-                const filtered = defaultCities.filter(c => c.name.includes(keyword) || c.district.includes(keyword));
+                const filtered = defaultCities.filter(c => c.name.includes(keyword) || (c.path && c.path.includes(keyword)));
                 if (filtered.length > 0) {
                     renderCityResults(filtered);
                 } else {
@@ -3714,13 +3716,43 @@
                 weatherCityResultsEl.innerHTML = cities.map(city => {
                     const adcodeStr = (city.adcode && city.adcode !== '[]') ? city.adcode : '';
                     const locationStr = (city.location && city.location !== '[]') ? city.location : '';
-                    const districtStr = (city.district && city.district !== '[]') ? city.district : '未知区域';
+                    
+                    let pathStr = '';
+                    if (city.path) {
+                        pathStr = city.path;
+                    } else {
+                        let country = '中国';
+                        let district = (city.district && city.district !== '[]') ? city.district : '';
+                        let name = (city.name && city.name !== '[]') ? city.name : '';
+                        
+                        let formattedDistrict = district
+                            .replace(/省/g, '省 - ')
+                            .replace(/自治区/g, '自治区 - ')
+                            .replace(/特别行政区/g, '特别行政区 - ')
+                            .replace(/市/g, '市 - ')
+                            .replace(/区/g, '区 - ')
+                            .replace(/县/g, '县 - ')
+                            .replace(/自治州/g, '自治州 - ')
+                            .replace(/盟/g, '盟 - ')
+                            .replace(/\s*-\s*-\s*/g, ' - ')
+                            .replace(/ - $/g, '');
+                            
+                        pathStr = country;
+                        if (formattedDistrict) {
+                            pathStr += ' - ' + formattedDistrict;
+                        }
+                        if (name && !district.includes(name)) {
+                            pathStr += ' - ' + name;
+                        }
+                        pathStr = pathStr.replace(/\s*-\s*-\s*/g, ' - ').replace(/ - $/g, '');
+                    }
+
                     // 转义引号，防止名称中含有引号破坏 HTML
                     const safeName = city.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
                     return `
                     <div class="weather-city-item" onclick="selectWeatherCity('${adcodeStr}', '${locationStr}', '${safeName}')">
-                        <span class="weather-city-name">${city.name}</span>
-                        <span class="weather-city-district">${districtStr}</span>
+                        <i class="fas fa-map-marker-alt" style="color: #007aff; margin-right: 12px; font-size: 16px; flex-shrink: 0;"></i>
+                        <span class="weather-city-path">${pathStr}</span>
                     </div>
                     `;
                 }).join('');
