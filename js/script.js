@@ -3571,46 +3571,46 @@
                     return;
                 }
 
+                window.selectWeatherCity = function(adcode, location, name) {
+                    // 如果既没有 adcode 也没有 location，则提示无法选择
+                    if (!adcode && !location) {
+                        alert('该地区缺少经纬度及编码信息，无法获取天气，请尝试选择更具体的地区。');
+                        return;
+                    }
+                    
+                    // 保存为自选城市
+                    localStorage.setItem('weather_manual_city', JSON.stringify({ adcode, name, location }));
+                    
+                    // 清除之前的定位缓存
+                    localStorage.removeItem('weather_location');
+                    
+                    // 关闭弹窗
+                    const weatherCityModal = document.getElementById('weather-city-modal');
+                    const weatherCitySearchInput = document.getElementById('weather-city-search-input');
+                    const weatherCityResults = document.getElementById('weather-city-results');
+                    if (weatherCityModal) weatherCityModal.classList.remove('active');
+                    if (weatherCitySearchInput) weatherCitySearchInput.value = '';
+                    if (weatherCityResults) weatherCityResults.innerHTML = '';
+                    
+                    // 重新加载天气
+                    if (typeof getRealWeather === 'function') {
+                        getRealWeather();
+                    }
+                };
+
                 weatherCityResults.innerHTML = cities.map(city => {
                     const adcodeStr = (city.adcode && city.adcode !== '[]') ? city.adcode : '';
                     const locationStr = (city.location && city.location !== '[]') ? city.location : '';
                     const districtStr = (city.district && city.district !== '[]') ? city.district : '未知区域';
+                    // 转义引号，防止名称中含有引号破坏 HTML
+                    const safeName = city.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
                     return `
-                    <div class="weather-city-item" data-adcode="${adcodeStr}" data-location="${locationStr}" data-name="${city.name}">
+                    <div class="weather-city-item" onclick="selectWeatherCity('${adcodeStr}', '${locationStr}', '${safeName}')">
                         <span class="weather-city-name">${city.name}</span>
                         <span class="weather-city-district">${districtStr}</span>
                     </div>
                     `;
                 }).join('');
-
-                // 绑定点击事件
-                weatherCityResults.querySelectorAll('.weather-city-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        const adcode = this.dataset.adcode;
-                        const name = this.dataset.name;
-                        const location = this.dataset.location;
-                        
-                        // 如果既没有 adcode 也没有 location，则提示无法选择
-                        if (!adcode && !location) {
-                            alert('该地区缺少经纬度及编码信息，无法获取天气，请尝试选择更具体的地区。');
-                            return;
-                        }
-                        
-                        // 保存为自选城市
-                        localStorage.setItem('weather_manual_city', JSON.stringify({ adcode, name, location }));
-                        
-                        // 清除之前的定位缓存
-                        localStorage.removeItem('weather_location');
-                        
-                        // 关闭弹窗
-                        weatherCityModal.classList.remove('active');
-                        weatherCitySearchInput.value = '';
-                        weatherCityResults.innerHTML = '';
-                        
-                        // 重新加载天气
-                        getRealWeather();
-                    });
-                });
             }
 
             async function getRealWeather() {
