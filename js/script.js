@@ -3534,6 +3534,43 @@
             const weatherCitySearchInput = document.getElementById('weather-city-search-input');
             const weatherCityResults = document.getElementById('weather-city-results');
 
+            // 内置默认/热门城市列表，保证在无网或未配置API key时也有可用选项
+            const defaultCities = [
+                { name: '北京市', district: '北京', adcode: '110000', location: '116.405285,39.904989' },
+                { name: '上海市', district: '上海', adcode: '310000', location: '121.472644,31.231706' },
+                { name: '广州市', district: '广东', adcode: '440100', location: '113.280637,23.125178' },
+                { name: '深圳市', district: '广东', adcode: '440300', location: '114.085947,22.547000' },
+                { name: '成都市', district: '四川', adcode: '510100', location: '104.065735,30.659462' },
+                { name: '杭州市', district: '浙江', adcode: '330100', location: '120.153576,30.287459' },
+                { name: '武汉市', district: '湖北', adcode: '420100', location: '114.298572,30.584355' },
+                { name: '重庆市', district: '重庆', adcode: '500000', location: '106.504962,29.533155' },
+                { name: '西安市', district: '陕西', adcode: '610100', location: '108.948024,34.263161' },
+                { name: '南京市', district: '江苏', adcode: '320100', location: '118.767413,32.041544' },
+                { name: '香港', district: '香港特别行政区', adcode: '810000', location: '114.165460,22.275340' },
+                { name: '澳门', district: '澳门特别行政区', adcode: '820000', location: '113.549130,22.198750' },
+                { name: '台北市', district: '台湾', adcode: '710000', location: '121.509062,25.044332' },
+                { name: '伦敦', district: '英国', adcode: '', location: '-0.1275,51.5072' },
+                { name: '纽约', district: '美国', adcode: '', location: '-74.0060,40.7128' },
+                { name: '东京', district: '日本', adcode: '', location: '139.6917,35.6895' },
+                { name: '巴黎', district: '法国', adcode: '', location: '2.3522,48.8566' }
+            ];
+
+            function renderDefaultCities(keyword = '') {
+                const weatherCityResultsEl = document.getElementById('weather-city-results');
+                if (!weatherCityResultsEl) return;
+                
+                if (!keyword) {
+                    renderCityResults(defaultCities);
+                    return;
+                }
+                const filtered = defaultCities.filter(c => c.name.includes(keyword) || c.district.includes(keyword));
+                if (filtered.length > 0) {
+                    renderCityResults(filtered);
+                } else {
+                    weatherCityResultsEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区，正在尝试联网搜索...</div>';
+                }
+            }
+
             if (weatherCitySelectBtn) {
                 weatherCitySelectBtn.addEventListener('click', () => {
                     const weatherCityModal = document.getElementById('weather-city-modal');
@@ -3542,7 +3579,11 @@
                         weatherCityModal.classList.add('active');
                         weatherCityModal.style.display = 'flex';
                     }
-                    if (weatherCitySearchInput) weatherCitySearchInput.focus();
+                    if (weatherCitySearchInput) {
+                        weatherCitySearchInput.value = '';
+                        weatherCitySearchInput.focus();
+                    }
+                    renderDefaultCities();
                 });
             }
             
@@ -3555,7 +3596,11 @@
                         weatherCityModal.classList.add('active');
                         weatherCityModal.style.display = 'flex';
                     }
-                    if (weatherCitySearchInput) weatherCitySearchInput.focus();
+                    if (weatherCitySearchInput) {
+                        weatherCitySearchInput.value = '';
+                        weatherCitySearchInput.focus();
+                    }
+                    renderDefaultCities();
                 });
             }
 
@@ -3594,8 +3639,11 @@
                 weatherCitySearchInput.addEventListener('input', window.debounce(async (e) => {
                     const keyword = e.target.value.trim();
                     console.log('Search keyword triggered:', keyword);
+                    
+                    // 先显示本地匹配的城市
+                    renderDefaultCities(keyword);
+
                     if (keyword.length < 1) {
-                        weatherCityResults.innerHTML = '';
                         return;
                     }
 
@@ -3607,10 +3655,7 @@
                         const response = await fetch(url);
                         const data = await response.json();
                         
-                        // 输出返回的数据进行调试
-                        console.log('AMap inputtips response:', data);
-
-                        if (data.status === '1' && data.tips) {
+                        if (data.status === '1' && data.tips && data.tips.length > 0) {
                             renderCityResults(data.tips);
                         }
                     } catch (error) {
@@ -3620,16 +3665,16 @@
             }
 
             function renderCityResults(tips) {
-                console.log('Rendering tips:', tips);
+                const weatherCityResultsEl = document.getElementById('weather-city-results');
+                if (!weatherCityResultsEl) return;
+                
                 const cities = tips.filter(tip => {
                     if (!tip.name || tip.name.length === 0 || tip.name === '[]') return false; // 必须有名字
                     return true; // 只要有名字就展示，即使没有 location 或 adcode 也可以尝试展示
                 });
                 
-                console.log('Filtered cities:', cities);
-
                 if (cities.length === 0) {
-                    weatherCityResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区</div>';
+                    weatherCityResultsEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区，正在尝试联网搜索...</div>';
                     return;
                 }
 
@@ -3649,13 +3694,12 @@
                     // 关闭弹窗
                     const weatherCityModal = document.getElementById('weather-city-modal');
                     const weatherCitySearchInput = document.getElementById('weather-city-search-input');
-                    const weatherCityResults = document.getElementById('weather-city-results');
                     if (weatherCityModal) {
                         weatherCityModal.classList.remove('active');
                         setTimeout(() => { weatherCityModal.style.display = 'none'; }, 300);
                     }
                     if (weatherCitySearchInput) weatherCitySearchInput.value = '';
-                    if (weatherCityResults) weatherCityResults.innerHTML = '';
+                    if (weatherCityResultsEl) weatherCityResultsEl.innerHTML = '';
                     
                     // 重新加载天气
                     if (typeof getRealWeather === 'function') {
@@ -3667,7 +3711,7 @@
                     }
                 };
 
-                weatherCityResults.innerHTML = cities.map(city => {
+                weatherCityResultsEl.innerHTML = cities.map(city => {
                     const adcodeStr = (city.adcode && city.adcode !== '[]') ? city.adcode : '';
                     const locationStr = (city.location && city.location !== '[]') ? city.location : '';
                     const districtStr = (city.district && city.district !== '[]') ? city.district : '未知区域';
