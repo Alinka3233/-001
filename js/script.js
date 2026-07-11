@@ -3535,7 +3535,7 @@
             const weatherCityResults = document.getElementById('weather-city-results');
 
             // 内置默认/热门城市列表，保证在无网或未配置API key时也有可用选项
-            const defaultCities = [
+            const defaultCities = window.allChinaCities || [
                 { name: '北京市', path: '中国 - 北京市', adcode: '110000', location: '116.405285,39.904989' },
                 { name: '朝阳区', path: '中国 - 北京市 - 朝阳区', adcode: '110105', location: '116.443108,39.92147' },
                 { name: '上海市', path: '中国 - 上海市', adcode: '310000', location: '121.472644,31.231706' },
@@ -3562,12 +3562,13 @@
                 if (!weatherCityResultsEl) return;
                 
                 if (!keyword) {
-                    renderCityResults(defaultCities);
+                    // 默认显示前 100 个城市（为了性能），或者全部显示
+                    renderCityResults(defaultCities.slice(0, 100));
                     return;
                 }
                 const filtered = defaultCities.filter(c => c.name.includes(keyword) || (c.path && c.path.includes(keyword)));
                 if (filtered.length > 0) {
-                    renderCityResults(filtered);
+                    renderCityResults(filtered.slice(0, 100)); // 限制最多显示100条，防止卡顿
                 } else {
                     weatherCityResultsEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区，正在尝试联网搜索...</div>';
                 }
