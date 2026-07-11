@@ -3547,7 +3547,7 @@
                     if (!apiKey) return;
 
                     try {
-                        const url = `https://restapi.amap.com/v3/assistant/inputtips?keywords=${encodeURIComponent(keyword)}&key=${apiKey}&types=190100|190101|190102|190103|190104|190105|190106|190107|190108|190109`;
+                        const url = `https://restapi.amap.com/v3/assistant/inputtips?keywords=${encodeURIComponent(keyword)}&key=${apiKey}&datatype=all`;
                         const response = await fetch(url);
                         const data = await response.json();
 
@@ -3561,31 +3561,45 @@
             }
 
             function renderCityResults(tips) {
-                // 过滤没有 adcode 的结果
-                const cities = tips.filter(tip => tip.adcode && typeof tip.adcode === 'string');
+                const cities = tips.filter(tip => {
+                    if (!tip.name || tip.name.length === 0 || tip.name === '[]') return false; // 必须有名字
+                    return true; // 只要有名字就展示，即使没有 location 或 adcode 也可以尝试展示
+                });
                 
                 if (cities.length === 0) {
-                    weatherCityResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到城市</div>';
+                    weatherCityResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区</div>';
                     return;
                 }
 
-                weatherCityResults.innerHTML = cities.map(city => `
-                    <div class="weather-city-item" data-adcode="${city.adcode}" data-name="${city.name}">
+                weatherCityResults.innerHTML = cities.map(city => {
+                    const adcodeStr = (city.adcode && city.adcode !== '[]') ? city.adcode : '';
+                    const locationStr = (city.location && city.location !== '[]') ? city.location : '';
+                    const districtStr = (city.district && city.district !== '[]') ? city.district : '未知区域';
+                    return `
+                    <div class="weather-city-item" data-adcode="${adcodeStr}" data-location="${locationStr}" data-name="${city.name}">
                         <span class="weather-city-name">${city.name}</span>
-                        <span class="weather-city-district">${city.district}</span>
+                        <span class="weather-city-district">${districtStr}</span>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 // 绑定点击事件
                 weatherCityResults.querySelectorAll('.weather-city-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const adcode = this.dataset.adcode;
                         const name = this.dataset.name;
+                        const location = this.dataset.location;
+                        
+                        // 如果既没有 adcode 也没有 location，则提示无法选择
+                        if (!adcode && !location) {
+                            alert('该地区缺少经纬度及编码信息，无法获取天气，请尝试选择更具体的地区。');
+                            return;
+                        }
                         
                         // 保存为自选城市
-                        localStorage.setItem('weather_manual_city', JSON.stringify({ adcode, name }));
+                        localStorage.setItem('weather_manual_city', JSON.stringify({ adcode, name, location }));
                         
-                        // 清除之前的定位缓存，确保立即切换到新城市
+                        // 清除之前的定位缓存
                         localStorage.removeItem('weather_location');
                         
                         // 关闭弹窗
@@ -3608,6 +3622,14 @@
                 document.getElementById('weather-location').textContent = '加载中...';
                 document.getElementById('weather-description').textContent = '';
                 weatherRetryBtn.style.display = 'none';
+                
+                // 优先检查是否有手动选择的城市
+                const manualCityJson = localStorage.getItem('weather_manual_city');
+                if (manualCityJson) {
+                    // 如果有手动选择的城市，直接使用它，不再尝试自动定位
+                    loadDefaultWeather(apiKey);
+                    return;
+                }
                 
                 // 检查localStorage中是否有保存的位置信息
                 const savedLocation = localStorage.getItem('weather_location');
@@ -3800,9 +3822,21 @@
                         if (manualCityJson) {
                             try {
                                 const manualCity = JSON.parse(manualCityJson);
-                                cityAdcode = manualCity.adcode;
+                                if (manualCity.adcode && manualCity.adcode !== '[]') {
+                                    cityAdcode = manualCity.adcode;
+                                } else if (manualCity.location) {
+                                    // 没有有效的 adcode，但是有经纬度，则直接使用经纬度查询
+                                    const locParts = manualCity.location.split(',');
+                                    if (locParts.length === 2) {
+                                        console.log('自选城市没有adcode，使用经纬度获取天气:', manualCity.name);
+                                        fetchWeatherByLocation({ longitude: locParts[0], latitude: locParts[1] }, apiKey).catch(e => {
+                                            console.error('使用经纬度获取天气失败:', e);
+                                        });
+                                        return;
+                                    }
+                                }
                                 isManual = true;
-                                console.log('定位失败，使用自选城市:', manualCity.name);
+                                console.log('使用自选城市:', manualCity.name);
                             } catch (e) {
                                 console.error('解析自选城市失败:', e);
                             }
