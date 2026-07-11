@@ -3527,16 +3527,26 @@
 
             if (weatherCitySelectBtn) {
                 weatherCitySelectBtn.addEventListener('click', () => {
-                    weatherCityModal.classList.add('active');
-                    weatherCitySearchInput.focus();
+                    const weatherCityModal = document.getElementById('weather-city-modal');
+                    const weatherCitySearchInput = document.getElementById('weather-city-search-input');
+                    if (weatherCityModal) {
+                        weatherCityModal.classList.add('active');
+                        weatherCityModal.style.display = 'flex';
+                    }
+                    if (weatherCitySearchInput) weatherCitySearchInput.focus();
                 });
             }
             
             const settingsWeatherCitySelectBtn = document.getElementById('settings-weather-city-select-btn');
             if (settingsWeatherCitySelectBtn) {
                 settingsWeatherCitySelectBtn.addEventListener('click', () => {
-                    weatherCityModal.classList.add('active');
-                    weatherCitySearchInput.focus();
+                    const weatherCityModal = document.getElementById('weather-city-modal');
+                    const weatherCitySearchInput = document.getElementById('weather-city-search-input');
+                    if (weatherCityModal) {
+                        weatherCityModal.classList.add('active');
+                        weatherCityModal.style.display = 'flex';
+                    }
+                    if (weatherCitySearchInput) weatherCitySearchInput.focus();
                 });
             }
 
@@ -3562,7 +3572,11 @@
 
             if (weatherCityModalClose) {
                 weatherCityModalClose.addEventListener('click', () => {
-                    weatherCityModal.classList.remove('active');
+                    const weatherCityModal = document.getElementById('weather-city-modal');
+                    if (weatherCityModal) {
+                        weatherCityModal.classList.remove('active');
+                        setTimeout(() => { weatherCityModal.style.display = 'none'; }, 300);
+                    }
                 });
             }
 
@@ -3620,7 +3634,10 @@
                     const weatherCityModal = document.getElementById('weather-city-modal');
                     const weatherCitySearchInput = document.getElementById('weather-city-search-input');
                     const weatherCityResults = document.getElementById('weather-city-results');
-                    if (weatherCityModal) weatherCityModal.classList.remove('active');
+                    if (weatherCityModal) {
+                        weatherCityModal.classList.remove('active');
+                        setTimeout(() => { weatherCityModal.style.display = 'none'; }, 300);
+                    }
                     if (weatherCitySearchInput) weatherCitySearchInput.value = '';
                     if (weatherCityResults) weatherCityResults.innerHTML = '';
                     
