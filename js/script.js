@@ -3627,6 +3627,16 @@
             // 初始调用一次
             window.updateSettingsWeatherCityName();
 
+            // 如果一开始没有任何选择，给一个默认城市（北京）
+            if (!localStorage.getItem('weather_manual_city')) {
+                localStorage.setItem('weather_manual_city', JSON.stringify({
+                    adcode: '110105',
+                    name: '朝阳区',
+                    location: '116.443108,39.92147'
+                }));
+                window.updateSettingsWeatherCityName();
+            }
+
             if (weatherCityModalClose) {
                 weatherCityModalClose.addEventListener('click', () => {
                     const weatherCityModal = document.getElementById('weather-city-modal');
@@ -3769,11 +3779,24 @@
                 document.getElementById('weather-description').textContent = '';
                 weatherRetryBtn.style.display = 'none';
                 
-                // 优先检查是否有手动选择的城市
+                // 优先检查是否有手动选择的城市 (默认为北京朝阳区)
                 const manualCityJson = localStorage.getItem('weather_manual_city');
                 if (manualCityJson) {
-                    // 如果有手动选择的城市，直接使用它，不再尝试自动定位
-                    loadDefaultWeather(apiKey);
+                    try {
+                        const manualCity = JSON.parse(manualCityJson);
+                        // 如果有手动选择的城市，直接使用它获取天气
+                        if (manualCity.adcode) {
+                            await fetchWeatherByAdcode(manualCity.adcode, manualCity.name, apiKey);
+                        } else if (manualCity.location) {
+                            const locParts = manualCity.location.split(',');
+                            if (locParts.length === 2) {
+                                await fetchWeatherByLocation({ longitude: locParts[0], latitude: locParts[1] }, apiKey, manualCity.name);
+                            }
+                        }
+                    } catch(e) {
+                        console.error('解析手动选择城市失败:', e);
+                        loadDefaultWeather(apiKey);
+                    }
                     return;
                 }
                 
@@ -3860,8 +3883,35 @@
                     loadDefaultWeather(apiKey);
                 }
                 
+                // 根据 adcode 直接获取天气
+                async function fetchWeatherByAdcode(adcode, manualName, apiKey) {
+                    try {
+                        const weatherUrl = `https://restapi.amap.com/v3/weather/weatherInfo?city=${adcode}&key=${apiKey}&extensions=all`;
+                        const weatherResponse = await fetch(weatherUrl);
+                        if (!weatherResponse.ok) throw new Error('高德天气服务失败');
+                        const weatherData = await weatherResponse.json();
+                        if (weatherData.status !== '1') throw new Error(weatherData.info || '高德天气查询错误');
+                        
+                        // 获取天气数据
+                        if (!weatherData.forecasts || weatherData.forecasts.length === 0) {
+                            throw new Error('未获取到天气预报数据');
+                        }
+                        const forecast = weatherData.forecasts[0];
+                        if (!forecast.casts || forecast.casts.length === 0) {
+                            throw new Error('天气数据格式不正确');
+                        }
+                        const today = forecast.casts[0];
+                        
+                        const locationName = manualName || forecast.city;
+                        renderWeatherData(locationName, today, forecast);
+                    } catch (err) {
+                        console.error('Weather API Error:', err);
+                        showWeatherError('无法获取该城市的天气数据');
+                    }
+                }
+
                 // 根据位置获取天气的函数
-                async function fetchWeatherByLocation(locationData, apiKey) {
+                async function fetchWeatherByLocation(locationData, apiKey, manualName = null) {
                     try {
                         const { latitude, longitude } = locationData;
                         const regeoUrl = `https://restapi.amap.com/v3/geocode/regeo?output=json&location=${longitude},${latitude}&key=${apiKey}`;
@@ -3886,75 +3936,80 @@
                         }
                         const today = forecast.casts[0];
                         
-                        // 显示精简位置信息（直接使用高德天气API返回的城市/区县名，正好是县级市/区级别）
-                        const locationName = forecast.city || regeoData.regeocode.addressComponent.district || regeoData.regeocode.addressComponent.city;
+                        // 显示精简位置信息
+                        const locationName = manualName || forecast.city || regeoData.regeocode.addressComponent.district || regeoData.regeocode.addressComponent.city;
                         
-                        document.getElementById('weather-location').textContent = locationName;
-                        
-                        // 显示日期和时间
-                        const now = new Date();
-                        const datetimeStr = now.toLocaleString('zh-CN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        document.getElementById('weather-datetime').textContent = datetimeStr;
-                        
-                        // 显示天气主信息
-                        document.getElementById('weather-description').textContent = today.dayweather;
-                        document.getElementById('weather-temperature').textContent = `${today.daytemp}°`;
-                        
-                        // 更新小组件天气信息
-                        const widgetWeather = document.getElementById('widget-weather');
-                        if (widgetWeather) {
-                            const iconClass = getWeatherIcon(today.dayweather);
-                            widgetWeather.innerHTML = `<i class="fas ${iconClass}"></i> ${today.daytemp}° ${today.dayweather}`;
-                        }
-                        
-                        // 更新天气图标
-                        const iconClass = getWeatherIcon(today.dayweather);
-                        const weatherIcon = document.getElementById('weather-icon');
-                        weatherIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
-                        
-                        // 根据天气类型添加额外的类
-                        weatherIcon.className = 'weather-icon';
-                        
-                        // 更新背景样式
-                        updateWeatherBackground(today.dayweather);
-                        
-                        // 显示天气详情
-                        document.getElementById('weather-humidity').textContent = '50%'; // 预报API不含湿度，设为默认
-                        document.getElementById('weather-wind').textContent = `${today.daywind}风 ${today.daypower}级`;
-                        document.getElementById('weather-visibility').textContent = '10km';
-                        document.getElementById('weather-pressure').textContent = '1013hPa';
-                        
-                        // 更新预报列表
-                        const forecastList = document.getElementById('weather-forecast-list');
-                        forecastList.innerHTML = '';
-                        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-                        forecast.casts.slice(0, 4).forEach((cast, index) => {
-                            const dayName = index === 0 ? '今天' : weekdays[new Date(cast.date).getDay()];
-                            const iconClass = getWeatherIcon(cast.dayweather);
-                            const forecastItem = document.createElement('div');
-                            forecastItem.className = 'forecast-item';
-                            
-                            // 根据天气类型添加额外的类
-                            if (cast.dayweather === '阴') {
-                                forecastItem.classList.add('cloudy');
-                            }
-                            
-                            forecastItem.innerHTML = `
-                                <span class="day-name">${dayName}</span>
-                                <i class="fas ${iconClass}"></i>
-                                <span class="temp-range">${cast.nighttemp}° - ${cast.daytemp}°</span>
-                            `;
-                            forecastList.appendChild(forecastItem);
-                        });
+                        renderWeatherData(locationName, today, forecast);
                     } catch (err) {
+                        console.error('Weather API Error:', err);
                         throw err;
                     }
+                }
+
+                function renderWeatherData(locationName, today, forecast) {
+                    document.getElementById('weather-location').textContent = locationName;
+                        
+                    // 显示日期和时间
+                    const now = new Date();
+                    const datetimeStr = now.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    document.getElementById('weather-datetime').textContent = datetimeStr;
+                    
+                    // 显示天气主信息
+                    document.getElementById('weather-description').textContent = today.dayweather;
+                    document.getElementById('weather-temperature').textContent = `${today.daytemp}°`;
+                    
+                    // 更新小组件天气信息
+                    const widgetWeather = document.getElementById('widget-weather');
+                    if (widgetWeather) {
+                        const iconClass = getWeatherIcon(today.dayweather);
+                        widgetWeather.innerHTML = `<i class="fas ${iconClass}"></i> ${today.daytemp}° ${today.dayweather}`;
+                    }
+                    
+                    // 更新天气图标
+                    const iconClass = getWeatherIcon(today.dayweather);
+                    const weatherIcon = document.getElementById('weather-icon');
+                    weatherIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
+                    
+                    // 根据天气类型添加额外的类
+                    weatherIcon.className = 'weather-icon';
+                    
+                    // 更新背景样式
+                    updateWeatherBackground(today.dayweather);
+                    
+                    // 显示天气详情
+                    document.getElementById('weather-humidity').textContent = '50%'; // 预报API不含湿度，设为默认
+                    document.getElementById('weather-wind').textContent = `${today.daywind}风 ${today.daypower}级`;
+                    document.getElementById('weather-visibility').textContent = '10km';
+                    document.getElementById('weather-pressure').textContent = '1013hPa';
+                    
+                    // 更新预报列表
+                    const forecastList = document.getElementById('weather-forecast-list');
+                    forecastList.innerHTML = '';
+                    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                    forecast.casts.slice(0, 4).forEach((cast, index) => {
+                        const dayName = index === 0 ? '今天' : weekdays[new Date(cast.date).getDay()];
+                        const iconClass = getWeatherIcon(cast.dayweather);
+                        const forecastItem = document.createElement('div');
+                        forecastItem.className = 'forecast-item';
+                        
+                        // 根据天气类型添加额外的类
+                        if (cast.dayweather === '阴') {
+                            forecastItem.classList.add('cloudy');
+                        }
+                        
+                        forecastItem.innerHTML = `
+                            <span class="day-name">${dayName}</span>
+                            <i class="fas ${iconClass}"></i>
+                            <span class="temp-range">${cast.nighttemp}° - ${cast.daytemp}°</span>
+                        `;
+                        forecastList.appendChild(forecastItem);
+                    });
                 }
                 
                 // 加载默认城市天气（备用方案）
