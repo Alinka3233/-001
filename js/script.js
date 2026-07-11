@@ -3559,18 +3559,20 @@
 
             function renderDefaultCities(keyword = '') {
                 const weatherCityResultsEl = document.getElementById('weather-city-results');
-                if (!weatherCityResultsEl) return;
+                if (!weatherCityResultsEl) return false;
                 
                 if (!keyword) {
                     // 默认显示前 100 个城市（为了性能），或者全部显示
                     renderCityResults(defaultCities.slice(0, 100));
-                    return;
+                    return true;
                 }
                 const filtered = defaultCities.filter(c => c.name.includes(keyword) || (c.path && c.path.includes(keyword)));
                 if (filtered.length > 0) {
                     renderCityResults(filtered.slice(0, 100)); // 限制最多显示100条，防止卡顿
+                    return true;
                 } else {
                     weatherCityResultsEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #8e8e93;">未找到相关地区，正在尝试联网搜索...</div>';
+                    return false;
                 }
             }
 
@@ -3651,12 +3653,17 @@
             if (weatherCitySearchInput) {
                 weatherCitySearchInput.addEventListener('input', window.debounce(async (e) => {
                     const keyword = e.target.value.trim();
-                    console.log('Search keyword triggered:', keyword);
                     
-                    // 先显示本地匹配的城市
-                    renderDefaultCities(keyword);
+                    // 先显示本地匹配的城市，并获取是否找到的结果
+                    const foundLocally = renderDefaultCities(keyword);
 
                     if (keyword.length < 1) {
+                        return;
+                    }
+
+                    // 核心修复：如果本地已经找到了匹配的省市区，直接返回，阻止网络请求
+                    // 这样可以防止高德的 POI (比如公交站/酒店) 覆盖掉本地正确的行政区划
+                    if (foundLocally) {
                         return;
                     }
 
