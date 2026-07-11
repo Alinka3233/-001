@@ -2819,6 +2819,10 @@
                             localStorage.removeItem('calculatorHistory');
                             localStorage.removeItem('selectedTheme');
                             localStorage.removeItem('weather_location');
+                            localStorage.removeItem('weather_manual_city');
+                            if (typeof window.updateSettingsWeatherCityName === 'function') {
+                                window.updateSettingsWeatherCityName();
+                            }
                             localStorage.removeItem('wechatApiUrl');
                             localStorage.removeItem('wechatApiKey');
                             localStorage.removeItem('wechatModel');
@@ -3527,6 +3531,34 @@
                     weatherCitySearchInput.focus();
                 });
             }
+            
+            const settingsWeatherCitySelectBtn = document.getElementById('settings-weather-city-select-btn');
+            if (settingsWeatherCitySelectBtn) {
+                settingsWeatherCitySelectBtn.addEventListener('click', () => {
+                    weatherCityModal.classList.add('active');
+                    weatherCitySearchInput.focus();
+                });
+            }
+
+            // 更新设置里的地区显示名称
+            window.updateSettingsWeatherCityName = function() {
+                const nameEl = document.getElementById('settings-weather-city-name');
+                if (nameEl) {
+                    const manualCityJson = localStorage.getItem('weather_manual_city');
+                    if (manualCityJson) {
+                        try {
+                            const manualCity = JSON.parse(manualCityJson);
+                            nameEl.textContent = manualCity.name || '默认';
+                        } catch(e) {
+                            nameEl.textContent = '默认';
+                        }
+                    } else {
+                        nameEl.textContent = '默认';
+                    }
+                }
+            };
+            // 初始调用一次
+            window.updateSettingsWeatherCityName();
 
             if (weatherCityModalClose) {
                 weatherCityModalClose.addEventListener('click', () => {
@@ -3595,6 +3627,10 @@
                     // 重新加载天气
                     if (typeof getRealWeather === 'function') {
                         getRealWeather();
+                    }
+                    // 更新设置中的名称
+                    if (typeof window.updateSettingsWeatherCityName === 'function') {
+                        window.updateSettingsWeatherCityName();
                     }
                 };
 
